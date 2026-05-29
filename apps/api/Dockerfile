@@ -8,8 +8,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install uv
 WORKDIR /app
 COPY pyproject.toml ./
-RUN uv venv && uv pip install --python /app/.venv/bin/python -r <(uv pip compile pyproject.toml) || \
-    (uv pip install --python /app/.venv/bin/python fastapi 'uvicorn[standard]' 'sqlalchemy[asyncio]>=2' asyncpg alembic pydantic pydantic-settings 'python-jose[cryptography]' 'passlib[argon2]' pyotp segno qrcode Pillow reportlab svgwrite boto3 redis slowapi nanoid structlog python-multipart httpx email-validator uuid7)
+# POSIX-safe (Docker RUN uses /bin/sh — no bash process substitution).
+# Compile pyproject deps to a file, then install from it. cairosvg + all
+# label-render deps come from pyproject so no separate fallback list needed.
+RUN uv venv \
+ && uv pip compile pyproject.toml -o /tmp/requirements.txt \
+ && uv pip install --python /app/.venv/bin/python -r /tmp/requirements.txt
 
 # ---- builder ----
 FROM deps AS builder
