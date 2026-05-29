@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ---- deps ----
-FROM python:3.12-slim AS deps
+FROM python:3.14-slim AS deps
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential libpq-dev curl tini \
@@ -22,7 +22,7 @@ COPY scripts ./scripts
 COPY alembic.ini ./
 
 # ---- runtime ----
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 # PYTHONPATH=/app/src makes the `panelos_api` package importable (deps are
 # installed in the venv, but the project itself is run from source).
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src"
