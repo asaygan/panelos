@@ -1,0 +1,69 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Python / uv
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+ios/Pods/
+android/.gradle/
+android/local.properties
+
+# Env / secrets
+.env
+.env.local
+.env.production
+.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials.json
+*.credentials
+
+# Storage (local provider)
+.storage/
+apps/api/.storage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+
+# Coverage / reports
+coverage/
+playwright-report/
+test-results/

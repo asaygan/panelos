@@ -1,0 +1,6 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "enabled": false,
+  "description": "Stub config. We use Dependabot (.github/dependabot.yml). Flip enabled:true to migrate."
+}

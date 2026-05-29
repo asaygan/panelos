@@ -1,0 +1,13 @@
+sequenceDiagram
+    autonumber
+    actor Tech as Field Technician
+    participant W as Web /q/{token}
+    participant A as API /qr/{token}
+    participant DB as Postgres
+
+    Tech->>W: Camera scan
+    W->>A: GET /api/v1/qr/{token}
+    A->>DB: SELECT panel WHERE qr_token=$1
+    DB-->>A: panel + active_revision
+    A->>DB: INSERT scan_events
+    A-->>W: 302 to /p/{panel_id}

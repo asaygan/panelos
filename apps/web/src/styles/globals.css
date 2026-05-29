@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./design-tokens.css";
+
+/* Ensure Tailwind's `border-color` default doesn't fight our token-driven hairlines */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--c-line);
+  }
+}

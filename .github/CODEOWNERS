@@ -1,0 +1,32 @@
+# CODEOWNERS — auto-request reviews for matching paths.
+#
+# Syntax: <pattern> <owner1> <owner2> ...
+# Owners may be @users or @org/team. Last matching pattern wins.
+#
+# We do not have real owners yet. Replace the placeholders below with
+# real GitHub handles or teams (e.g. @panelos/core) once the team forms.
+# Until then this file is intentionally commented out so PRs are not
+# blocked on missing reviewers.
+
+# Global fallback
+# *                       @panelos/core
+
+# Frontend
+# /apps/web/              @panelos/web
+# /packages/ui/           @panelos/web
+
+# Backend
+# /apps/api/              @panelos/api
+# /apps/api/alembic/      @panelos/api @panelos/data
+
+# Mobile
+# /apps/mobile/           @panelos/mobile
+
+# Infra / CI
+# /infra/                 @panelos/platform
+# /.github/               @panelos/platform
+# /scripts/               @panelos/platform
+
+# Security-sensitive
+# /SECURITY.md            @panelos/security
+# /apps/api/src/panelos_api/auth/  @panelos/security @panelos/api

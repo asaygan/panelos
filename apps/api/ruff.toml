@@ -1,0 +1,7 @@
+# Local override for apps/api: SQLAlchemy 2.0 + Pydantic v2 both need
+# the annotated types at runtime, so TC001/TC003 false-positive across
+# models, schemas, and services. Disable the type-checking-block rules here.
+extend = "../../pyproject.toml"
+
+[lint]
+extend-ignore = ["TC001", "TC002", "TC003", "S105", "S106", "S110", "E501", "N818"]

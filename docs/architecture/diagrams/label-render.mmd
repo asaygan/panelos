@@ -1,0 +1,10 @@
+flowchart LR
+  LB[LabelBatch] --> S[label_service]
+  S --> R{template}
+  R -- engraved --> ER[EngravedRenderer]
+  R -- print_bw --> PR[PrintBwRenderer]
+  R -- zpl --> ZR[ZplRenderer]
+  ER --> PNG[(PNG/SVG)]
+  PR --> PNG
+  PNG --> PDF[PdfExporter]
+  PDF --> OS[(Object Storage)]

@@ -1,0 +1,22 @@
+flowchart LR
+    subgraph Client
+      W[Next.js 15 Web]
+      M[Flutter Mobile]
+    end
+    subgraph Backend
+      API[FastAPI API]
+      WK[RQ Worker]
+    end
+    subgraph Data
+      PG[(Postgres 16)]
+      RD[(Redis 7)]
+      OS[(Object Storage)]
+    end
+    W --> API
+    M --> API
+    API --> PG
+    API --> RD
+    API --> OS
+    WK --> PG
+    WK --> RD
+    WK --> OS

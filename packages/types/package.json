@@ -1,0 +1,36 @@
+{
+  "name": "@panelos/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared TypeScript types for PanelOS — generated from the FastAPI OpenAPI schema plus hand-written domain enums.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./enums": {
+      "types": "./src/enums.ts",
+      "import": "./src/enums.ts"
+    },
+    "./generated": {
+      "types": "./src/generated/api.ts",
+      "import": "./src/generated/api.ts"
+    }
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "codegen": "openapi-typescript http://localhost:8000/openapi.json -o ./src/generated/api.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@panelos/config": "workspace:*",
+    "openapi-typescript": "^7.4.0",
+    "typescript": "^5.6.0"
+  }
+}

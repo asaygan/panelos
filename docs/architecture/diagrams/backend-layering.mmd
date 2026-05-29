@@ -1,0 +1,10 @@
+flowchart LR
+  HTTP[HTTP request] --> R[router]
+  R --> D[deps: current_user, tenant, require perm]
+  D --> S[service]
+  S --> Rep[repository]
+  Rep --> DB[(Postgres)]
+  S --> St[StorageProvider]
+  St --> OS[(Object Storage)]
+  S --> A[audit_service]
+  A --> DB

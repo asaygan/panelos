@@ -1,0 +1,19 @@
+openapi: 3.1.0
+info:
+  title: PanelOS API
+  version: 0.1.0
+  description: |
+    This file is a placeholder. The canonical OpenAPI schema is generated
+    from the running FastAPI app at build time and written to this path by
+    the CI pipeline. See ../ci-cd/pipeline.md.
+
+    To regenerate locally:
+      pnpm -F api codegen:openapi
+    or
+      uv run python -m panelos_api.tools.export_openapi > docs/api/openapi.yaml
+
+    The generated schema is the source of truth for the typed TS client in
+    packages/types/.
+servers:
+  - url: https://api.panelos.app
+paths: {}

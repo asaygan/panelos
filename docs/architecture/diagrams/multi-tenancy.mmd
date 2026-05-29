@@ -1,0 +1,8 @@
+flowchart TB
+  Req[HTTP request] --> M[Middleware: auth + tenant pick]
+  M --> Dep[FastAPI dep: require Permission]
+  Dep --> Srv[Service layer]
+  Srv --> Repo[BaseRepository.filter_by_tenant]
+  Repo --> SET[SET LOCAL app.company_id]
+  SET --> RLS[Postgres RLS policy]
+  RLS --> DB[(Postgres)]

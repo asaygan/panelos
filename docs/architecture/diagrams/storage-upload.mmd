@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant W as Web (Next.js)
+    participant A as API (FastAPI)
+    participant S as StorageProvider
+    participant D as Postgres
+
+    U->>W: Drop PDF onto Schematic Upload
+    W->>A: POST /files/presign {sha256, mime, size}
+    A->>A: rbac check, tenant ctx
+    A->>S: presign_put(key)
+    S-->>A: signed URL + headers
+    A-->>W: { upload_url, key, file_id (pending) }
+    W->>S: PUT pdf to signed URL
+    S-->>W: 200
+    W->>A: POST /files/{file_id}/finalize
+    A->>S: get(key) - verify size + sha256
+    A->>D: INSERT pdf_files
+    A-->>W: { file_id }

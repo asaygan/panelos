@@ -1,0 +1,68 @@
+# Production-like stack — used in CI smoke tests and staging-on-laptop.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Image pinning: tags below are "latest stable" channels. For real prod, pin by digest
+# (e.g. postgres@sha256:...) — fetch with `docker buildx imagetools inspect <ref>`.
+services:
+  postgres:
+    image: postgres:16-alpine  # pin: postgres@sha256:<digest>
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U panelos -d panelos"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine  # pin: redis@sha256:<digest>
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  minio:
+    image: minio/minio:latest  # pin: minio/minio@sha256:<digest>
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    restart: unless-stopped
+    # No source mounts; rely on baked image.
+    volumes: []
+    environment:
+      ENV: production
+      LOG_LEVEL: info
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status == 200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    restart: unless-stopped
+    volumes: []
+    environment:
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  worker:
+    restart: unless-stopped
+    volumes: []
+    environment:
+      ENV: production
+      LOG_LEVEL: info

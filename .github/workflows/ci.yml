@@ -1,0 +1,277 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-22.04
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
+      docker: ${{ steps.filter.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'pnpm-workspace.yaml'
+              - 'package.json'
+              - 'turbo.json'
+            api:
+              - 'apps/api/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+            docker:
+              - 'infra/**'
+              - 'apps/api/Dockerfile'
+              - 'apps/web/Dockerfile'
+
+  lint-web:
+    name: Lint (web)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -F web lint
+
+  typecheck-web:
+    name: Typecheck (web)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -F web typecheck
+
+  test-web:
+    name: Test (web)
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -F web test -- --run
+
+  build-web:
+    name: Build (web)
+    needs: [changes, lint-web, typecheck-web]
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -F web build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  lint-api:
+    name: Lint (api)
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - run: uv run ruff check apps/api/src
+      - run: uv run ruff format --check apps/api/src
+      - run: uv run mypy apps/api/src/panelos_api/core
+
+  test-api:
+    name: Test (api)
+    needs: changes
+    if: needs.changes.outputs.api == 'true'
+    runs-on: ubuntu-22.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: panelos
+          POSTGRES_PASSWORD: panelos
+          POSTGRES_DB: panelos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U panelos"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://panelos:panelos@localhost:5432/panelos_test
+      REDIS_URL: redis://localhost:6379/0
+      ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: uv sync --frozen
+      - run: uv run alembic upgrade head
+        working-directory: apps/api
+      - run: uv run pytest apps/api/tests --cov=apps/api/src --cov-report=xml
+      - uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: api
+        continue-on-error: true
+
+  openapi-drift:
+    name: OpenAPI drift
+    needs: [changes, test-api]
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: uv sync --frozen
+      - run: pnpm install --frozen-lockfile
+      - name: Dump OpenAPI schema
+        run: uv run python -m panelos_api.scripts.dump_openapi > openapi.json
+        working-directory: apps/api
+      - name: Run codegen
+        run: pnpm -F web run codegen
+        continue-on-error: true
+      - name: Fail on drift
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::OpenAPI schema or generated client is out of date. Run codegen locally and commit."
+            git status
+            git diff
+            exit 1
+          fi
+
+  docker-build-api:
+    name: Docker build (api)
+    needs: [changes]
+    if: needs.changes.outputs.api == 'true' || needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          load: true
+          tags: panelos-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+  docker-build-web:
+    name: Docker build (web)
+    needs: [changes]
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.docker == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          load: true
+          tags: panelos-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+
+  ci-success:
+    name: CI success
+    runs-on: ubuntu-22.04
+    needs:
+      - lint-web
+      - typecheck-web
+      - test-web
+      - build-web
+      - lint-api
+      - test-api
+      - docker-build-api
+      - docker-build-web
+    if: always()
+    steps:
+      - name: Verify all jobs passed or were skipped
+        run: |
+          results='${{ toJSON(needs) }}'
+          echo "$results"
+          echo "$results" | python3 -c "import json,sys; d=json.load(sys.stdin); failed=[k for k,v in d.items() if v['result']=='failure']; sys.exit(1 if failed else 0)"

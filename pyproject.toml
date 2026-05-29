@@ -1,0 +1,44 @@
+[project]
+name = "panelos-workspace"
+version = "0.1.0"
+description = "PanelOS Python workspace root (uv)"
+requires-python = ">=3.12"
+
+[tool.uv.workspace]
+members = ["apps/api"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W",       # pycodestyle / pyflakes
+  "I",                  # isort
+  "B",                  # bugbear
+  "UP",                 # pyupgrade
+  "N",                  # pep8-naming
+  "ASYNC",              # async lint
+  "S",                  # bandit-lite
+  "C4",                 # comprehensions
+  "SIM",                # simplifications
+  "RET",                # return rules
+  "TCH",                # type-checking blocks
+  "RUF"                 # ruff-specific
+]
+ignore = ["S101", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["S", "N"]
+"**/migrations/**" = ["N"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["migrations/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["apps/api/src"]
+testpaths = ["apps/api/tests"]

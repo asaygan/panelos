@@ -1,0 +1,29 @@
+# Local dev overrides — auto-loaded by `docker compose up`.
+# Enables hot reload + source bind mounts; exposes all dependency ports for host tooling.
+services:
+  api:
+    command: ["uv", "run", "uvicorn", "panelos_api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ../../apps/api/src:/app/src
+      - ../../apps/api/alembic:/app/alembic
+      - ../../apps/api/tests:/app/tests
+    environment:
+      ENV: development
+      LOG_LEVEL: debug
+
+  web:
+    command: ["pnpm", "-F", "web", "dev"]
+    volumes:
+      - ../../apps/web/src:/app/apps/web/src
+      - ../../apps/web/public:/app/apps/web/public
+      - ../../apps/web/next.config.js:/app/apps/web/next.config.js
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  worker:
+    volumes:
+      - ../../apps/api/src:/app/src
+    environment:
+      ENV: development
+      LOG_LEVEL: debug

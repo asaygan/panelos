@@ -1,0 +1,15 @@
+C4Context
+    title PanelOS - System Context
+    Person(engineer, "Engineer", "Creates panels, uploads revisions")
+    Person(tech, "Field Technician", "Scans QR, views schematics")
+    Person(owner, "Owner/Admin", "Manages users, billing, settings")
+    System(panelos, "PanelOS", "Web + mobile + API")
+    System_Ext(storage, "Object Storage", "Local / S3 / Supabase / Azure")
+    System_Ext(idp, "IdP", "SAML / OIDC")
+    System_Ext(email, "Email gateway", "Transactional email")
+    Rel(engineer, panelos, "Uses web")
+    Rel(tech, panelos, "Uses mobile, scans QR")
+    Rel(owner, panelos, "Administers")
+    Rel(panelos, storage, "Stores PDFs, labels, QR images")
+    Rel(panelos, idp, "Authenticates")
+    Rel(panelos, email, "Sends invites")

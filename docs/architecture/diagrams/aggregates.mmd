@@ -1,0 +1,26 @@
+flowchart LR
+  subgraph Tenant
+    C[Company root]
+    U[Users] --- M[Memberships] --- C
+    L[Locations] --- C
+    AK[ApiKeys] --- C
+  end
+  subgraph Panel
+    P[Panel root]
+    R[PanelRevision]
+    F[RevisionFiles]
+    CO[Components]
+    P --- R --- F
+    R --- CO
+  end
+  subgraph Label
+    LB[Label]
+    LBB[LabelBatch]
+  end
+  subgraph Audit
+    A[AuditLog]
+    SE[ScanEvent]
+  end
+  C --> P
+  P --> LB
+  C --> A

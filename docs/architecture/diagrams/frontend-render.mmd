@@ -1,0 +1,7 @@
+flowchart TB
+  U[User] --> RC[Server Component page.tsx]
+  RC -- fetch --> API[FastAPI /api/v1]
+  RC --> CL[Client Component]
+  CL -- TanStack Query --> API
+  CL -- Server Action --> SA[Server Action]
+  SA --> API

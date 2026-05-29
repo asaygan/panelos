@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> draft
+    draft --> review : submit
+    draft --> rejected : discard
+    review --> approved : approve
+    review --> rejected : reject
+    review --> draft : request_changes
+    approved --> superseded : new_approved
+    rejected --> [*]
+    superseded --> [*]
