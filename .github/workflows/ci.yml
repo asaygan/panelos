@@ -176,7 +176,7 @@ jobs:
       - run: uv run alembic upgrade head
         working-directory: apps/api
       - run: uv run pytest apps/api/tests --cov=apps/api/src --cov-report=xml
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v6
         if: always()
         with:
           files: ./coverage.xml
