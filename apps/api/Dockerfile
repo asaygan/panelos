@@ -23,7 +23,9 @@ COPY alembic.ini ./
 
 # ---- runtime ----
 FROM python:3.12-slim AS runtime
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH="/app/.venv/bin:$PATH"
+# PYTHONPATH=/app/src makes the `panelos_api` package importable (deps are
+# installed in the venv, but the project itself is run from source).
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH="/app/.venv/bin:$PATH" PYTHONPATH="/app/src"
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 tini ca-certificates \
     libcairo2 libpango-1.0-0 libgdk-pixbuf-2.0-0 fontconfig fonts-dejavu-core \
