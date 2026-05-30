@@ -33,11 +33,15 @@ export interface SidebarProps {
   onCollapse: (collapsed: boolean) => void;
   counts: { panels: number; rev: number };
   company: string;
+  /** Optional path prefix for nav links (e.g. "/demo"). Default "" = production behavior. */
+  basePath?: string;
 }
 
-export function Sidebar({ collapsed, onCollapse, counts, company }: SidebarProps) {
+export function Sidebar({ collapsed, onCollapse, counts, company, basePath = "" }: SidebarProps) {
   const pathname = usePathname();
-  const isActive = (item: NavItem) => pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const href = (item: NavItem) => `${basePath}${item.href}`;
+  const isActive = (item: NavItem) =>
+    pathname === href(item) || pathname.startsWith(`${href(item)}/`);
 
   return (
     <aside
@@ -72,6 +76,7 @@ export function Sidebar({ collapsed, onCollapse, counts, company }: SidebarProps
             <SidebarItem
               key={item.id}
               item={item}
+              href={href(item)}
               active={isActive(item)}
               collapsed={collapsed}
               badge={item.id === "panels" ? counts.panels : item.id === "revisions" ? counts.rev : undefined}
@@ -82,7 +87,13 @@ export function Sidebar({ collapsed, onCollapse, counts, company }: SidebarProps
         {!collapsed && <div className="label-cap" style={{ padding: "4px 9px 6px" }}>Administration</div>}
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {NAV_ADMIN.map((item) => (
-            <SidebarItem key={item.id} item={item} active={isActive(item)} collapsed={collapsed} />
+            <SidebarItem
+              key={item.id}
+              item={item}
+              href={href(item)}
+              active={isActive(item)}
+              collapsed={collapsed}
+            />
           ))}
         </div>
       </div>
@@ -158,18 +169,20 @@ export function Sidebar({ collapsed, onCollapse, counts, company }: SidebarProps
 
 function SidebarItem({
   item,
+  href,
   active,
   collapsed,
   badge,
 }: {
   item: NavItem;
+  href: string;
   active: boolean;
   collapsed: boolean;
   badge?: number;
 }) {
   return (
     <Link
-      href={item.href as never}
+      href={href as never}
       title={collapsed ? item.label : undefined}
       style={{
         display: "flex",

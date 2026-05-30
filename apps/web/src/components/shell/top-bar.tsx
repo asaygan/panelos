@@ -3,6 +3,7 @@
 import { Icon } from "@/components/icons/icon";
 import { Btn } from "@/components/primitives/button";
 import { Avatar } from "@/components/primitives/avatar";
+import { Badge } from "@/components/primitives/badge";
 import { Menu } from "@/components/primitives/menu";
 import type { User } from "@/lib/api/types";
 import { useTweaks } from "@/hooks/use-tweaks";
@@ -19,10 +20,15 @@ export interface TopBarProps {
   crumbs?: Crumb[];
   user: Pick<User, "name" | "initials" | "color">;
   onOpenSearch: () => void;
+  /** Optional path prefix (e.g. "/demo"). Default "" = production behavior. */
+  basePath?: string;
+  /** When true, shows a "DEMO MODE" badge and disables the real sign-out action. */
+  demoMode?: boolean;
 }
 
-export function TopBar({ title, sub, crumbs, user, onOpenSearch }: TopBarProps) {
+export function TopBar({ title, sub, crumbs, user, onOpenSearch, basePath = "", demoMode = false }: TopBarProps) {
   const [tweaks, setTweak] = useTweaks();
+  void basePath;
 
   return (
     <header
@@ -74,6 +80,13 @@ export function TopBar({ title, sub, crumbs, user, onOpenSearch }: TopBarProps) 
                 }}
               >
                 {title}
+              </span>
+            )}
+            {demoMode && (
+              <span style={{ alignSelf: "center" }}>
+                <Badge tone="warn" dot>
+                  DEMO MODE
+                </Badge>
               </span>
             )}
             {sub && <span style={{ fontSize: "var(--fz-sm)", color: "var(--c-ink-3)" }}>{sub}</span>}
@@ -172,6 +185,7 @@ export function TopBar({ title, sub, crumbs, user, onOpenSearch }: TopBarProps) 
               icon: "logout",
               danger: true,
               onClick: () => {
+                if (demoMode) return;
                 void logoutAction();
               },
             },
