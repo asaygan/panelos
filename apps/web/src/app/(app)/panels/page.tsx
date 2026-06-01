@@ -13,9 +13,39 @@ import { Menu } from "@/components/primitives/menu";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { Icon } from "@/components/icons/icon";
 import { AddPanelModal } from "@/components/panels/add-panel-modal";
-import { usePanels, useLocations } from "@/lib/query/hooks";
+import { usePanels, useLocations, useArchivePanel } from "@/lib/query/hooks";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { Panel } from "@/lib/api/types";
+
+/** Serialize panel rows to a CSV string (RFC-4180 quoting). */
+function panelsToCsv(rows: Panel[]): string {
+  const cols: { header: string; get: (p: Panel) => string }[] = [
+    { header: "Tag", get: (p) => p.tag },
+    { header: "Name", get: (p) => p.name },
+    { header: "Serial", get: (p) => p.serial },
+    { header: "Customer", get: (p) => String(p.customer ?? "") },
+    { header: "Location", get: (p) => p.loc },
+    { header: "Area", get: (p) => p.area },
+    { header: "Status", get: (p) => STATUS_META[p.status]?.label ?? p.status },
+    { header: "Voltage", get: (p) => String(p.volt ?? "") },
+    { header: "Current", get: (p) => String(p.amp ?? "") },
+    { header: "Updated", get: (p) => p.updated },
+  ];
+  const esc = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const lines = [cols.map((c) => c.header).join(",")];
+  for (const p of rows) lines.push(cols.map((c) => esc(c.get(p))).join(","));
+  return lines.join("\r\n");
+}
+
+function downloadCsv(filename: string, csv: string): void {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 type SortKey = "tag" | "serial" | "loc" | "volt" | "mfr" | "rev" | "comps" | "updated";
 type GroupKey = "none" | "loc" | "area" | "mfr" | "status" | "volt";
@@ -42,6 +72,7 @@ export default function PanelsPage() {
 
   const { data: allPanels = [], isLoading, isError } = usePanels();
   const { data: locationList = [] } = useLocations();
+  const archivePanel = useArchivePanel();
 
   const rows = useMemo(() => {
     let r = allPanels.filter(
@@ -91,6 +122,20 @@ export default function PanelsPage() {
 
   const allSel = sel.length === rows.length && rows.length > 0;
 
+  const handleArchive = (p: Panel) => {
+    if (!window.confirm(`Archive panel ${p.tag}? It will be hidden from the active fleet.`)) return;
+    archivePanel.mutate(p.id, {
+      onError: () => window.alert("Could not archive the panel. Please try again."),
+    });
+  };
+
+  const handleExport = () => {
+    // Export the current selection if any rows are checked, else the filtered view.
+    const selected = sel.length > 0 ? rows.filter((r) => sel.includes(r.id)) : rows;
+    if (selected.length === 0) return;
+    downloadCsv(`panels-${selected.length}.csv`, panelsToCsv(selected));
+  };
+
   const renderRow = (p: Panel) => (
     <tr
       key={p.id}
@@ -137,10 +182,18 @@ export default function PanelsPage() {
           trigger={<Btn icon="more-horizontal" variant="ghost" size="sm" />}
           items={[
             { label: "Open detail", icon: "external-link", onClick: () => router.push(`/panels/${p.id}`) },
-            { label: "View schematics", icon: "file-text", onClick: () => router.push("/schematics") },
-            { label: "Generate label", icon: "qr-code", onClick: () => router.push("/labels") },
+            {
+              label: "View schematics",
+              icon: "file-text",
+              onClick: () => router.push(`/schematics?panel=${p.id}`),
+            },
+            {
+              label: "Generate label",
+              icon: "qr-code",
+              onClick: () => router.push(`/labels?panel=${p.id}`),
+            },
             { sep: true },
-            { label: "Archive", icon: "box", danger: true },
+            { label: "Archive", icon: "box", danger: true, onClick: () => handleArchive(p) },
           ]}
         />
       </td>
@@ -209,12 +262,16 @@ export default function PanelsPage() {
         </span>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {sel.length > 0 && (
-            <Btn size="sm" icon="qr-code" onClick={() => router.push("/labels")}>
+            <Btn
+              size="sm"
+              icon="qr-code"
+              onClick={() => router.push(`/labels?panels=${sel.join(",")}`)}
+            >
               Label {sel.length}
             </Btn>
           )}
-          <Btn size="sm" icon="download">
-            Export
+          <Btn size="sm" icon="download" onClick={handleExport} disabled={rows.length === 0}>
+            Export{sel.length > 0 ? ` (${sel.length})` : ""}
           </Btn>
           <Btn size="sm" variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
             Add panel

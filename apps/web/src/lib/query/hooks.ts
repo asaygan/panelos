@@ -536,6 +536,17 @@ export function useUpdatePanel() {
   });
 }
 
+export function useArchivePanel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => panels.archive(id),
+    onSuccess: (_d, id) => {
+      qc.invalidateQueries({ queryKey: queryKeys.panels.detail(id) });
+      qc.invalidateQueries({ queryKey: queryKeys.panels.all() });
+    },
+  });
+}
+
 export function useCreateLocation() {
   const qc = useQueryClient();
   return useMutation({

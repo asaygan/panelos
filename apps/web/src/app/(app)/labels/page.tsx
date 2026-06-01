@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Page } from "@/components/primitives/page";
 import { Field } from "@/components/primitives/field";
 import { Select } from "@/components/primitives/select";
@@ -42,9 +43,18 @@ export default function LabelsPage() {
   const renderLabel = useRenderLabel();
   const batchLabels = useBatchLabels();
 
-  const [panelId, setPanelId] = useState("");
+  const searchParams = useSearchParams();
+  // Panel context passed from the panels list: ?panel=<id> preselects one,
+  // ?panels=<id,id,…> preloads a batch (bulk "Label N" action).
+  const initialPanel = searchParams.get("panel") ?? "";
+  const initialBatch = useMemo(() => {
+    const raw = searchParams.get("panels");
+    return raw ? raw.split(",").filter(Boolean) : [];
+  }, [searchParams]);
+
+  const [panelId, setPanelId] = useState(initialPanel || (initialBatch[0] ?? ""));
   const [templateId, setTemplateId] = useState("");
-  const [batch, setBatch] = useState<string[]>([]);
+  const [batch, setBatch] = useState<string[]>(initialBatch);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
