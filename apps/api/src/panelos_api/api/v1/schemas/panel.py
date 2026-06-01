@@ -14,6 +14,7 @@ class PanelOut(ORMModel):
     name: str
     qr_token: str
     status: PanelStatus
+    panel_set_id: uuid.UUID | None = None
     location_id: uuid.UUID | None
     voltage: str | None = None
     current_a: str | None = None
@@ -32,6 +33,7 @@ class PanelCreateIn(ORMModel):
     tag: str
     serial: str
     name: str
+    panel_set_id: uuid.UUID | None = None
     location_id: uuid.UUID | None = None
     voltage: str | None = None
     current_a: str | None = None
@@ -47,6 +49,7 @@ class PanelCreateIn(ORMModel):
 class PanelUpdateIn(ORMModel):
     name: str | None = None
     tag: str | None = None
+    panel_set_id: uuid.UUID | None = None
     location_id: uuid.UUID | None = None
     voltage: str | None = None
     current_a: str | None = None
