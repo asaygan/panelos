@@ -317,8 +317,10 @@ export interface paths {
          * Serve Raw
          * @description Target of ``LocalStorage.presign_get``: stream stored bytes back.
          *
-         *     No auth required (presigned URL semantics) for local dev.
-         *     TODO: sign URLs in prod so this isn't world-readable.
+         *     LOCAL-ONLY (presigned-URL semantics for local dev). Non-local providers serve
+         *     files via short-lived provider signed URLs (see ``file_service.get_download_url``),
+         *     so this route is disabled when not on the local provider and never becomes a
+         *     world-readable hole in prod.
          */
         get: operations["serve_raw_api_v1_files_serve__key__get"];
         put?: never;
@@ -359,8 +361,11 @@ export interface paths {
          * Upload Raw
          * @description Target of ``LocalStorage.presign_put``: store the raw request body at ``key``.
          *
-         *     No auth: this is the destination of a presigned PUT URL. The key embeds the
-         *     company id + a random uuid, so it is unguessable. TODO: sign URLs in prod.
+         *     LOCAL-ONLY. This is the destination of a *local* presigned PUT URL. For
+         *     non-local providers (s3/supabase/azure), ``presign_put`` returns a provider
+         *     signed URL and the browser uploads there directly — so this unauthenticated
+         *     write endpoint must be inert in prod, otherwise it would let anyone overwrite
+         *     arbitrary storage keys. The local key embeds company id + a random uuid.
          */
         put: operations["upload_raw_api_v1_files_upload__key__put"];
         post?: never;

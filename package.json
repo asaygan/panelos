@@ -11,7 +11,9 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css}\"",
-    "codegen": "pnpm -F @panelos/types codegen"
+    "codegen:schema": "cd apps/api && uv run python -m panelos_api.scripts.dump_openapi > ../../packages/types/openapi.json",
+    "codegen": "pnpm codegen:schema && pnpm -F @panelos/types codegen",
+    "codegen:live": "pnpm -F @panelos/types codegen:live"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
