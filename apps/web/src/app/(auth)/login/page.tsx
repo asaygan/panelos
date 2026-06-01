@@ -81,7 +81,6 @@ export default function LoginPage() {
               "QR-linked panel identity",
               "Revision-controlled schematics",
               "Secure field access",
-              "Industrial asset documentation",
             ].map((v) => (
               <div key={v} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -106,7 +105,7 @@ export default function LoginPage() {
         }}
       >
         <form action={formAction} style={{ width: 320 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.01em" }}>Sign in</div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.01em" }}>Sign in to PanelOS</div>
           <div
             style={{
               fontSize: "var(--fz-sm)",
@@ -115,7 +114,8 @@ export default function LoginPage() {
               marginBottom: 22,
             }}
           >
-            Welcome back. Sign in to your organization.
+            Access QR-linked panel records, revision-controlled schematics, and secure field
+            documentation.
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
             <Field label="Work email">
