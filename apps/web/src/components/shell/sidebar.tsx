@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/icons/logo";
 import { Icon, type IconName } from "@/components/icons/icon";
 import { Btn } from "@/components/primitives/button";
-import { Menu } from "@/components/primitives/menu";
+
+/** Two-letter monogram from an organization name. */
+function orgInitials(name: string): string {
+  const words = (name || "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "—";
+  if (words.length === 1) return words[0]!.slice(0, 2).toUpperCase();
+  return (words[0]![0]! + words[1]![0]!).toUpperCase();
+}
 
 export interface NavItem {
   id: string;
@@ -106,61 +113,50 @@ export function Sidebar({ collapsed, onCollapse, counts, company, basePath = "" 
 
       {!collapsed && (
         <div style={{ borderTop: "1px solid var(--c-line)", padding: 8 }}>
-          <Menu
-            align="start"
-            width={200}
-            trigger={
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 7px",
+              borderRadius: "var(--r-sm)",
+              border: "1px solid var(--c-line)",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 5,
+                background: "var(--c-ink)",
+                color: "#fff",
+                display: "grid",
+                placeItems: "center",
+                fontSize: 11,
+                fontWeight: 800,
+                flex: "none",
+              }}
+            >
+              {orgInitials(company)}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "6px 7px",
-                  borderRadius: "var(--r-sm)",
-                  border: "1px solid var(--c-line)",
-                  width: "100%",
+                  fontSize: 12,
+                  fontWeight: 640,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 5,
-                    background: "var(--c-ink)",
-                    color: "#fff",
-                    display: "grid",
-                    placeItems: "center",
-                    fontSize: 11,
-                    fontWeight: 800,
-                    flex: "none",
-                  }}
-                >
-                  NF
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 640,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {company}
-                  </div>
-                  <div style={{ fontSize: 10, color: "var(--c-ink-3)" }}>Enterprise · 12 plants</div>
-                </div>
-                <Icon name="chevrons-up-down" size={14} style={{ color: "var(--c-ink-3)" }} />
+                {company}
               </div>
-            }
-            items={[
-              { label: "NorthForge Automation", icon: "check" },
-              { label: "Acme Manufacturing", icon: "building" },
-              { sep: true },
-              { label: "Add organization…", icon: "plus" },
-            ]}
-          />
+              <div style={{ fontSize: 10, color: "var(--c-ink-3)" }}>
+                {counts.panels} {counts.panels === 1 ? "panel" : "panels"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </aside>

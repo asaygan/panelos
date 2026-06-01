@@ -104,7 +104,7 @@ export function PrintTag({ panel, fields, scale = 1 }: PrintTagProps) {
         }}
       >
         <span>IEC 61439</span>
-        <span>scan ▸ panelos.app/p/{panel.serial}</span>
+        <span>scan ▸ {panel.serial}</span>
       </div>
     </div>
   );

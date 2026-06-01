@@ -216,14 +216,14 @@ export const SAMPLE_DATA: LabelData = {
   voltage: "480V",
   current: "800A",
   phase: "3PH",
-  mfr: "NorthForge",
+  mfr: "Siemens",
   enclosure: "Type 12",
   location: "Plant 1",
   area: "Bay A",
-  company: "NorthForge Industrial",
-  company_short: "NORTHFORGE",
+  company: "Sample Industrial Co.",
+  company_short: "SAMPLE",
   standards: "IEC 61439",
-  scan_url: "https://panelos.app/q/sample-token-0088",
+  scan_url: "https://app.example.com/q/sample-token",
   logo_url: null,
 };
 

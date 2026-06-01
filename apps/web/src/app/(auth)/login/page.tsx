@@ -73,28 +73,27 @@ export default function LoginPage() {
             The operating system for industrial electrical panels.
           </div>
           <div style={{ fontSize: 13.5, lineHeight: 1.6, color: "#aebfdd", marginTop: 16 }}>
-            QR-tagged assets, revision-controlled schematics, and offline field access — from the design
-            office to the shop floor.
+            Give every industrial panel a permanent digital identity — from the design office to the
+            shop floor.
           </div>
-          <div style={{ display: "flex", gap: 24, marginTop: 28 }}>
-            {(
-              [
-                ["2,481", "Panels managed"],
-                ["14,902", "Schematics"],
-                ["99.98%", "Uptime"],
-              ] as const
-            ).map(([n, l]) => (
-              <div key={l}>
-                <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: "#fff" }}>
-                  {n}
-                </div>
-                <div style={{ fontSize: 11, color: "#8ea2c9", marginTop: 2 }}>{l}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 28 }}>
+            {[
+              "QR-linked panel identity",
+              "Revision-controlled schematics",
+              "Secure field access",
+              "Industrial asset documentation",
+            ].map((v) => (
+              <div key={v} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7fb0ff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span style={{ fontSize: 13, color: "#cdd9f0" }}>{v}</span>
               </div>
             ))}
           </div>
         </div>
         <div style={{ position: "relative", zIndex: 2, fontSize: 11, color: "#6f82a8" }}>
-          ISO 9001 · IEC 61439 aligned · SOC 2 Type II
+          PanelOS — the operating system for industrial electrical panels.
         </div>
       </div>
 
@@ -116,11 +115,11 @@ export default function LoginPage() {
               marginBottom: 22,
             }}
           >
-            Welcome back. Use your NorthForge credentials.
+            Welcome back. Sign in to your organization.
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
             <Field label="Work email">
-              <Input name="email" type="email" defaultValue="m.voss@northforge.io" autoFocus required />
+              <Input name="email" type="email" placeholder="you@company.com" autoFocus required />
             </Field>
             <Field label="Password">
               <Input name="password" type="password" required />
@@ -168,25 +167,9 @@ export default function LoginPage() {
             >
               {pending ? "Signing in…" : "Sign in"}
             </Btn>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                color: "var(--c-ink-4)",
-                fontSize: 11,
-                margin: "6px 0",
-              }}
-            >
-              <span style={{ flex: 1, height: 1, background: "var(--c-line)" }} /> OR{" "}
-              <span style={{ flex: 1, height: 1, background: "var(--c-line)" }} />
-            </div>
-            <Btn style={{ height: 34, justifyContent: "center" }} icon="lock" type="button">
-              Continue with SSO (SAML)
-            </Btn>
           </div>
           <div style={{ fontSize: 11, color: "var(--c-ink-4)", marginTop: 22, textAlign: "center" }}>
-            Protected by hardware MFA. Field techs sign in via the mobile app.
+            Access is invite-only. Contact your organization administrator for an invitation.
           </div>
         </form>
       </div>

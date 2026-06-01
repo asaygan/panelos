@@ -38,7 +38,7 @@ pnpm dev
 
 Web → http://localhost:3000 · API → http://localhost:8000/docs
 
-Default seed login: `m.voss@northforge.io` / `panelos123`.
+Sample dev seed login (local development only — not a real account): `m.voss@northforge.io` / `panelos123`. Production access is invite-only.
 
 ## Documentation
 
