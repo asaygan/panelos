@@ -17,8 +17,8 @@ API = "/api/v1"
 
 async def _second_company_auth(app_client, slug: str = "globex") -> dict[str, str]:
     """Bootstrap a second tenant + owner and return its auth headers."""
-    from panelos_api.services import auth_service
     from panelos_api.db.session import get_sessionmaker
+    from panelos_api.services import auth_service
 
     sm = get_sessionmaker()
     async with sm() as session:

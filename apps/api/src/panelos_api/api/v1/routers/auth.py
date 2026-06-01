@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pyotp
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Cookie, Depends, Request, Response
 
 from panelos_api.api.v1.schemas.auth import (
     AcceptInviteIn,
@@ -18,6 +18,7 @@ from panelos_api.api.v1.schemas.auth import (
     RefreshIn,
     TokenOut,
 )
+from panelos_api.config import get_settings
 from panelos_api.core.exceptions import Unauthorized
 from panelos_api.core.rate_limit import auth_limiter
 from panelos_api.deps import CurrentUser, get_current_user, get_db
@@ -27,7 +28,41 @@ from panelos_api.services import auth_service
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from panelos_api.services.auth_service import TokenPair
+
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+SESSION_COOKIE = "panelos_session"
+REFRESH_COOKIE = "panelos_refresh"
+COMPANY_COOKIE = "panelos_company"
+
+
+def _set_auth_cookies(response: Response, tokens: TokenPair) -> None:
+    """Mirror the Next.js server-action cookies so browser refresh is self-contained.
+
+    The browser never sees the tokens in JS (httpOnly); a 401-triggered POST to
+    /auth/refresh rotates both cookies here so the session continues seamlessly.
+    """
+    settings = get_settings()
+    secure = settings.APP_ENV in ("production", "staging")
+    response.set_cookie(
+        SESSION_COOKIE,
+        tokens.access_token,
+        max_age=settings.ACCESS_TOKEN_TTL_MINUTES * 60,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        path="/",
+    )
+    response.set_cookie(
+        REFRESH_COOKIE,
+        tokens.refresh_token,
+        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60,
+        httponly=True,
+        secure=secure,
+        samesite="lax",
+        path="/",
+    )
 
 
 @router.post("/login", response_model=TokenOut)
@@ -48,9 +83,18 @@ async def login(
 @router.post("/refresh", response_model=TokenOut)
 @auth_limiter.limit("30/minute")
 async def refresh(
-    request: Request, payload: RefreshIn, db: AsyncSession = Depends(get_db)
+    request: Request,
+    response: Response,
+    payload: RefreshIn | None = None,
+    panelos_refresh: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenOut:
-    tokens = await auth_service.refresh_tokens(db, refresh_token=payload.refresh_token)
+    # Body token (mobile/explicit) takes precedence; browsers rely on the cookie.
+    token = (payload.refresh_token if payload else None) or panelos_refresh
+    if not token:
+        raise Unauthorized("missing refresh token")
+    tokens = await auth_service.refresh_tokens(db, refresh_token=token)
+    _set_auth_cookies(response, tokens)
     return TokenOut(access_token=tokens.access_token, refresh_token=tokens.refresh_token)
 
 
@@ -80,8 +124,18 @@ async def accept_invite(
 
 
 @router.post("/logout")
-async def logout(payload: LogoutIn, db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
-    await auth_service.logout(db, refresh_token=payload.refresh_token)
+async def logout(
+    response: Response,
+    payload: LogoutIn | None = None,
+    panelos_refresh: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, bool]:
+    token = (payload.refresh_token if payload else None) or panelos_refresh
+    if token:
+        await auth_service.logout(db, refresh_token=token)
+    # Clear the auth cookies regardless so the browser session ends.
+    for name in (SESSION_COOKIE, REFRESH_COOKIE, COMPANY_COOKIE):
+        response.delete_cookie(name, path="/")
     return {"ok": True}
 
 

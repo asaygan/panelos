@@ -26,7 +26,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from panelos_api.db.base import Base
-from panelos_api.db.models import *  # noqa: F401, F403
+from panelos_api.db.models import *  # noqa: F403
 
 
 @pytest_asyncio.fixture()
@@ -141,7 +141,7 @@ async def migrated_db(postgres_container: str | None) -> AsyncIterator[str]:
     db_session._sessionmaker = None  # type: ignore[attr-defined]
 
     settings = get_settings()
-    assert settings.DATABASE_URL == postgres_container
+    assert postgres_container == settings.DATABASE_URL
     assert not _is_supabase(settings.DATABASE_URL)
 
     # alembic's async env.py calls ``asyncio.run`` internally; run it in a

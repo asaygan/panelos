@@ -21,7 +21,7 @@ API = "/api/v1"
 
 
 async def _add_member(
-    company_id: str, email: str, role: Role, password: str = "MemberPass123!"
+    company_id: str, email: str, role: Role, password: str = "MemberPass123!"  # noqa: S107
 ) -> dict[str, str]:
     """Create an active user + membership in ``company_id`` with ``role``."""
     sm = get_sessionmaker()
@@ -77,7 +77,6 @@ async def test_viewer_cannot_create_panel(app_client, owner_auth) -> None:  # ty
 
 @pytest.mark.asyncio
 async def test_last_owner_protected(app_client, owner_auth) -> None:  # type: ignore[no-untyped-def]
-    company_id = owner_auth["seed"]["company_id"]
     owner_mid = owner_auth["seed"]["membership_id"]
     headers = owner_auth["headers"]
 
@@ -91,12 +90,9 @@ async def test_last_owner_protected(app_client, owner_auth) -> None:  # type: ig
     r = await app_client.delete(f"{API}/users/{owner_mid}", headers=headers)
     assert r.status_code == 403, r.text
 
-    # Downgrade the last owner to admin → 403. Needs a second admin actor so the
-    # self-change guard doesn't mask the last-owner guard.
-    admin = await _add_member(company_id, "admin1@acmeco.io", Role.ADMIN)
-    admin_headers = await _login(app_client, admin["email"], admin["password"], company_id)
-    # Admin acting on owner is itself forbidden (covered below); use the owner to
-    # attempt the downgrade of the *only* owner, which is the last-owner guard.
+    # Downgrade the last owner to admin → 403. Use the owner's own headers to
+    # attempt the downgrade of the *only* owner, which trips the self-change guard
+    # first and the last-owner guard underneath.
     r = await app_client.patch(
         f"{API}/users/{owner_mid}/role", json={"role": "engineer"}, headers=headers
     )

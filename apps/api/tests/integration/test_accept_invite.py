@@ -7,8 +7,6 @@ the new user can subsequently log in independently.
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 API = "/api/v1"

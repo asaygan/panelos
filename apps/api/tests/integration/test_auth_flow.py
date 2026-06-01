@@ -5,8 +5,6 @@ Covers cookie + Bearer auth, refresh rotation, and logout revocation.
 
 from __future__ import annotations
 
-import asyncio
-
 import pytest
 
 API = "/api/v1"
@@ -39,11 +37,8 @@ async def test_login_me_refresh_logout(app_client, seed_owner) -> None:  # type:
     assert r.json()["email"] == email
     app_client.cookies.delete("panelos_session")
 
-    # Refresh rotates tokens. NOTE: refresh JWTs carry no per-token nonce, so a
-    # rotation within the same wall-clock second mints an identical token whose
-    # hash collides with the existing session row. Cross the second boundary to
-    # exercise the happy path deterministically (tracked as a real defect to fix).
-    await asyncio.sleep(1.1)
+    # Refresh rotates tokens. Refresh JWTs carry a per-token `jti` nonce, so two
+    # rotations in the same wall-clock second no longer collide on token_hash.
     r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": refresh})
     assert r.status_code == 200, r.text
     new_tokens = r.json()
@@ -61,6 +56,45 @@ async def test_login_me_refresh_logout(app_client, seed_owner) -> None:  # type:
     r = await app_client.post(
         f"{API}/auth/refresh", json={"refresh_token": new_tokens["refresh_token"]}
     )
+    assert r.status_code == 401, r.text
+
+
+@pytest.mark.asyncio
+async def test_refresh_via_cookie_and_logout(app_client, seed_owner) -> None:  # type: ignore[no-untyped-def]
+    """Browser flow: refresh token comes from the panelos_refresh cookie (no body)."""
+    r = await app_client.post(
+        f"{API}/auth/login",
+        json={"email": seed_owner["email"], "password": seed_owner["password"]},
+    )
+    assert r.status_code == 200, r.text
+    refresh = r.json()["refresh_token"]
+
+    # Simulate the httpOnly cookie the Next.js server action sets; send NO body.
+    app_client.cookies.set("panelos_refresh", refresh)
+    r = await app_client.post(f"{API}/auth/refresh")
+    assert r.status_code == 200, r.text
+    rotated = r.json()
+    assert rotated["refresh_token"] != refresh
+    # The endpoint rotates both auth cookies so the browser session continues.
+    assert "panelos_session" in r.cookies
+    assert "panelos_refresh" in r.cookies
+
+    # Logout with no body uses the refresh cookie, revokes it, and clears cookies.
+    app_client.cookies.set("panelos_refresh", rotated["refresh_token"])
+    r = await app_client.post(f"{API}/auth/logout")
+    assert r.status_code == 200, r.text
+    # Revoked: the rotated refresh token no longer works.
+    r = await app_client.post(
+        f"{API}/auth/refresh", json={"refresh_token": rotated["refresh_token"]}
+    )
+    assert r.status_code == 401, r.text
+    app_client.cookies.delete("panelos_refresh")
+
+
+@pytest.mark.asyncio
+async def test_refresh_without_token_401(app_client) -> None:  # type: ignore[no-untyped-def]
+    """No body and no cookie → 401, not a 422 validation error."""
+    r = await app_client.post(f"{API}/auth/refresh")
     assert r.status_code == 401, r.text
 
 

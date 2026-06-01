@@ -19,11 +19,14 @@ class TokenOut(BaseModel):
 
 
 class RefreshIn(BaseModel):
-    refresh_token: str
+    # Optional: browser clients send the refresh token via the httpOnly
+    # `panelos_refresh` cookie instead of the body. Non-browser clients (mobile)
+    # may still pass it explicitly.
+    refresh_token: str | None = None
 
 
 class LogoutIn(BaseModel):
-    refresh_token: str
+    refresh_token: str | None = None
 
 
 class MeOut(BaseModel):

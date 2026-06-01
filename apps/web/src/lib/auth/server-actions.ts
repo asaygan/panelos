@@ -182,5 +182,7 @@ export async function logoutAction(): Promise<void> {
   }
   const store = await cookies();
   store.delete("panelos_session");
+  store.delete("panelos_refresh");
+  store.delete("panelos_company");
   redirect("/login");
 }
