@@ -1,12 +1,13 @@
-"""Seed PanelOS with the NorthForge Automation fixture set.
+"""Seed PanelOS with a realistic industrial asset structure.
 
-Ported from /tmp/panelhub_design/panelos/project/ph-data.js exactly:
   - 1 company (NorthForge Automation)
-  - 7 users (Mara, Dan, Priya, Erik, Sofia, James, Lena — Lena is invited)
-  - 4 locations
-  - 12 panels (qr_token freshly minted per panel)
-  - For MCC Line 3 / p2: 5 revisions (A–E), 10 components, 10 sheets as small placeholder PDFs
-  - 4 queued revision requests (panel + draft/review status)
+  - 7 users (Mara, Dan, Priya, Erik, Sofia, James, Lena -- Lena is invited)
+  - 5 locations (one per facility)
+  - 5 Panel Sets (facilities): Water Treatment Plant, Steel Melt Shop,
+    Paper Machine Line 3, Biogas Plant, Packaging Machine
+  - 18 panels grouped under those sets, each with ordered typed Sections
+  - For the Blower MCC (WTP-BMCC): 5 revisions (A-E), 10 components, 10 sheets
+  - 4 queued revision requests (draft/review status)
 
 Usage:
     uv run python scripts/seed.py --reset
@@ -17,7 +18,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import io
-import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -35,8 +35,10 @@ from panelos_api.db.models.location import Location
 from panelos_api.db.models.membership import Membership
 from panelos_api.db.models.panel import Panel, PanelStatus
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
+from panelos_api.db.models.panel_set import PanelSet
 from panelos_api.db.models.pdf_file import PdfFile
 from panelos_api.db.models.revision_file import RevisionFile
+from panelos_api.db.models.section import Section, SectionType
 from panelos_api.db.models.user import User
 from panelos_api.db.session import dispose_engine, get_sessionmaker
 
@@ -53,27 +55,53 @@ USERS: list[dict[str, str]] = [
 ]
 
 LOCATIONS = [
-    {"key": "l1", "name": "Plant 1 — Riverside", "code": "P1", "region": "Hamilton, ON"},
-    {"key": "l2", "name": "Plant 2 — Eastgate", "code": "P2", "region": "Buffalo, NY"},
-    {"key": "l3", "name": "Pump House", "code": "PH", "region": "Hamilton, ON"},
-    {"key": "l4", "name": "Substation B", "code": "SB", "region": "Hamilton, ON"},
+    {"key": "l_wtp", "name": "Riverside Water Treatment", "code": "WTP", "region": "Hamilton, ON"},
+    {"key": "l_sms", "name": "Eastgate Steel Works", "code": "STL", "region": "Buffalo, NY"},
+    {"key": "l_pm3", "name": "Northmill Paper Plant", "code": "PPR", "region": "Hamilton, ON"},
+    {"key": "l_bgp", "name": "Green Valley Biogas", "code": "BIO", "region": "Welland, ON"},
+    {"key": "l_pkg", "name": "Lakeside Packaging", "code": "PKG", "region": "Burlington, ON"},
 ]
 
-# panel rows from PH_DATA (loc references location name)
-PANELS = [
-    {"key":"p1","name":"Main Distribution A","serial":"MDP-A-0142","tag":"MDP-A","loc":"Plant 1 — Riverside","area":"MV Room","volt":"600V","amp":"2000A","phase":"3Ø 4W","mfr":"Schneider Electric","enclosure":"NEMA 12","status":"ok"},
-    {"key":"p2","name":"MCC Line 3","serial":"MCC-L3-0088","tag":"MCC-3","loc":"Plant 1 — Riverside","area":"Process Hall","volt":"480V","amp":"800A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"NEMA 12","status":"warn"},
-    {"key":"p3","name":"Pump Control Center","serial":"PCC-PH-0031","tag":"PCC-1","loc":"Pump House","area":"Wet Well","volt":"480V","amp":"600A","phase":"3Ø 3W","mfr":"ABB","enclosure":"NEMA 4X","status":"fault"},
-    {"key":"p4","name":"Lighting Panel L1","serial":"LP-L1-0210","tag":"LP-1","loc":"Plant 1 — Riverside","area":"Admin Wing","volt":"208V","amp":"225A","phase":"3Ø 4W","mfr":"Eaton","enclosure":"NEMA 1","status":"ok"},
-    {"key":"p5","name":"MCC Line 4","serial":"MCC-L4-0091","tag":"MCC-4","loc":"Plant 2 — Eastgate","area":"Bay 2","volt":"480V","amp":"1200A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"NEMA 12","status":"ok"},
-    {"key":"p6","name":"Substation Feeder B","serial":"SUB-B-0007","tag":"SUB-B","loc":"Substation B","area":"Switchgear","volt":"4160V","amp":"1200A","phase":"3Ø 3W","mfr":"Schneider Electric","enclosure":"Metal-clad","status":"warn"},
-    {"key":"p7","name":"VFD Cabinet — Blower","serial":"VFD-BL-0119","tag":"VFD-B","loc":"Plant 1 — Riverside","area":"Process Hall","volt":"480V","amp":"400A","phase":"3Ø 3W","mfr":"ABB","enclosure":"NEMA 12","status":"ok"},
-    {"key":"p8","name":"Distribution Panel 2A","serial":"PDP-2A-0156","tag":"PDP-2A","loc":"Plant 2 — Eastgate","area":"Bay 1","volt":"600V","amp":"1600A","phase":"3Ø 4W","mfr":"Eaton","enclosure":"NEMA 12","status":"ok"},
-    {"key":"p9","name":"MCC Line 1","serial":"MCC-L1-0014","tag":"MCC-1","loc":"Plant 1 — Riverside","area":"Process Hall","volt":"480V","amp":"800A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"NEMA 12","status":"idle"},
-    {"key":"p10","name":"Fire Pump Controller","serial":"FPC-PH-0002","tag":"FPC-1","loc":"Pump House","area":"Pump Room","volt":"480V","amp":"250A","phase":"3Ø 3W","mfr":"ABB","enclosure":"NEMA 2","status":"ok"},
-    {"key":"p11","name":"Distribution Panel 1B","serial":"PDP-1B-0144","tag":"PDP-1B","loc":"Plant 1 — Riverside","area":"Admin Wing","volt":"208V","amp":"400A","phase":"3Ø 4W","mfr":"Eaton","enclosure":"NEMA 1","status":"ok"},
-    {"key":"p12","name":"MCC Line 5","serial":"MCC-L5-0103","tag":"MCC-5","loc":"Plant 2 — Eastgate","area":"Bay 3","volt":"480V","amp":"1000A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"NEMA 12","status":"warn"},
+# Panel Sets = facilities / process systems (top of the asset tree).
+PANEL_SETS = [
+    {"key": "wtp", "name": "Water Treatment Plant Electrical System", "code": "WTP", "loc": "l_wtp"},
+    {"key": "sms", "name": "Steel Melt Shop Electrical System", "code": "SMS", "loc": "l_sms"},
+    {"key": "pm3", "name": "Paper Machine Line 3", "code": "PM3", "loc": "l_pm3"},
+    {"key": "bgp", "name": "Biogas Plant Electrical System", "code": "BGP", "loc": "l_bgp"},
+    {"key": "pkg", "name": "Packaging Machine Electrical System", "code": "PKG", "loc": "l_pkg"},
 ]
+
+# Panels grouped under a Panel Set; each carries ordered, typed Sections.
+# ``sections`` is a list of (section_type, name) tuples in display order.
+PANELS = [
+    # ── Water Treatment Plant ─────────────────────────────────────────────
+    {"set":"wtp","tag":"WTP-MDB","serial":"WTP-MDB-0001","name":"Main Distribution Board","loc":"l_wtp","area":"MV Room","volt":"400V","amp":"2500A","phase":"3Ø 4W","mfr":"Schneider Electric","enclosure":"IP54","status":"ok","sections":[("incoming","Incoming Section"),("generator","Generator Coupling"),("distribution","Distribution Section")]},
+    {"set":"wtp","tag":"WTP-BMCC","serial":"WTP-BMCC-0002","name":"Blower MCC","loc":"l_wtp","area":"Blower Hall","volt":"400V","amp":"800A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"IP42","status":"warn","sections":[("feeder","Blower-1 Feeder"),("feeder","Blower-2 Feeder"),("vfd","VFD Section")]},
+    {"set":"wtp","tag":"WTP-PMCC","serial":"WTP-PMCC-0003","name":"Pump MCC","loc":"l_wtp","area":"Pump Room","volt":"400V","amp":"630A","phase":"3Ø 3W","mfr":"ABB","enclosure":"IP54","status":"fault","sections":[("feeder","Pump-1 Feeder"),("feeder","Pump-2 Feeder"),("softstarter","Softstarter Section")]},
+    {"set":"wtp","tag":"WTP-PLC","serial":"WTP-PLC-0004","name":"PLC Panel","loc":"l_wtp","area":"Control Room","volt":"230V","amp":"63A","phase":"1Ø","mfr":"Siemens","enclosure":"IP55","status":"ok","sections":[("plc_cpu","CPU Section"),("plc_io","IO Section"),("network","Network Section")]},
+    # ── Steel Melt Shop ───────────────────────────────────────────────────
+    {"set":"sms","tag":"SMS-MCC","serial":"SMS-MCC-0001","name":"Main MCC","loc":"l_sms","area":"Melt Bay","volt":"690V","amp":"4000A","phase":"3Ø 3W","mfr":"ABB","enclosure":"IP42","status":"ok","sections":[("incoming","Incoming Section"),("feeder","Furnace Feeders"),("distribution","Distribution Section")]},
+    {"set":"sms","tag":"SMS-FDP","serial":"SMS-FDP-0002","name":"Furnace Drive Panel","loc":"l_sms","area":"Furnace Hall","volt":"690V","amp":"2500A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"IP42","status":"warn","sections":[("vfd","Converter Section"),("vfd","Drive Section"),("custom","Cooling Section")]},
+    {"set":"sms","tag":"SMS-RMCC","serial":"SMS-RMCC-0003","name":"Rolling Mill MCC","loc":"l_sms","area":"Rolling Mill","volt":"400V","amp":"1600A","phase":"3Ø 3W","mfr":"Schneider Electric","enclosure":"IP54","status":"ok","sections":[("feeder","Mill Stand Feeders"),("feeder","Hydraulic Feeders"),("feeder","Auxiliary Feeders")]},
+    {"set":"sms","tag":"SMS-APLC","serial":"SMS-APLC-0004","name":"Automation PLC Panel","loc":"l_sms","area":"Control Room","volt":"230V","amp":"63A","phase":"1Ø","mfr":"Siemens","enclosure":"IP55","status":"ok","sections":[("plc_cpu","CPU Section"),("plc_io","Remote IO Section"),("network","Communication Section")]},
+    # ── Paper Machine Line 3 ──────────────────────────────────────────────
+    {"set":"pm3","tag":"PM3-MDB","serial":"PM3-MDB-0001","name":"Main Distribution Board","loc":"l_pm3","area":"Electrical Room","volt":"400V","amp":"2000A","phase":"3Ø 4W","mfr":"Eaton","enclosure":"IP54","status":"ok","sections":[("incoming","Incoming Section"),("distribution","Distribution Section")]},
+    {"set":"pm3","tag":"PM3-DMCC","serial":"PM3-DMCC-0002","name":"Dryer Section MCC","loc":"l_pm3","area":"Dryer Section","volt":"400V","amp":"1200A","phase":"3Ø 3W","mfr":"ABB","enclosure":"IP42","status":"ok","sections":[("feeder","Dryer Motors"),("feeder","Fan Feeders"),("vfd","VFD Section")]},
+    {"set":"pm3","tag":"PM3-PMCC","serial":"PM3-PMCC-0003","name":"Press Section MCC","loc":"l_pm3","area":"Press Section","volt":"400V","amp":"1000A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"IP42","status":"warn","sections":[("vfd","Press Drives"),("feeder","Hydraulic Section"),("feeder","Utility Feeders")]},
+    {"set":"pm3","tag":"PM3-PLC","serial":"PM3-PLC-0004","name":"PLC & SCADA Panel","loc":"l_pm3","area":"Control Room","volt":"230V","amp":"63A","phase":"1Ø","mfr":"Siemens","enclosure":"IP55","status":"ok","sections":[("plc_cpu","CPU Section"),("network","Network Section"),("ups","UPS Section")]},
+    # ── Biogas Plant ──────────────────────────────────────────────────────
+    {"set":"bgp","tag":"BGP-MCC","serial":"BGP-MCC-0001","name":"Main MCC","loc":"l_bgp","area":"Switchroom","volt":"400V","amp":"1600A","phase":"3Ø 4W","mfr":"Schneider Electric","enclosure":"IP54","status":"ok","sections":[("incoming","Incoming Section"),("generator","Generator Coupling"),("distribution","Distribution Section")]},
+    {"set":"bgp","tag":"BGP-BMCC","serial":"BGP-BMCC-0002","name":"Blower MCC","loc":"l_bgp","area":"Digester Area","volt":"400V","amp":"630A","phase":"3Ø 3W","mfr":"ABB","enclosure":"IP54","status":"ok","sections":[("feeder","Blower Feeders"),("vfd","VFD Section"),("feeder","Auxiliary Feeders")]},
+    {"set":"bgp","tag":"BGP-CHP","serial":"BGP-CHP-0003","name":"CHP Panel","loc":"l_bgp","area":"CHP Container","volt":"400V","amp":"1000A","phase":"3Ø 3W","mfr":"Siemens","enclosure":"IP54","status":"warn","sections":[("custom","Synchronization Section"),("protection","Generator Protection"),("metering","Metering Section")]},
+    {"set":"bgp","tag":"BGP-PLC","serial":"BGP-PLC-0004","name":"PLC Panel","loc":"l_bgp","area":"Control Room","volt":"230V","amp":"63A","phase":"1Ø","mfr":"Siemens","enclosure":"IP55","status":"ok","sections":[("plc_cpu","CPU Section"),("plc_io","IO Section"),("network","Communication Section")]},
+    # ── Packaging Machine (OEM) ───────────────────────────────────────────
+    {"set":"pkg","tag":"PKG-MCP","serial":"PKG-MCP-0001","name":"Main Control Panel","loc":"l_pkg","area":"Machine Frame","volt":"400V","amp":"125A","phase":"3Ø 4W","mfr":"Rittal","enclosure":"IP55","status":"ok","sections":[("distribution","Power Section"),("plc_cpu","PLC Section"),("terminal","Terminal Section")]},
+    {"set":"pkg","tag":"PKG-OPS","serial":"PKG-OPS-0002","name":"Operator Station","loc":"l_pkg","area":"Operator Side","volt":"230V","amp":"16A","phase":"1Ø","mfr":"Rittal","enclosure":"IP65","status":"ok","sections":[("hmi","HMI Section"),("network","Network Section")]},
+]
+
+# Detail-rich panel: Blower MCC under the Water Treatment Plant carries the full
+# revision / component / sheet history (it has a VFD section, fitting this data).
+DETAIL_TAG = "WTP-BMCC"
 
 COMPONENTS_P2 = [
     {"slot":"1A","ref":"CB-101","desc":"Main Circuit Breaker","part":"Siemens 3VA2225-5HL32","rating":"250A","type":"MCCB","status":"ok"},
@@ -97,10 +125,10 @@ REVISIONS_P2 = [
 ]
 
 REV_QUEUE = [
-    {"panel_tag":"MCC-3","rev":"F","from":"E","by":"Priya Raman","status":"draft","note":"Add spare feeder breaker CB-110 for future conveyor."},
-    {"panel_tag":"SUB-B","rev":"G","from":"F","by":"Dan Okafor","status":"review","note":"Relay setting changes per coordination study CS-2026-04."},
-    {"panel_tag":"MCC-5","rev":"C","from":"B","by":"Erik Lund","status":"review","note":"Correct CT ratio on metering — field discrepancy reported."},
-    {"panel_tag":"PCC-1","rev":"C","from":"B","by":"Erik Lund","status":"draft","note":"Document failed contactor C-201 replacement (fault)."},
+    {"panel_tag":"WTP-BMCC","rev":"F","from":"E","by":"Priya Raman","status":"draft","note":"Add spare feeder breaker CB-110 for a future blower."},
+    {"panel_tag":"SMS-FDP","rev":"B","from":"A","by":"Dan Okafor","status":"review","note":"Converter firmware update per drive coordination study CS-2026-04."},
+    {"panel_tag":"PM3-DMCC","rev":"B","from":"A","by":"Erik Lund","status":"review","note":"Correct CT ratio on dryer metering — field discrepancy reported."},
+    {"panel_tag":"BGP-CHP","rev":"B","from":"A","by":"Erik Lund","status":"draft","note":"Document generator protection relay setting change."},
 ]
 
 SHEETS = [
@@ -342,12 +370,27 @@ async def seed() -> None:
                 )
             await session.flush()
 
-        # panels
+        # panel sets (facilities)
+        locs_by_key = {loc["key"]: locs_by_name[loc["name"]] for loc in LOCATIONS}
+        sets_by_key: dict[str, PanelSet] = {}
+        for ps in PANEL_SETS:
+            row = PanelSet(
+                company_id=company.id,
+                name=ps["name"],
+                code=ps["code"],
+                location_id=locs_by_key[ps["loc"]].id,
+            )
+            session.add(row)
+            sets_by_key[ps["key"]] = row
+        await session.flush()
+
+        # panels (+ their ordered, typed sections)
         panels_by_tag: dict[str, Panel] = {}
         for p in PANELS:
             panel = Panel(
                 company_id=company.id,
-                location_id=locs_by_name[p["loc"]].id,
+                panel_set_id=sets_by_key[p["set"]].id,
+                location_id=locs_by_key[p["loc"]].id,
                 tag=p["tag"],
                 serial=p["serial"],
                 qr_token=new_qr_token(),
@@ -364,8 +407,25 @@ async def seed() -> None:
             panels_by_tag[p["tag"]] = panel
         await session.flush()
 
-        # revisions for MCC-3 (p2)
-        p2 = panels_by_tag["MCC-3"]
+        # sections per panel
+        section_count = 0
+        for p in PANELS:
+            panel = panels_by_tag[p["tag"]]
+            for idx, (stype, sname) in enumerate(p["sections"]):
+                session.add(
+                    Section(
+                        company_id=company.id,
+                        panel_id=panel.id,
+                        section_type=SectionType(stype),
+                        name=sname,
+                        position=idx,
+                    )
+                )
+                section_count += 1
+        await session.flush()
+
+        # revisions for the detail-rich panel (Blower MCC under Water Treatment)
+        p2 = panels_by_tag[DETAIL_TAG]
         approver_user = users_by_key["u1"]  # Mara
         rev_objs: dict[str, PanelRevision] = {}
         for r in REVISIONS_P2:
@@ -460,8 +520,9 @@ async def seed() -> None:
         await session.commit()
         print(
             f"seeded company={company.slug} users={len(USERS)} "
-            f"locations={len(LOCATIONS)} panels={len(PANELS)} "
-            f"revisions(p2)={len(REVISIONS_P2)} queue={len(REV_QUEUE)}"
+            f"locations={len(LOCATIONS)} panel_sets={len(PANEL_SETS)} "
+            f"panels={len(PANELS)} sections={section_count} "
+            f"revisions(detail)={len(REVISIONS_P2)} queue={len(REV_QUEUE)}"
         )
     await dispose_engine()
 
@@ -478,7 +539,7 @@ async def main() -> None:
         # Re-apply alembic migrations after reset.
         import subprocess
 
-        subprocess.run(["alembic", "upgrade", "head"], check=True)  # noqa: S603, S607
+        subprocess.run(["alembic", "upgrade", "head"], check=True)  # noqa: S607
 
     await seed()
 

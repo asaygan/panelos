@@ -96,10 +96,49 @@ export interface Location {
   sub?: string;
 }
 
+/** The 16 functional section types (matches the API `section_type` enum). */
+export type SectionType =
+  | "incoming"
+  | "distribution"
+  | "feeder"
+  | "vfd"
+  | "softstarter"
+  | "capacitor"
+  | "metering"
+  | "plc_cpu"
+  | "plc_io"
+  | "network"
+  | "ups"
+  | "terminal"
+  | "hmi"
+  | "protection"
+  | "generator"
+  | "custom";
+
+export interface Section {
+  id: string;
+  panel_id: string;
+  section_type: SectionType;
+  name: string;
+  position: number;
+  description?: string;
+}
+
+/** A Panel Set — facility / process system grouping above panels. */
+export interface PanelSet {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  location_id?: string | null;
+}
+
 export interface Panel {
   id: string;
   company_id: string;
   location_id: string;
+  /** Parent Panel Set (facility). Undefined for loose/unassigned panels. */
+  panel_set_id?: string | null;
   tag: string;
   serial: string;
   qr_token: string;
@@ -119,12 +158,19 @@ export interface Panel {
   status: PanelStatus;
   /** Component count. Undefined in list views (only resolved on panel detail). */
   comps?: number;
+  /** Sections inside this panel (present on tree / detail). */
+  sections?: Section[];
   install: string;
   updated: string;
   by: string;
   issues: number;
   scanned: string;
   active_revision_id?: string | null;
+}
+
+/** A Panel Set with its panels (tree node). */
+export interface PanelSetNode extends PanelSet {
+  panels: Panel[];
 }
 
 export interface Component {

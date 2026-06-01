@@ -6,8 +6,11 @@ import type {
   Component,
   Location,
   Panel,
+  PanelSet,
   Revision,
   RevisionRequest,
+  Section,
+  SectionType,
   Sheet,
   User,
 } from "@/lib/api/types";
@@ -34,25 +37,56 @@ export const fixtureUserRoles: Record<string, string> = {
 };
 
 export const fixtureLocations: Location[] = [
-  { id: "l1", company_id: "c1", code: "P1", name: "Plant 1 — Riverside", sub: "Hamilton, ON" },
-  { id: "l2", company_id: "c1", code: "P2", name: "Plant 2 — Eastgate", sub: "Buffalo, NY" },
-  { id: "l3", company_id: "c1", code: "PH", name: "Pump House", sub: "Hamilton, ON" },
-  { id: "l4", company_id: "c1", code: "SB", name: "Substation B", sub: "Hamilton, ON" },
+  { id: "l_wtp", company_id: "c1", code: "WTP", name: "Riverside Water Treatment", sub: "Hamilton, ON" },
+  { id: "l_sms", company_id: "c1", code: "STL", name: "Eastgate Steel Works", sub: "Buffalo, NY" },
+  { id: "l_pm3", company_id: "c1", code: "PPR", name: "Northmill Paper Plant", sub: "Hamilton, ON" },
+  { id: "l_bgp", company_id: "c1", code: "BIO", name: "Green Valley Biogas", sub: "Welland, ON" },
+  { id: "l_pkg", company_id: "c1", code: "PKG", name: "Lakeside Packaging", sub: "Burlington, ON" },
 ];
 
+export const fixturePanelSets: PanelSet[] = [
+  { id: "set_wtp", name: "Water Treatment Plant Electrical System", code: "WTP", location_id: "l_wtp" },
+  { id: "set_sms", name: "Steel Melt Shop Electrical System", code: "SMS", location_id: "l_sms" },
+  { id: "set_pm3", name: "Paper Machine Line 3", code: "PM3", location_id: "l_pm3" },
+  { id: "set_bgp", name: "Biogas Plant Electrical System", code: "BGP", location_id: "l_bgp" },
+  { id: "set_pkg", name: "Packaging Machine Electrical System", code: "PKG", location_id: "l_pkg" },
+];
+
+/** Build typed sections for a panel from (type, name) tuples. */
+function sects(panelId: string, items: [SectionType, string][]): Section[] {
+  return items.map(([section_type, name], i) => ({
+    id: `${panelId}-s${i}`,
+    panel_id: panelId,
+    section_type,
+    name,
+    position: i,
+  }));
+}
+
 export const fixturePanels: Panel[] = [
-  { id: "p1", company_id: "c1", location_id: "l1", qr_token: "qrp1", name: "Main Distribution A", serial: "MDP-A-0142", tag: "MDP-A", loc: "Plant 1 — Riverside", area: "MV Room", volt: "600V", amp: "2000A", phase: "3Ø 4W", mfr: "Schneider Electric", enclosure: "NEMA 12", rev: "C", revCount: 7, status: "ok", comps: 42, install: "2019-03-14", updated: "2026-05-26 09:12", by: "Dan Okafor", issues: 0, scanned: "2026-05-29 07:40" },
-  { id: "p2", company_id: "c1", location_id: "l1", qr_token: "qrp2", name: "MCC Line 3", serial: "MCC-L3-0088", tag: "MCC-3", loc: "Plant 1 — Riverside", area: "Process Hall", volt: "480V", amp: "800A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "NEMA 12", rev: "E", revCount: 11, status: "warn", comps: 36, install: "2020-08-02", updated: "2026-05-28 16:48", by: "Priya Raman", issues: 2, scanned: "2026-05-29 06:55" },
-  { id: "p3", company_id: "c1", location_id: "l3", qr_token: "qrp3", name: "Pump Control Center", serial: "PCC-PH-0031", tag: "PCC-1", loc: "Pump House", area: "Wet Well", volt: "480V", amp: "600A", phase: "3Ø 3W", mfr: "ABB", enclosure: "NEMA 4X", rev: "B", revCount: 4, status: "fault", comps: 28, install: "2021-11-19", updated: "2026-05-29 05:30", by: "Erik Lund", issues: 1, scanned: "2026-05-29 05:31" },
-  { id: "p4", company_id: "c1", location_id: "l1", qr_token: "qrp4", name: "Lighting Panel L1", serial: "LP-L1-0210", tag: "LP-1", loc: "Plant 1 — Riverside", area: "Admin Wing", volt: "208V", amp: "225A", phase: "3Ø 4W", mfr: "Eaton", enclosure: "NEMA 1", rev: "A", revCount: 2, status: "ok", comps: 18, install: "2018-06-30", updated: "2026-05-12 11:20", by: "Mara Voss", issues: 0, scanned: "2026-05-24 14:02" },
-  { id: "p5", company_id: "c1", location_id: "l2", qr_token: "qrp5", name: "MCC Line 4", serial: "MCC-L4-0091", tag: "MCC-4", loc: "Plant 2 — Eastgate", area: "Bay 2", volt: "480V", amp: "1200A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "NEMA 12", rev: "D", revCount: 9, status: "ok", comps: 51, install: "2020-02-11", updated: "2026-05-27 13:05", by: "Priya Raman", issues: 0, scanned: "2026-05-28 22:10" },
-  { id: "p6", company_id: "c1", location_id: "l4", qr_token: "qrp6", name: "Substation Feeder B", serial: "SUB-B-0007", tag: "SUB-B", loc: "Substation B", area: "Switchgear", volt: "4160V", amp: "1200A", phase: "3Ø 3W", mfr: "Schneider Electric", enclosure: "Metal-clad", rev: "F", revCount: 14, status: "warn", comps: 24, install: "2017-09-22", updated: "2026-05-25 08:44", by: "Dan Okafor", issues: 1, scanned: "2026-05-23 10:15" },
-  { id: "p7", company_id: "c1", location_id: "l1", qr_token: "qrp7", name: "VFD Cabinet — Blower", serial: "VFD-BL-0119", tag: "VFD-B", loc: "Plant 1 — Riverside", area: "Process Hall", volt: "480V", amp: "400A", phase: "3Ø 3W", mfr: "ABB", enclosure: "NEMA 12", rev: "C", revCount: 6, status: "ok", comps: 14, install: "2022-04-08", updated: "2026-05-20 15:36", by: "Erik Lund", issues: 0, scanned: "2026-05-29 04:20" },
-  { id: "p8", company_id: "c1", location_id: "l2", qr_token: "qrp8", name: "Distribution Panel 2A", serial: "PDP-2A-0156", tag: "PDP-2A", loc: "Plant 2 — Eastgate", area: "Bay 1", volt: "600V", amp: "1600A", phase: "3Ø 4W", mfr: "Eaton", enclosure: "NEMA 12", rev: "B", revCount: 5, status: "ok", comps: 33, install: "2019-12-03", updated: "2026-05-18 09:55", by: "Mara Voss", issues: 0, scanned: "2026-05-27 18:30" },
-  { id: "p9", company_id: "c1", location_id: "l1", qr_token: "qrp9", name: "MCC Line 1", serial: "MCC-L1-0014", tag: "MCC-1", loc: "Plant 1 — Riverside", area: "Process Hall", volt: "480V", amp: "800A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "NEMA 12", rev: "G", revCount: 16, status: "idle", comps: 39, install: "2016-05-17", updated: "2026-03-30 10:00", by: "Dan Okafor", issues: 0, scanned: "2026-04-02 12:00" },
-  { id: "p10", company_id: "c1", location_id: "l3", qr_token: "qrp10", name: "Fire Pump Controller", serial: "FPC-PH-0002", tag: "FPC-1", loc: "Pump House", area: "Pump Room", volt: "480V", amp: "250A", phase: "3Ø 3W", mfr: "ABB", enclosure: "NEMA 2", rev: "A", revCount: 3, status: "ok", comps: 11, install: "2021-07-14", updated: "2026-05-15 14:22", by: "Priya Raman", issues: 0, scanned: "2026-05-26 09:00" },
-  { id: "p11", company_id: "c1", location_id: "l1", qr_token: "qrp11", name: "Distribution Panel 1B", serial: "PDP-1B-0144", tag: "PDP-1B", loc: "Plant 1 — Riverside", area: "Admin Wing", volt: "208V", amp: "400A", phase: "3Ø 4W", mfr: "Eaton", enclosure: "NEMA 1", rev: "C", revCount: 6, status: "ok", comps: 26, install: "2018-10-28", updated: "2026-05-22 16:11", by: "Mara Voss", issues: 0, scanned: "2026-05-25 11:45" },
-  { id: "p12", company_id: "c1", location_id: "l2", qr_token: "qrp12", name: "MCC Line 5", serial: "MCC-L5-0103", tag: "MCC-5", loc: "Plant 2 — Eastgate", area: "Bay 3", volt: "480V", amp: "1000A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "NEMA 12", rev: "B", revCount: 4, status: "warn", comps: 44, install: "2023-01-30", updated: "2026-05-28 11:30", by: "Erik Lund", issues: 1, scanned: "2026-05-28 19:05" },
+  // ── Water Treatment Plant ──────────────────────────────────────────────
+  { id: "p_wtp_mdb", company_id: "c1", panel_set_id: "set_wtp", location_id: "l_wtp", qr_token: "qrwtpmdb", name: "Main Distribution Board", serial: "WTP-MDB-0001", tag: "WTP-MDB", loc: "Riverside Water Treatment", area: "MV Room", volt: "400V", amp: "2500A", phase: "3Ø 4W", mfr: "Schneider Electric", enclosure: "IP54", status: "ok", install: "2021-03-14", updated: "2026-05-26 09:12", by: "Dan Okafor", issues: 0, scanned: "2026-05-29 07:40", sections: sects("p_wtp_mdb", [["incoming", "Incoming Section"], ["generator", "Generator Coupling"], ["distribution", "Distribution Section"]]) },
+  { id: "p_wtp_bmcc", company_id: "c1", panel_set_id: "set_wtp", location_id: "l_wtp", qr_token: "qrwtpbmcc", name: "Blower MCC", serial: "WTP-BMCC-0002", tag: "WTP-BMCC", loc: "Riverside Water Treatment", area: "Blower Hall", volt: "400V", amp: "800A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "IP42", rev: "E", revCount: 5, status: "warn", comps: 10, install: "2021-08-02", updated: "2026-05-28 16:48", by: "Priya Raman", issues: 2, scanned: "2026-05-29 06:55", sections: sects("p_wtp_bmcc", [["feeder", "Blower-1 Feeder"], ["feeder", "Blower-2 Feeder"], ["vfd", "VFD Section"]]) },
+  { id: "p_wtp_pmcc", company_id: "c1", panel_set_id: "set_wtp", location_id: "l_wtp", qr_token: "qrwtppmcc", name: "Pump MCC", serial: "WTP-PMCC-0003", tag: "WTP-PMCC", loc: "Riverside Water Treatment", area: "Pump Room", volt: "400V", amp: "630A", phase: "3Ø 3W", mfr: "ABB", enclosure: "IP54", status: "fault", install: "2021-11-19", updated: "2026-05-29 05:30", by: "Erik Lund", issues: 1, scanned: "2026-05-29 05:31", sections: sects("p_wtp_pmcc", [["feeder", "Pump-1 Feeder"], ["feeder", "Pump-2 Feeder"], ["softstarter", "Softstarter Section"]]) },
+  { id: "p_wtp_plc", company_id: "c1", panel_set_id: "set_wtp", location_id: "l_wtp", qr_token: "qrwtpplc", name: "PLC Panel", serial: "WTP-PLC-0004", tag: "WTP-PLC", loc: "Riverside Water Treatment", area: "Control Room", volt: "230V", amp: "63A", phase: "1Ø", mfr: "Siemens", enclosure: "IP55", status: "ok", install: "2021-03-20", updated: "2026-05-12 11:20", by: "Mara Voss", issues: 0, scanned: "2026-05-24 14:02", sections: sects("p_wtp_plc", [["plc_cpu", "CPU Section"], ["plc_io", "IO Section"], ["network", "Network Section"]]) },
+  // ── Steel Melt Shop ────────────────────────────────────────────────────
+  { id: "p_sms_mcc", company_id: "c1", panel_set_id: "set_sms", location_id: "l_sms", qr_token: "qrsmsmcc", name: "Main MCC", serial: "SMS-MCC-0001", tag: "SMS-MCC", loc: "Eastgate Steel Works", area: "Melt Bay", volt: "690V", amp: "4000A", phase: "3Ø 3W", mfr: "ABB", enclosure: "IP42", status: "ok", install: "2020-02-11", updated: "2026-05-27 13:05", by: "Priya Raman", issues: 0, scanned: "2026-05-28 22:10", sections: sects("p_sms_mcc", [["incoming", "Incoming Section"], ["feeder", "Furnace Feeders"], ["distribution", "Distribution Section"]]) },
+  { id: "p_sms_fdp", company_id: "c1", panel_set_id: "set_sms", location_id: "l_sms", qr_token: "qrsmsfdp", name: "Furnace Drive Panel", serial: "SMS-FDP-0002", tag: "SMS-FDP", loc: "Eastgate Steel Works", area: "Furnace Hall", volt: "690V", amp: "2500A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "IP42", status: "warn", install: "2020-03-01", updated: "2026-05-25 08:44", by: "Dan Okafor", issues: 1, scanned: "2026-05-23 10:15", sections: sects("p_sms_fdp", [["vfd", "Converter Section"], ["vfd", "Drive Section"], ["custom", "Cooling Section"]]) },
+  { id: "p_sms_rmcc", company_id: "c1", panel_set_id: "set_sms", location_id: "l_sms", qr_token: "qrsmsrmcc", name: "Rolling Mill MCC", serial: "SMS-RMCC-0003", tag: "SMS-RMCC", loc: "Eastgate Steel Works", area: "Rolling Mill", volt: "400V", amp: "1600A", phase: "3Ø 3W", mfr: "Schneider Electric", enclosure: "IP54", status: "ok", install: "2020-06-15", updated: "2026-05-20 15:36", by: "Erik Lund", issues: 0, scanned: "2026-05-29 04:20", sections: sects("p_sms_rmcc", [["feeder", "Mill Stand Feeders"], ["feeder", "Hydraulic Feeders"], ["feeder", "Auxiliary Feeders"]]) },
+  { id: "p_sms_aplc", company_id: "c1", panel_set_id: "set_sms", location_id: "l_sms", qr_token: "qrsmsaplc", name: "Automation PLC Panel", serial: "SMS-APLC-0004", tag: "SMS-APLC", loc: "Eastgate Steel Works", area: "Control Room", volt: "230V", amp: "63A", phase: "1Ø", mfr: "Siemens", enclosure: "IP55", status: "ok", install: "2020-02-20", updated: "2026-05-18 09:55", by: "Mara Voss", issues: 0, scanned: "2026-05-27 18:30", sections: sects("p_sms_aplc", [["plc_cpu", "CPU Section"], ["plc_io", "Remote IO Section"], ["network", "Communication Section"]]) },
+  // ── Paper Machine Line 3 ───────────────────────────────────────────────
+  { id: "p_pm3_mdb", company_id: "c1", panel_set_id: "set_pm3", location_id: "l_pm3", qr_token: "qrpm3mdb", name: "Main Distribution Board", serial: "PM3-MDB-0001", tag: "PM3-MDB", loc: "Northmill Paper Plant", area: "Electrical Room", volt: "400V", amp: "2000A", phase: "3Ø 4W", mfr: "Eaton", enclosure: "IP54", status: "ok", install: "2019-05-17", updated: "2026-03-30 10:00", by: "Dan Okafor", issues: 0, scanned: "2026-04-02 12:00", sections: sects("p_pm3_mdb", [["incoming", "Incoming Section"], ["distribution", "Distribution Section"]]) },
+  { id: "p_pm3_dmcc", company_id: "c1", panel_set_id: "set_pm3", location_id: "l_pm3", qr_token: "qrpm3dmcc", name: "Dryer Section MCC", serial: "PM3-DMCC-0002", tag: "PM3-DMCC", loc: "Northmill Paper Plant", area: "Dryer Section", volt: "400V", amp: "1200A", phase: "3Ø 3W", mfr: "ABB", enclosure: "IP42", status: "ok", install: "2019-07-14", updated: "2026-05-15 14:22", by: "Priya Raman", issues: 0, scanned: "2026-05-26 09:00", sections: sects("p_pm3_dmcc", [["feeder", "Dryer Motors"], ["feeder", "Fan Feeders"], ["vfd", "VFD Section"]]) },
+  { id: "p_pm3_pmcc", company_id: "c1", panel_set_id: "set_pm3", location_id: "l_pm3", qr_token: "qrpm3pmcc", name: "Press Section MCC", serial: "PM3-PMCC-0003", tag: "PM3-PMCC", loc: "Northmill Paper Plant", area: "Press Section", volt: "400V", amp: "1000A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "IP42", status: "warn", install: "2019-10-28", updated: "2026-05-22 16:11", by: "Mara Voss", issues: 1, scanned: "2026-05-25 11:45", sections: sects("p_pm3_pmcc", [["vfd", "Press Drives"], ["feeder", "Hydraulic Section"], ["feeder", "Utility Feeders"]]) },
+  { id: "p_pm3_plc", company_id: "c1", panel_set_id: "set_pm3", location_id: "l_pm3", qr_token: "qrpm3plc", name: "PLC & SCADA Panel", serial: "PM3-PLC-0004", tag: "PM3-PLC", loc: "Northmill Paper Plant", area: "Control Room", volt: "230V", amp: "63A", phase: "1Ø", mfr: "Siemens", enclosure: "IP55", status: "ok", install: "2019-05-30", updated: "2026-05-28 11:30", by: "Erik Lund", issues: 0, scanned: "2026-05-28 19:05", sections: sects("p_pm3_plc", [["plc_cpu", "CPU Section"], ["network", "Network Section"], ["ups", "UPS Section"]]) },
+  // ── Biogas Plant ───────────────────────────────────────────────────────
+  { id: "p_bgp_mcc", company_id: "c1", panel_set_id: "set_bgp", location_id: "l_bgp", qr_token: "qrbgpmcc", name: "Main MCC", serial: "BGP-MCC-0001", tag: "BGP-MCC", loc: "Green Valley Biogas", area: "Switchroom", volt: "400V", amp: "1600A", phase: "3Ø 4W", mfr: "Schneider Electric", enclosure: "IP54", status: "ok", install: "2022-04-08", updated: "2026-05-20 15:36", by: "Dan Okafor", issues: 0, scanned: "2026-05-29 04:20", sections: sects("p_bgp_mcc", [["incoming", "Incoming Section"], ["generator", "Generator Coupling"], ["distribution", "Distribution Section"]]) },
+  { id: "p_bgp_bmcc", company_id: "c1", panel_set_id: "set_bgp", location_id: "l_bgp", qr_token: "qrbgpbmcc", name: "Blower MCC", serial: "BGP-BMCC-0002", tag: "BGP-BMCC", loc: "Green Valley Biogas", area: "Digester Area", volt: "400V", amp: "630A", phase: "3Ø 3W", mfr: "ABB", enclosure: "IP54", status: "ok", install: "2022-05-01", updated: "2026-05-18 09:55", by: "Mara Voss", issues: 0, scanned: "2026-05-27 18:30", sections: sects("p_bgp_bmcc", [["feeder", "Blower Feeders"], ["vfd", "VFD Section"], ["feeder", "Auxiliary Feeders"]]) },
+  { id: "p_bgp_chp", company_id: "c1", panel_set_id: "set_bgp", location_id: "l_bgp", qr_token: "qrbgpchp", name: "CHP Panel", serial: "BGP-CHP-0003", tag: "BGP-CHP", loc: "Green Valley Biogas", area: "CHP Container", volt: "400V", amp: "1000A", phase: "3Ø 3W", mfr: "Siemens", enclosure: "IP54", status: "warn", install: "2022-06-10", updated: "2026-05-22 16:11", by: "Priya Raman", issues: 1, scanned: "2026-05-25 11:45", sections: sects("p_bgp_chp", [["custom", "Synchronization Section"], ["protection", "Generator Protection"], ["metering", "Metering Section"]]) },
+  { id: "p_bgp_plc", company_id: "c1", panel_set_id: "set_bgp", location_id: "l_bgp", qr_token: "qrbgpplc", name: "PLC Panel", serial: "BGP-PLC-0004", tag: "BGP-PLC", loc: "Green Valley Biogas", area: "Control Room", volt: "230V", amp: "63A", phase: "1Ø", mfr: "Siemens", enclosure: "IP55", status: "ok", install: "2022-04-15", updated: "2026-05-12 11:20", by: "Erik Lund", issues: 0, scanned: "2026-05-24 14:02", sections: sects("p_bgp_plc", [["plc_cpu", "CPU Section"], ["plc_io", "IO Section"], ["network", "Communication Section"]]) },
+  // ── Packaging Machine (OEM) ────────────────────────────────────────────
+  { id: "p_pkg_mcp", company_id: "c1", panel_set_id: "set_pkg", location_id: "l_pkg", qr_token: "qrpkgmcp", name: "Main Control Panel", serial: "PKG-MCP-0001", tag: "PKG-MCP", loc: "Lakeside Packaging", area: "Machine Frame", volt: "400V", amp: "125A", phase: "3Ø 4W", mfr: "Rittal", enclosure: "IP55", status: "ok", install: "2023-01-30", updated: "2026-05-28 11:30", by: "Mara Voss", issues: 0, scanned: "2026-05-28 19:05", sections: sects("p_pkg_mcp", [["distribution", "Power Section"], ["plc_cpu", "PLC Section"], ["terminal", "Terminal Section"]]) },
+  { id: "p_pkg_ops", company_id: "c1", panel_set_id: "set_pkg", location_id: "l_pkg", qr_token: "qrpkgops", name: "Operator Station", serial: "PKG-OPS-0002", tag: "PKG-OPS", loc: "Lakeside Packaging", area: "Operator Side", volt: "230V", amp: "16A", phase: "1Ø", mfr: "Rittal", enclosure: "IP65", status: "ok", install: "2023-02-05", updated: "2026-05-15 14:22", by: "Sofia Marchetti", issues: 0, scanned: "2026-05-26 09:00", sections: sects("p_pkg_ops", [["hmi", "HMI Section"], ["network", "Network Section"]]) },
 ];
 
 export const fixtureComponents: Component[] = [
@@ -77,10 +111,10 @@ export const fixtureRevisions: Revision[] = [
 ];
 
 export const fixtureRevQueue: RevisionRequest[] = [
-  { id: "rq1", panel: "MCC Line 3", tag: "MCC-3", rev: "F", from: "E", by: "Priya Raman", date: "2026-05-29", status: "draft", note: "Add spare feeder breaker CB-110 for future conveyor.", sheets: 2 },
-  { id: "rq2", panel: "Substation Feeder B", tag: "SUB-B", rev: "G", from: "F", by: "Dan Okafor", date: "2026-05-28", status: "review", note: "Relay setting changes per coordination study CS-2026-04.", sheets: 3 },
-  { id: "rq3", panel: "MCC Line 5", tag: "MCC-5", rev: "C", from: "B", by: "Erik Lund", date: "2026-05-28", status: "review", note: "Correct CT ratio on metering — field discrepancy reported.", sheets: 1 },
-  { id: "rq4", panel: "Pump Control Center", tag: "PCC-1", rev: "C", from: "B", by: "Erik Lund", date: "2026-05-29", status: "draft", note: "Document failed contactor C-201 replacement (fault).", sheets: 2 },
+  { id: "rq1", panel: "Blower MCC", tag: "WTP-BMCC", rev: "F", from: "E", by: "Priya Raman", date: "2026-05-29", status: "draft", note: "Add spare feeder breaker CB-110 for a future blower.", sheets: 2 },
+  { id: "rq2", panel: "Furnace Drive Panel", tag: "SMS-FDP", rev: "B", from: "A", by: "Dan Okafor", date: "2026-05-28", status: "review", note: "Converter firmware update per drive coordination study CS-2026-04.", sheets: 3 },
+  { id: "rq3", panel: "Dryer Section MCC", tag: "PM3-DMCC", rev: "B", from: "A", by: "Erik Lund", date: "2026-05-28", status: "review", note: "Correct CT ratio on dryer metering — field discrepancy reported.", sheets: 1 },
+  { id: "rq4", panel: "CHP Panel", tag: "BGP-CHP", rev: "B", from: "A", by: "Erik Lund", date: "2026-05-29", status: "draft", note: "Document generator protection relay setting change.", sheets: 2 },
 ];
 
 export const fixtureSheets: Sheet[] = [
@@ -97,12 +131,12 @@ export const fixtureSheets: Sheet[] = [
 ];
 
 export const fixtureActivity: ActivityItem[] = [
-  { who: "Erik Lund", wi: "EL", act: "reported a fault on", target: "PCC-1", sub: "Contactor C-201 not pulling in", time: "08:31", tone: "fault", icon: "alert-triangle" },
-  { who: "Priya Raman", wi: "PR", act: "submitted revision F draft for", target: "MCC-3", sub: "2 sheets changed", time: "08:02", tone: "draft", icon: "git-branch" },
-  { who: "Dan Okafor", wi: "DO", act: "approved revision E on", target: "MCC-3", sub: "Overload relay range update", time: "Yesterday 16:48", tone: "ok", icon: "check-circle" },
-  { who: "Erik Lund", wi: "EL", act: "scanned QR label for", target: "VFD-B", sub: "Field access — Plant 1", time: "Yesterday 11:20", tone: "accent", icon: "scan-line" },
-  { who: "Mara Voss", wi: "MV", act: "generated 12 labels for", target: "Plant 2 — Eastgate", sub: "Batch export · PDF", time: "Yesterday 09:15", tone: "idle", icon: "qr-code" },
-  { who: "Sofia Marchetti", wi: "SM", act: "uploaded as-built markups to", target: "PDP-2A", sub: "4 files · 18.2 MB", time: "2 days ago", tone: "idle", icon: "upload" },
+  { who: "Erik Lund", wi: "EL", act: "reported a fault on", target: "WTP-PMCC", sub: "Pump-1 softstarter not engaging", time: "08:31", tone: "fault", icon: "alert-triangle" },
+  { who: "Priya Raman", wi: "PR", act: "submitted revision F draft for", target: "WTP-BMCC", sub: "2 sheets changed", time: "08:02", tone: "draft", icon: "git-branch" },
+  { who: "Dan Okafor", wi: "DO", act: "approved revision E on", target: "WTP-BMCC", sub: "Overload relay range update", time: "Yesterday 16:48", tone: "ok", icon: "check-circle" },
+  { who: "Erik Lund", wi: "EL", act: "scanned QR label for", target: "PM3-DMCC", sub: "Field access — Northmill Paper", time: "Yesterday 11:20", tone: "accent", icon: "scan-line" },
+  { who: "Mara Voss", wi: "MV", act: "generated 8 labels for", target: "Steel Melt Shop", sub: "Batch export · PDF", time: "Yesterday 09:15", tone: "idle", icon: "qr-code" },
+  { who: "Sofia Marchetti", wi: "SM", act: "uploaded as-built markups to", target: "SMS-FDP", sub: "4 files · 18.2 MB", time: "2 days ago", tone: "idle", icon: "upload" },
 ];
 
 export const fixtureCompany = {

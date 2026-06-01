@@ -5,6 +5,7 @@
 
 import {
   fixturePanels,
+  fixturePanelSets,
   fixtureLocations,
   fixtureRevisions,
   fixtureRevQueue,
@@ -23,6 +24,8 @@ import type {
   Location,
   Member,
   Panel,
+  PanelSet,
+  PanelSetNode,
   Revision,
   RevisionRequest,
   RoleView,
@@ -48,22 +51,29 @@ export const demoUser = {
   status: "active" as const,
 };
 
-// ── Panels / locations / components / sheets ────────────────────────────────────
+// ── Panels / sets / locations / components / sheets ─────────────────────────────
 export const demoPanels: Panel[] = fixturePanels;
+export const demoPanelSets: PanelSet[] = fixturePanelSets;
 export const demoLocations: Location[] = fixtureLocations;
 export const demoComponents: Component[] = fixtureComponents;
 export const demoSheets: Sheet[] = fixtureSheets;
 export const demoRevisions: Revision[] = fixtureRevisions;
 export const demoRevQueue: RevisionRequest[] = fixtureRevQueue;
 
+// Pre-assembled Panel Set → Panel → Section tree for the offline /demo route.
+export const demoTree: PanelSetNode[] = demoPanelSets.map((s) => ({
+  ...s,
+  panels: demoPanels.filter((p) => p.panel_set_id === s.id),
+}));
+
 // ── Activity feed (dashboard + panel) ───────────────────────────────────────────
 export const demoActivity: ActivityItem[] = [
-  { who: "Erik Lund", wi: "EL", act: "reported a fault on", target: "PCC-1", sub: "Contactor C-201 not pulling in", time: "08:31", tone: "fault", icon: "alert-triangle" },
-  { who: "Priya Raman", wi: "PR", act: "submitted revision F draft for", target: "MCC-3", sub: "2 sheets changed", time: "08:02", tone: "draft", icon: "git-branch" },
-  { who: "Dan Okafor", wi: "DO", act: "approved revision E on", target: "MCC-3", sub: "Overload relay range update", time: "Yesterday 16:48", tone: "ok", icon: "check-circle" },
-  { who: "Erik Lund", wi: "EL", act: "scanned QR label for", target: "VFD-B", sub: "Field access — Plant 1", time: "Yesterday 11:20", tone: "accent", icon: "scan-line" },
-  { who: "Mara Voss", wi: "MV", act: "generated 12 labels for", target: "Plant 2 — Eastgate", sub: "Batch export · PDF", time: "Yesterday 09:15", tone: "idle", icon: "qr-code" },
-  { who: "Sofia Marchetti", wi: "SM", act: "uploaded as-built markups to", target: "PDP-2A", sub: "4 files · 18.2 MB", time: "2 days ago", tone: "idle", icon: "upload" },
+  { who: "Erik Lund", wi: "EL", act: "reported a fault on", target: "WTP-PMCC", sub: "Pump-1 softstarter not engaging", time: "08:31", tone: "fault", icon: "alert-triangle" },
+  { who: "Priya Raman", wi: "PR", act: "submitted revision F draft for", target: "WTP-BMCC", sub: "2 sheets changed", time: "08:02", tone: "draft", icon: "git-branch" },
+  { who: "Dan Okafor", wi: "DO", act: "approved revision E on", target: "WTP-BMCC", sub: "Overload relay range update", time: "Yesterday 16:48", tone: "ok", icon: "check-circle" },
+  { who: "Erik Lund", wi: "EL", act: "scanned QR label for", target: "PM3-DMCC", sub: "Field access — Northmill Paper", time: "Yesterday 11:20", tone: "accent", icon: "scan-line" },
+  { who: "Mara Voss", wi: "MV", act: "generated 8 labels for", target: "Steel Melt Shop", sub: "Batch export · PDF", time: "Yesterday 09:15", tone: "idle", icon: "qr-code" },
+  { who: "Sofia Marchetti", wi: "SM", act: "uploaded as-built markups to", target: "SMS-FDP", sub: "4 files · 18.2 MB", time: "2 days ago", tone: "idle", icon: "upload" },
 ];
 
 // ── Members (8) ─────────────────────────────────────────────────────────────────
@@ -75,12 +85,12 @@ function loc(id: string) {
 export const demoMembers: Member[] = [
   { id: "m1", membershipId: "mm1", userId: "u1", email: "m.voss@northforge.demo", name: "Mara Voss", initials: "MV", color: "#3b82f6", role: "owner", status: "active", lastActive: "Online now", locations: [] },
   { id: "m2", membershipId: "mm2", userId: "u2", email: "d.okafor@northforge.demo", name: "Dan Okafor", initials: "DO", color: "#1f9d57", role: "admin", status: "active", lastActive: "4m ago", locations: [] },
-  { id: "m3", membershipId: "mm3", userId: "u3", email: "p.raman@northforge.demo", name: "Priya Raman", initials: "PR", color: "#c97a0e", role: "engineer", status: "active", lastActive: "22m ago", locations: [loc("l1"), loc("l2")] },
-  { id: "m4", membershipId: "mm4", userId: "u4", email: "e.lund@northforge.demo", name: "Erik Lund", initials: "EL", color: "#7c5cff", role: "technician", status: "active", lastActive: "1h ago", locations: [loc("l3")] },
-  { id: "m5", membershipId: "mm5", userId: "u5", email: "s.marchetti@northforge.demo", name: "Sofia Marchetti", initials: "SM", color: "#d8412f", role: "technician", status: "active", lastActive: "3h ago", locations: [loc("l1")] },
+  { id: "m3", membershipId: "mm3", userId: "u3", email: "p.raman@northforge.demo", name: "Priya Raman", initials: "PR", color: "#c97a0e", role: "engineer", status: "active", lastActive: "22m ago", locations: [loc("l_wtp"), loc("l_sms")] },
+  { id: "m4", membershipId: "mm4", userId: "u4", email: "e.lund@northforge.demo", name: "Erik Lund", initials: "EL", color: "#7c5cff", role: "technician", status: "active", lastActive: "1h ago", locations: [loc("l_pm3")] },
+  { id: "m5", membershipId: "mm5", userId: "u5", email: "s.marchetti@northforge.demo", name: "Sofia Marchetti", initials: "SM", color: "#d8412f", role: "technician", status: "active", lastActive: "3h ago", locations: [loc("l_wtp")] },
   { id: "m6", membershipId: "mm6", userId: "u6", email: "j.whitfield@northforge.demo", name: "James Whitfield", initials: "JW", color: "#6b7280", role: "viewer", status: "active", lastActive: "2d ago", locations: [] },
-  { id: "m7", membershipId: "mm7", userId: "u7", email: "l.hoffmann@northforge.demo", name: "Lena Hoffmann", initials: "LH", color: "#0ea5e9", role: "engineer", status: "invited", lastActive: "Pending", locations: [loc("l2")], invitedAt: "2026-05-27" },
-  { id: "m8", membershipId: "mm8", userId: "u8", email: "t.nakamura@northforge.demo", name: "Tomas Nakamura", initials: "TN", color: "#0891b2", role: "technician", status: "suspended", lastActive: "12d ago", locations: [loc("l4")] },
+  { id: "m7", membershipId: "mm7", userId: "u7", email: "l.hoffmann@northforge.demo", name: "Lena Hoffmann", initials: "LH", color: "#0ea5e9", role: "engineer", status: "invited", lastActive: "Pending", locations: [loc("l_sms")], invitedAt: "2026-05-27" },
+  { id: "m8", membershipId: "mm8", userId: "u8", email: "t.nakamura@northforge.demo", name: "Tomas Nakamura", initials: "TN", color: "#0891b2", role: "technician", status: "suspended", lastActive: "12d ago", locations: [loc("l_bgp")] },
 ];
 
 // ── Roles + permission catalog (for the matrix) ─────────────────────────────────
