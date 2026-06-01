@@ -8,8 +8,8 @@ The MVP runs on this concrete stack today. The `STORAGE_PROVIDER` / `DATABASE_UR
 
 | Concern | Provider | Notes |
 |---|---|---|
-| Web | **Vercel** | `panelos-web.vercel.app`, root `apps/web`, `NEXT_PUBLIC_API_URL` → Railway. Same-origin rewrite proxies `/api/v1/*`. |
-| API | **Railway** | `panelos-production.up.railway.app`, Docker image from `apps/api`, auto-deploy on `main`. Release runs `alembic upgrade head`. |
+| Web | **Vercel** | `panelos-web.vercel.app`, root `apps/web`. Browser uses `NEXT_PUBLIC_API_BASE=/api/v1`; the Next rewrite proxies `/api/v1/*` to `API_INTERNAL_URL` (the Railway API) same-origin so auth cookies flow through. |
+| API | **Railway** | `panelos-production.up.railway.app`, Docker image from `apps/api`, auto-deploy on `main`. The container boots via `scripts/start.sh`, which runs `alembic upgrade head` before uvicorn — **migrations apply automatically on every deploy**. |
 | Postgres | **Supabase** | eu-west-1 pooler via `DATABASE_URL`. PITR / backups managed by Supabase. |
 | Object storage | **Supabase Storage** | Private bucket `panelos`, signed short-lived URLs. Set `STORAGE_PROVIDER=supabase` + `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` / `SUPABASE_BUCKET`. |
 | Email | **SMTP / log** | `core/email.py` logs invites unless SMTP creds set. Wire Resend/SMTP for real delivery. |
@@ -20,6 +20,20 @@ The MVP runs on this concrete stack today. The `STORAGE_PROVIDER` / `DATABASE_UR
 Required: `DATABASE_URL`, `JWT_SECRET`, `APP_URL`, `NEXT_PUBLIC_APP_URL`, `STORAGE_PROVIDER`.
 Storage (when `supabase`): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_BUCKET=panelos`.
 Optional: `SENTRY_DSN`, `SMTP_*`, `REDIS_URL`, `CORS_ORIGINS`, `RATE_LIMIT_ENABLED` (default `true`).
+
+### Web env (Vercel)
+
+- `NEXT_PUBLIC_API_BASE=/api/v1` — keep relative in every environment (same-origin, cookies flow through the rewrite).
+- `API_INTERNAL_URL=https://panelos-production.up.railway.app` — the rewrite target (the legacy `NEXT_PUBLIC_API_URL` still works as a fallback).
+- `NEXT_PUBLIC_APP_URL` — the public web origin.
+
+### Environments (prod vs preview)
+
+Single production environment today; Vercel **preview deploys** (per-PR) cover staging needs.
+
+- **Production** (Vercel `main` + Railway `main` + Supabase): `API_INTERNAL_URL` → the prod Railway URL; `RATE_LIMIT_ENABLED=true`; `STORAGE_PROVIDER=supabase`.
+- **Preview** (Vercel PR builds): point `API_INTERNAL_URL` at the same Railway API (or a preview API if/when one exists). Previews are non-authoritative — do not run destructive migrations from them.
+- DB migrations are owned by the **API** boot (`start.sh`), so only the API environment that boots against a given `DATABASE_URL` mutates that schema.
 
 ### Pre-launch checklist
 
@@ -88,7 +102,7 @@ See [scaling](./scaling.md) for the deeper playbook.
 ## Deploys
 
 Live MVP:
-- API: push to `main` → Railway auto-builds the `apps/api` Docker image and deploys; release runs `alembic upgrade head`.
+- API: push to `main` → Railway auto-builds the `apps/api` Docker image and deploys; the container's `start.sh` runs `alembic upgrade head` before uvicorn, so schema migrations apply on boot.
 - Web: push to `main` → Vercel builds `apps/web` and promotes to production; PRs get preview deploys.
 
 Target (recommended topology, once migrated off Railway/Supabase):
