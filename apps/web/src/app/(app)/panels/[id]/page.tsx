@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PanelDetailHeader } from "@/components/panels/panel-detail-header";
 import { PanelOverview } from "@/components/panels/panel-overview";
 import { PanelComponentsSection } from "@/components/panels/panel-components-section";
+import { PanelSectionsSection } from "@/components/panels/panel-sections-section";
 import { RevisionTimeline } from "@/components/panels/revision-timeline";
 import { NewRevisionModal } from "@/components/panels/new-revision-modal";
 import { PanelQRCard } from "@/components/panels/panel-qr-card";
@@ -24,10 +25,11 @@ import {
   usePanelActivity,
 } from "@/lib/query/hooks";
 
-type TabId = "overview" | "schematics" | "components" | "revisions" | "qr" | "activity";
+type TabId = "overview" | "sections" | "schematics" | "components" | "revisions" | "qr" | "activity";
 
 const TABS: { id: TabId; label: string; icon: Parameters<typeof Icon>[0]["name"]; count?: number }[] = [
   { id: "overview", label: "Overview", icon: "layout-grid" },
+  { id: "sections", label: "Sections", icon: "list" },
   { id: "schematics", label: "Schematics", icon: "file-text" },
   { id: "components", label: "Components", icon: "cpu" },
   { id: "revisions", label: "Revisions", icon: "git-branch" },
@@ -109,6 +111,7 @@ export default function PanelDetailPage({ params }: { params: Promise<{ id: stri
             <SchematicViewer panelId={id} panel={panel} embedded />
           </Card>
         )}
+        {tab === "sections" && <PanelSectionsSection panelId={id} />}
         {tab === "components" && <PanelComponentsSection panelId={id} />}
         {tab === "revisions" && (
           <div style={{ maxWidth: 760 }}>

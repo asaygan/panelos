@@ -17,8 +17,10 @@ import {
   labelTemplates,
   locations,
   panels,
+  panelSets,
   revisions,
   search as searchApi,
+  sections,
   users,
   type LabelTemplateDTO,
   type RevisionDTO,
@@ -31,12 +33,15 @@ import {
   auditToView,
   componentToView,
   locationToView,
+  panelSetToView,
   panelToView,
   revisionRequestToView,
   revisionToView,
   roleToView,
   searchHitToView,
+  sectionToView,
   sheetToView,
+  treeToView,
   userToView,
   type PanelViewContext,
 } from "@/lib/api/adapters";
@@ -47,8 +52,11 @@ import type {
   Location,
   Member,
   Panel,
+  PanelSet,
+  PanelSetNode,
   Revision,
   RoleView,
+  Section,
   Sheet,
 } from "@/lib/api/types";
 
@@ -94,6 +102,78 @@ export function usePanels(
       ]);
       return items.map((p) => panelToView(p, { locations: locs, users: userMap }));
     },
+  });
+}
+
+/** The Panel Set → Panel → Section tree (default panels view). */
+export function useTree(): UseQueryResult<{ sets: PanelSetNode[]; unassigned: Panel[] }> {
+  return useQuery({
+    queryKey: queryKeys.panelSets.tree(),
+    queryFn: async () => {
+      const [dto, locs, userMap] = await Promise.all([
+        panelSets.tree(),
+        locations.list(),
+        fetchUserNameMap(),
+      ]);
+      return treeToView(dto, { locations: locs, users: userMap });
+    },
+  });
+}
+
+/** Flat list of panel sets (for the add-panel set selector etc). */
+export function usePanelSets(): UseQueryResult<PanelSet[]> {
+  return useQuery({
+    queryKey: queryKeys.panelSets.list(),
+    queryFn: async () => (await panelSets.list()).map(panelSetToView),
+    staleTime: 60_000,
+  });
+}
+
+export function usePanelSections(panelId: string): UseQueryResult<Section[]> {
+  return useQuery({
+    queryKey: queryKeys.sections.forPanel(panelId),
+    enabled: !!panelId,
+    queryFn: async () => (await sections.list(panelId)).map(sectionToView),
+  });
+}
+
+export function useCreatePanelSet() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schemas["PanelSetCreateIn"]) => panelSets.create(body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.panelSets.all() });
+    },
+  });
+}
+
+function invalidateTreeAndSections(qc: ReturnType<typeof useQueryClient>, panelId?: string) {
+  qc.invalidateQueries({ queryKey: queryKeys.panelSets.tree() });
+  if (panelId) qc.invalidateQueries({ queryKey: queryKeys.sections.forPanel(panelId) });
+}
+
+export function useCreateSection(panelId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schemas["SectionCreateIn"]) => sections.create(panelId, body),
+    onSuccess: () => invalidateTreeAndSections(qc, panelId),
+  });
+}
+
+export function useUpdateSection(panelId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Schemas["SectionUpdateIn"] }) =>
+      sections.update(id, body),
+    onSuccess: () => invalidateTreeAndSections(qc, panelId),
+  });
+}
+
+export function useDeleteSection(panelId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => sections.remove(id),
+    onSuccess: () => invalidateTreeAndSections(qc, panelId),
   });
 }
 

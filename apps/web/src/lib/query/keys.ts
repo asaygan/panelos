@@ -8,6 +8,15 @@ export const queryKeys = {
     components: (id: string) => ["panels", id, "components"] as const,
     activity: (id: string) => ["panels", id, "activity"] as const,
   },
+  panelSets: {
+    all: () => ["panel-sets"] as const,
+    list: () => ["panel-sets", "list"] as const,
+    tree: () => ["panel-sets", "tree"] as const,
+    detail: (id: string) => ["panel-sets", "detail", id] as const,
+  },
+  sections: {
+    forPanel: (panelId: string) => ["panels", panelId, "sections"] as const,
+  },
   revisions: {
     queue: (filter?: string) => ["revisions", "queue", filter ?? "all"] as const,
   },

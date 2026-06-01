@@ -6,7 +6,7 @@ import { Btn } from "@/components/primitives/button";
 import { Field } from "@/components/primitives/field";
 import { Input } from "@/components/primitives/input";
 import { Select } from "@/components/primitives/select";
-import { useCreatePanel } from "@/lib/query/hooks";
+import { useCreatePanel, usePanelSets } from "@/lib/query/hooks";
 import type { Location } from "@/lib/api/types";
 
 export interface AddPanelModalProps {
@@ -18,10 +18,12 @@ export interface AddPanelModalProps {
 
 export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddPanelModalProps) {
   const create = useCreatePanel();
+  const { data: panelSets = [] } = usePanelSets();
   const [tag, setTag] = useState("");
   const [name, setName] = useState("");
   const [serial, setSerial] = useState("");
   const [customer, setCustomer] = useState("");
+  const [panelSetId, setPanelSetId] = useState("");
   const [locationId, setLocationId] = useState("");
   const [voltage, setVoltage] = useState("");
   const [current, setCurrent] = useState("");
@@ -31,6 +33,7 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
     setName("");
     setSerial("");
     setCustomer("");
+    setPanelSetId("");
     setLocationId("");
     setVoltage("");
     setCurrent("");
@@ -43,6 +46,7 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
       name,
       serial,
       customer: customer || undefined,
+      panel_set_id: panelSetId || undefined,
       location_id: locationId || undefined,
       voltage: voltage || undefined,
       current_a: current || undefined,
@@ -99,6 +103,16 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
             onChange={(e) => setCustomer(e.target.value)}
             placeholder="End customer / owner (optional)"
           />
+        </Field>
+        <Field label="Panel set">
+          <Select value={panelSetId} onChange={(e) => setPanelSetId(e.target.value)}>
+            <option value="">— Unassigned —</option>
+            {panelSets.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
         </Field>
         <Field label="Location">
           <Select value={locationId} onChange={(e) => setLocationId(e.target.value)}>

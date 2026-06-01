@@ -13,9 +13,12 @@ import { Menu } from "@/components/primitives/menu";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { useToast } from "@/components/primitives/toast";
 import { Icon } from "@/components/icons/icon";
+import { PanelTree } from "@/components/panels/panel-tree";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
-import { demoLocations, demoPanels } from "@/lib/demo/data";
+import { demoLocations, demoPanels, demoTree } from "@/lib/demo/data";
 import type { Panel } from "@/lib/api/types";
+
+type ViewMode = "tree" | "table";
 
 type SortKey = "tag" | "serial" | "loc" | "volt" | "mfr" | "rev" | "comps" | "updated";
 type GroupKey = "none" | "loc" | "area" | "mfr" | "status" | "volt";
@@ -39,6 +42,7 @@ export default function DemoPanelsPage() {
   const [sel, setSel] = useState<string[]>([]);
   const [groupBy, setGroupBy] = useState<GroupKey>("none");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [view, setView] = useState<ViewMode>("tree");
 
   const allPanels = demoPanels;
   const locationList = demoLocations;
@@ -142,7 +146,17 @@ export default function DemoPanelsPage() {
   return (
     <Page>
       <Toolbar>
-        <div style={{ position: "relative", width: 260 }}>
+        <div style={{ display: "flex", gap: 2, padding: 2, background: "var(--c-surface-3)", borderRadius: "var(--r-sm)" }}>
+          <Btn size="sm" icon="git-branch" variant={view === "tree" ? "default" : "ghost"} onClick={() => setView("tree")}>
+            Tree
+          </Btn>
+          <Btn size="sm" icon="list" variant={view === "table" ? "default" : "ghost"} onClick={() => setView("table")}>
+            Table
+          </Btn>
+        </div>
+        {view === "table" && (
+        <>
+        <div style={{ position: "relative", width: 240 }}>
           <Icon name="search" size={14} style={{ position: "absolute", left: 9, top: 8, color: "var(--c-ink-4)" }} />
           <Input
             style={{ paddingLeft: 28 }}
@@ -182,6 +196,8 @@ export default function DemoPanelsPage() {
           </span>{" "}
           of {allPanels.length}
         </span>
+        </>
+        )}
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {sel.length > 0 && (
             <Btn size="sm" icon="qr-code" onClick={() => router.push("/demo/labels")}>
@@ -197,6 +213,13 @@ export default function DemoPanelsPage() {
         </div>
       </Toolbar>
 
+      {view === "tree" ? (
+        <Card style={{ overflow: "hidden" }}>
+          <div style={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
+            <PanelTree sets={demoTree} unassigned={[]} basePath="/demo" />
+          </div>
+        </Card>
+      ) : (
       <Card style={{ overflow: "hidden" }}>
         <div style={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
           <table className="tbl">
@@ -283,6 +306,7 @@ export default function DemoPanelsPage() {
           {rows.length === 0 && <Empty icon="search" title="No panels match" sub="Try clearing filters or widening your search." />}
         </div>
       </Card>
+      )}
     </Page>
   );
 }

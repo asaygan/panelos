@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Page } from "@/components/primitives/page";
 import { Toolbar } from "@/components/primitives/toolbar";
@@ -13,9 +13,14 @@ import { Menu } from "@/components/primitives/menu";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { Icon } from "@/components/icons/icon";
 import { AddPanelModal } from "@/components/panels/add-panel-modal";
-import { usePanels, useLocations, useArchivePanel } from "@/lib/query/hooks";
+import { AddPanelSetModal } from "@/components/panels/add-panel-set-modal";
+import { PanelTree } from "@/components/panels/panel-tree";
+import { usePanels, useLocations, useArchivePanel, useTree } from "@/lib/query/hooks";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { Panel } from "@/lib/api/types";
+
+type ViewMode = "tree" | "table";
+const VIEW_KEY = "panelos.panels.view";
 
 /** Serialize panel rows to a CSV string (RFC-4180 quoting). */
 function panelsToCsv(rows: Panel[]): string {
@@ -69,9 +74,22 @@ export default function PanelsPage() {
   const [groupBy, setGroupBy] = useState<GroupKey>("none");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [addOpen, setAddOpen] = useState(false);
+  const [addSetOpen, setAddSetOpen] = useState(false);
+  const [view, setView] = useState<ViewMode>("tree");
+
+  // Persist the tree/table preference per user (default tree).
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem(VIEW_KEY) : null;
+    if (saved === "tree" || saved === "table") setView(saved);
+  }, []);
+  const setViewPersist = (v: ViewMode) => {
+    setView(v);
+    if (typeof window !== "undefined") window.localStorage.setItem(VIEW_KEY, v);
+  };
 
   const { data: allPanels = [], isLoading, isError } = usePanels();
   const { data: locationList = [] } = useLocations();
+  const { data: tree, isLoading: treeLoading, isError: treeError } = useTree();
   const archivePanel = useArchivePanel();
 
   const rows = useMemo(() => {
@@ -203,19 +221,43 @@ export default function PanelsPage() {
   return (
     <Page>
       <Toolbar>
-        <div style={{ position: "relative", width: 260 }}>
-          <Icon
-            name="search"
-            size={14}
-            style={{ position: "absolute", left: 9, top: 8, color: "var(--c-ink-4)" }}
-          />
-          <Input
-            style={{ paddingLeft: 28 }}
-            placeholder="Filter by name, serial, tag, OEM…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
+        <div style={{ display: "flex", gap: 2, padding: 2, background: "var(--c-surface-3)", borderRadius: "var(--r-sm)" }}>
+          <Btn
+            size="sm"
+            icon="git-branch"
+            variant={view === "tree" ? "default" : "ghost"}
+            onClick={() => setViewPersist("tree")}
+            title="Tree view"
+          >
+            Tree
+          </Btn>
+          <Btn
+            size="sm"
+            icon="list"
+            variant={view === "table" ? "default" : "ghost"}
+            onClick={() => setViewPersist("table")}
+            title="Table view"
+          >
+            Table
+          </Btn>
         </div>
+        {view === "table" && (
+          <div style={{ position: "relative", width: 240 }}>
+            <Icon
+              name="search"
+              size={14}
+              style={{ position: "absolute", left: 9, top: 8, color: "var(--c-ink-4)" }}
+            />
+            <Input
+              style={{ paddingLeft: 28 }}
+              placeholder="Filter by name, serial, tag, OEM…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </div>
+        )}
+        {view === "table" && (
+        <>
         <Select style={{ width: "auto" }} value={loc} onChange={(e) => setLoc(e.target.value)}>
           <option value="all">All locations</option>
           {locationList.map((l) => (
@@ -260,6 +302,8 @@ export default function PanelsPage() {
           </span>{" "}
           of {allPanels.length}
         </span>
+        </>
+        )}
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           {sel.length > 0 && (
             <Btn
@@ -270,8 +314,13 @@ export default function PanelsPage() {
               Label {sel.length}
             </Btn>
           )}
-          <Btn size="sm" icon="download" onClick={handleExport} disabled={rows.length === 0}>
-            Export{sel.length > 0 ? ` (${sel.length})` : ""}
+          {view === "table" && (
+            <Btn size="sm" icon="download" onClick={handleExport} disabled={rows.length === 0}>
+              Export{sel.length > 0 ? ` (${sel.length})` : ""}
+            </Btn>
+          )}
+          <Btn size="sm" icon="layout-grid" onClick={() => setAddSetOpen(true)}>
+            Add set
           </Btn>
           <Btn size="sm" variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
             Add panel
@@ -279,6 +328,21 @@ export default function PanelsPage() {
         </div>
       </Toolbar>
 
+      {view === "tree" ? (
+        <Card style={{ overflow: "hidden" }}>
+          <div style={{ maxHeight: "calc(100vh - 170px)", overflow: "auto" }}>
+            {treeLoading && (
+              <Empty icon="server" title="Loading asset tree…" sub="Fetching your facilities." />
+            )}
+            {treeError && !treeLoading && (
+              <Empty icon="alert-triangle" title="Couldn't load the tree" sub="Check your connection and retry." />
+            )}
+            {!treeLoading && !treeError && tree && (
+              <PanelTree sets={tree.sets} unassigned={tree.unassigned} />
+            )}
+          </div>
+        </Card>
+      ) : (
       <Card style={{ overflow: "hidden" }}>
         <div style={{ maxHeight: "calc(100vh - 170px)", overflow: "auto" }}>
           <table className="tbl">
@@ -422,6 +486,7 @@ export default function PanelsPage() {
           )}
         </div>
       </Card>
+      )}
 
       <AddPanelModal
         open={addOpen}
@@ -429,6 +494,7 @@ export default function PanelsPage() {
         locations={locationList}
         onCreated={(id) => router.push(`/panels/${id}`)}
       />
+      <AddPanelSetModal open={addSetOpen} onOpenChange={setAddSetOpen} locations={locationList} />
     </Page>
   );
 }

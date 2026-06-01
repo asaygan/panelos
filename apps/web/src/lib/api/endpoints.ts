@@ -23,6 +23,9 @@ export type AuditLogDTO = Schemas["AuditLogOut"];
 export type RoleEnum = Schemas["Role"];
 export type InvitationInfoDTO = Schemas["InvitationInfoOut"];
 export type TokenOutDTO = Schemas["TokenOut"];
+export type PanelSetDTO = Schemas["PanelSetOut"];
+export type SectionDTO = Schemas["SectionOut"];
+export type TreeDTO = Schemas["TreeOut"];
 
 export interface SearchHitDTO {
   type: string;
@@ -84,6 +87,32 @@ export const panels = {
       query: revisionId ? { revision_id: revisionId } : undefined,
     }),
   components: (id: string) => api.get<ComponentDTO[]>(`/panels/${id}/components`),
+};
+
+// ── Panel Sets + Sections ─────────────────────────────────────────────────────
+export const panelSets = {
+  list: async (): Promise<PanelSetDTO[]> => {
+    const res = await api.get<{ items: PanelSetDTO[]; next_cursor?: string | null }>(
+      "/panel-sets",
+      { query: { limit: 200 } },
+    );
+    return res.items;
+  },
+  tree: () => api.get<TreeDTO>("/panel-sets/tree"),
+  get: (id: string) => api.get<PanelSetDTO>(`/panel-sets/${id}`),
+  create: (body: Schemas["PanelSetCreateIn"]) => api.post<PanelSetDTO>("/panel-sets", body),
+  update: (id: string, body: Schemas["PanelSetUpdateIn"]) =>
+    api.put<PanelSetDTO>(`/panel-sets/${id}`, body),
+  archive: (id: string) => api.delete<void>(`/panel-sets/${id}`),
+};
+
+export const sections = {
+  list: (panelId: string) => api.get<SectionDTO[]>(`/panels/${panelId}/sections`),
+  create: (panelId: string, body: Schemas["SectionCreateIn"]) =>
+    api.post<SectionDTO>(`/panels/${panelId}/sections`, body),
+  update: (id: string, body: Schemas["SectionUpdateIn"]) =>
+    api.put<SectionDTO>(`/sections/${id}`, body),
+  remove: (id: string) => api.delete<void>(`/sections/${id}`),
 };
 
 // ── Revisions ─────────────────────────────────────────────────────────────────

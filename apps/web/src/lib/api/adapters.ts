@@ -7,12 +7,16 @@ import type {
   LocationDTO,
   MemberDTO,
   PanelDTO,
+  PanelSetDTO,
   RevisionDTO,
   RoleDTO,
+  SectionDTO,
   SheetDTO,
   SearchHitDTO,
+  TreeDTO,
 } from "./endpoints";
 import { formatDate, relativeTime } from "@/lib/utils/format";
+import type { IconName } from "@/components/icons/icon";
 import type {
   ActivityItem,
   AuditEntry,
@@ -21,10 +25,14 @@ import type {
   Member,
   MemberStatus,
   Panel,
+  PanelSet,
+  PanelSetNode,
   Revision,
   RevisionRequest,
   Role,
   RoleView,
+  Section,
+  SectionType,
   Sheet,
 } from "./types";
 import type { PanelStatus, RevisionStatus } from "@/lib/utils/status";
@@ -95,6 +103,7 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     id: dto.id,
     company_id: "",
     location_id: dto.location_id ?? "",
+    panel_set_id: dto.panel_set_id ?? null,
     tag: dto.tag,
     serial: dto.serial,
     qr_token: dto.qr_token,
@@ -180,6 +189,68 @@ export function sheetToView(dto: SheetDTO): Sheet {
     n: String(dto.sheet_number ?? "").padStart(3, "0"),
     title: dto.sheet_title ?? "Untitled",
   };
+}
+
+/** Label + icon for each section type (used in the tree + sections tab).
+ * Icons are constrained to the project's existing IconName set. */
+export const SECTION_TYPE_META: Record<
+  SectionType,
+  { label: string; icon: IconName }
+> = {
+  incoming: { label: "Incoming", icon: "zap" },
+  distribution: { label: "Distribution", icon: "git-branch" },
+  feeder: { label: "Feeder", icon: "zap" },
+  vfd: { label: "VFD", icon: "activity" },
+  softstarter: { label: "Softstarter", icon: "rotate" },
+  capacitor: { label: "Capacitor", icon: "circle" },
+  metering: { label: "Metering", icon: "hash" },
+  plc_cpu: { label: "PLC CPU", icon: "cpu" },
+  plc_io: { label: "PLC I/O", icon: "sliders" },
+  network: { label: "Network", icon: "server" },
+  ups: { label: "UPS", icon: "box" },
+  terminal: { label: "Terminal", icon: "list" },
+  hmi: { label: "HMI", icon: "layout-grid" },
+  protection: { label: "Protection", icon: "shield" },
+  generator: { label: "Generator", icon: "zap" },
+  custom: { label: "Custom", icon: "box" },
+};
+
+export function sectionToView(dto: SectionDTO): Section {
+  return {
+    id: dto.id,
+    panel_id: dto.panel_id,
+    section_type: dto.section_type as SectionType,
+    name: dto.name,
+    position: dto.position,
+    description: dto.description ?? undefined,
+  };
+}
+
+export function panelSetToView(dto: PanelSetDTO): PanelSet {
+  return {
+    id: dto.id,
+    name: dto.name,
+    code: dto.code ?? undefined,
+    description: dto.description ?? undefined,
+    location_id: dto.location_id ?? null,
+  };
+}
+
+/** Map the API tree DTO → an array of PanelSetNode view-models (+ unassigned bucket). */
+export function treeToView(
+  dto: TreeDTO,
+  ctx: PanelViewContext = {},
+): { sets: PanelSetNode[]; unassigned: Panel[] } {
+  const panelNode = (p: PanelDTO & { sections?: SectionDTO[] }): Panel => ({
+    ...panelToView(p, ctx),
+    sections: (p.sections ?? []).map(sectionToView),
+  });
+  const sets: PanelSetNode[] = (dto.panel_sets ?? []).map((s) => ({
+    ...panelSetToView(s),
+    panels: (s.panels ?? []).map(panelNode),
+  }));
+  const unassigned = (dto.unassigned_panels ?? []).map(panelNode);
+  return { sets, unassigned };
 }
 
 export function locationToView(dto: LocationDTO): Location {
