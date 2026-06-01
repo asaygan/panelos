@@ -48,7 +48,7 @@ jobs:
             type=raw,value=${{ steps.version.outputs.version }}
             type=raw,value=latest
             type=sha
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           # Dockerfile COPYs are relative to apps/api — build context must be apps/api.
           context: apps/api
