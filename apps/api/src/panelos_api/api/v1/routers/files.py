@@ -98,12 +98,18 @@ async def upload_raw(
     key: str,
     request: Request,
     storage: StorageProvider = Depends(get_storage),
+    settings: Settings = Depends(get_settings),
 ) -> dict[str, str]:
     """Target of ``LocalStorage.presign_put``: store the raw request body at ``key``.
 
-    No auth: this is the destination of a presigned PUT URL. The key embeds the
-    company id + a random uuid, so it is unguessable. TODO: sign URLs in prod.
+    LOCAL-ONLY. This is the destination of a *local* presigned PUT URL. For
+    non-local providers (s3/supabase/azure), ``presign_put`` returns a provider
+    signed URL and the browser uploads there directly — so this unauthenticated
+    write endpoint must be inert in prod, otherwise it would let anyone overwrite
+    arbitrary storage keys. The local key embeds company id + a random uuid.
     """
+    if settings.STORAGE_PROVIDER != "local":
+        raise NotFound("not found")
     body = await request.body()
     content_type = request.headers.get("content-type", "application/octet-stream")
     obj = await storage.put(key, io.BytesIO(body), content_type)
@@ -114,16 +120,20 @@ async def upload_raw(
 async def serve_raw(
     key: str,
     storage: StorageProvider = Depends(get_storage),
+    settings: Settings = Depends(get_settings),
 ) -> Response:
     """Target of ``LocalStorage.presign_get``: stream stored bytes back.
 
-    No auth required (presigned URL semantics) for local dev.
-    TODO: sign URLs in prod so this isn't world-readable.
+    LOCAL-ONLY (presigned-URL semantics for local dev). Non-local providers serve
+    files via short-lived provider signed URLs (see ``file_service.get_download_url``),
+    so this route is disabled when not on the local provider and never becomes a
+    world-readable hole in prod.
     """
+    if settings.STORAGE_PROVIDER != "local":
+        raise NotFound("not found")
     obj = await storage.get(key)
     get_bytes = getattr(storage, "get_bytes", None)
     if get_bytes is None:
-        # Non-local providers expose direct download URLs; redirect there.
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     data = await get_bytes(key)
     return Response(content=data, media_type=obj.content_type or "application/octet-stream")
