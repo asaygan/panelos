@@ -27,6 +27,9 @@ class Panel(UUIDPKMixin, TimestampMixin, TenantMixin, Base):
         Index("ix_panel_company_status", "company_id", "status"),
     )
 
+    panel_set_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("panel_sets.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     location_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True
     )

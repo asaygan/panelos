@@ -13,9 +13,11 @@ from panelos_api.db.models.membership import Membership
 from panelos_api.db.models.membership_location_access import MembershipLocationAccess
 from panelos_api.db.models.panel import Panel, PanelStatus
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
+from panelos_api.db.models.panel_set import PanelSet
 from panelos_api.db.models.pdf_file import PdfFile
 from panelos_api.db.models.revision_file import RevisionFile
 from panelos_api.db.models.scan_event import ScanEvent
+from panelos_api.db.models.section import Section, SectionType
 from panelos_api.db.models.session import UserSession
 from panelos_api.db.models.user import User
 
@@ -34,11 +36,14 @@ __all__ = [
     "MembershipLocationAccess",
     "Panel",
     "PanelRevision",
+    "PanelSet",
     "PanelStatus",
     "PdfFile",
     "RevisionFile",
     "RevisionStatus",
     "ScanEvent",
+    "Section",
+    "SectionType",
     "User",
     "UserSession",
 ]
