@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, ClassVar
 
 from sqlalchemy import DateTime, ForeignKey, MetaData, func
@@ -39,16 +39,32 @@ class UUIDPKMixin:
     )
 
 
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
+
+
 class TimestampMixin:
-    """created_at / updated_at columns."""
+    """created_at / updated_at columns.
+
+    Timestamps are computed Python-side (``default``/``onupdate`` callables) so the
+    ORM never has to re-fetch a server-recomputed value after INSERT/UPDATE. A
+    server-side ``server_default`` is kept as a backstop for raw SQL / migrations.
+    Using ``onupdate=func.now()`` (server-side) would expire ``updated_at`` after an
+    UPDATE and trigger a sync lazy-load on attribute access — fatal under async
+    (``MissingGreenlet``) when pydantic ``model_validate`` reads the attribute.
+    """
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        default=_utcnow,
+        server_default=func.now(),
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        default=_utcnow,
+        onupdate=_utcnow,
         server_default=func.now(),
-        onupdate=func.now(),
         nullable=False,
     )
 

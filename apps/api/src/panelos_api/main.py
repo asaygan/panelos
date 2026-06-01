@@ -98,7 +98,11 @@ def create_app() -> FastAPI:
     app.add_middleware(
         SecurityHeadersMiddleware, hsts=settings.APP_ENV == "production"
     )
-    # Auth rate limiting (in-memory, IP-keyed) via slowapi.
+    # Auth rate limiting (in-memory, IP-keyed) via slowapi. Re-read the toggle at
+    # app-construction time so it reflects the current settings (the limiter is a
+    # module-level singleton whose `enabled` was baked at import — tests flip the
+    # env after that import, so honor it here).
+    auth_limiter.enabled = settings.RATE_LIMIT_ENABLED
     app.state.limiter = auth_limiter
     app.add_middleware(SlowAPIMiddleware)
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

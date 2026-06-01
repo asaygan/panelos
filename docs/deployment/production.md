@@ -2,6 +2,37 @@
 
 Recommended platform topology for the PanelOS managed offering. Self-host instructions are derived from the same Docker images.
 
+## Current production (live MVP)
+
+The MVP runs on this concrete stack today. The `STORAGE_PROVIDER` / `DATABASE_URL` / `REDIS_URL` settings keep every provider a config-only swap, so the "recommended" topology below remains the target without blocking launch.
+
+| Concern | Provider | Notes |
+|---|---|---|
+| Web | **Vercel** | `panelos-web.vercel.app`, root `apps/web`, `NEXT_PUBLIC_API_URL` → Railway. Same-origin rewrite proxies `/api/v1/*`. |
+| API | **Railway** | `panelos-production.up.railway.app`, Docker image from `apps/api`, auto-deploy on `main`. Release runs `alembic upgrade head`. |
+| Postgres | **Supabase** | eu-west-1 pooler via `DATABASE_URL`. PITR / backups managed by Supabase. |
+| Object storage | **Supabase Storage** | Private bucket `panelos`, signed short-lived URLs. Set `STORAGE_PROVIDER=supabase` + `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` / `SUPABASE_BUCKET`. |
+| Email | **SMTP / log** | `core/email.py` logs invites unless SMTP creds set. Wire Resend/SMTP for real delivery. |
+| Error tracking | **Sentry** (optional) | Enabled only when `SENTRY_DSN` set. |
+
+### Production env (Railway)
+
+Required: `DATABASE_URL`, `JWT_SECRET`, `APP_URL`, `NEXT_PUBLIC_APP_URL`, `STORAGE_PROVIDER`.
+Storage (when `supabase`): `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_BUCKET=panelos`.
+Optional: `SENTRY_DSN`, `SMTP_*`, `REDIS_URL`, `CORS_ORIGINS`, `RATE_LIMIT_ENABLED` (default `true`).
+
+### Pre-launch checklist
+
+- [ ] Rotate any secrets shared during setup (Supabase DB password, GitHub PATs, `JWT_SECRET`).
+- [ ] `STORAGE_PROVIDER=supabase` + private `panelos` bucket created; upload survives a Railway redeploy.
+- [ ] `CORS_ORIGINS` / `APP_URL` locked to the Vercel origin; `allow_credentials` true.
+- [ ] `RATE_LIMIT_ENABLED=true` in prod; auth endpoints throttle (429 after burst).
+- [ ] Health check `GET /api/v1/health` wired to Railway.
+- [ ] Supabase PITR / backups confirmed.
+- [ ] Invite email actually delivers (SMTP creds) — else invites only log.
+- [ ] Full 14-step flow (create panel → upload PDF → draft → approve → QR → label PNG+PDF) passes on prod with persistent files.
+- [ ] `develop` → `main` release flow green (unit + integration + web typecheck/lint).
+
 ## Recommended (default)
 
 | Concern | Provider | Why |
@@ -56,7 +87,12 @@ See [scaling](./scaling.md) for the deeper playbook.
 
 ## Deploys
 
-- API: GitHub Actions → `fly deploy --image ghcr.io/<org>/panelos-api:<tag>` → `fly ssh console -C "alembic upgrade head"` as a release command.
+Live MVP:
+- API: push to `main` → Railway auto-builds the `apps/api` Docker image and deploys; release runs `alembic upgrade head`.
+- Web: push to `main` → Vercel builds `apps/web` and promotes to production; PRs get preview deploys.
+
+Target (recommended topology, once migrated off Railway/Supabase):
+- API: GitHub Actions → deploy `ghcr.io/<org>/panelos-api:<tag>` → run `alembic upgrade head` as a release command.
 - Web: GitHub Actions → `vercel deploy --prod` from tag.
 
 See [ci-cd/pipeline](../ci-cd/pipeline.md), [release](../ci-cd/release.md), [rollback](../ci-cd/rollback.md).

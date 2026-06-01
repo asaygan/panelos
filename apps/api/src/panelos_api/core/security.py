@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
@@ -56,6 +57,10 @@ def issue_token(
         "iat": int(now.timestamp()),
         "exp": int((now + ttl).timestamp()),
         "typ": token_type,
+        # Unique per-token nonce so two tokens minted for the same subject within
+        # the same second are never byte-identical (otherwise their refresh hashes
+        # collide on the sessions.token_hash unique constraint).
+        "jti": uuid.uuid4().hex,
     }
     if extra_claims:
         claims.update(extra_claims)

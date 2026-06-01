@@ -29,5 +29,10 @@ def build_limiter() -> Limiter:
 
 # In-memory, IP-keyed limiter for unauthenticated auth endpoints
 # (login/refresh/accept-invite). No Redis dependency — survives a single
-# process and is the right scope for brute-force throttling.
-auth_limiter = Limiter(key_func=get_remote_address, default_limits=[])
+# process and is the right scope for brute-force throttling. Disabled when
+# RATE_LIMIT_ENABLED is falsy (tests log in many times per second).
+auth_limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[],
+    enabled=get_settings().RATE_LIMIT_ENABLED,
+)

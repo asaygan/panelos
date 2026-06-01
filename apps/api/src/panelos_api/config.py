@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # Rate limiting (auth endpoints). Disable in tests to allow rapid logins.
+    RATE_LIMIT_ENABLED: bool = True
+
     # Auth
     JWT_SECRET: str = "change-me-in-prod"
     JWT_ALGORITHM: Literal["HS256", "RS256"] = "HS256"
