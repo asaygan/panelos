@@ -11,7 +11,7 @@ from sqlalchemy import select
 from panelos_api.config import get_settings
 from panelos_api.core.exceptions import NotFound
 from panelos_api.db.models.panel import Panel
-from panelos_api.db.models.panel_revision import PanelRevision
+from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
 from panelos_api.db.models.scan_event import ScanEvent
 
 if TYPE_CHECKING:
@@ -59,7 +59,11 @@ async def resolve_token(
 
     active_rev: PanelRevision | None = None
     if panel.active_revision_id:
-        active_rev = await session.get(PanelRevision, panel.active_revision_id)
+        candidate = await session.get(PanelRevision, panel.active_revision_id)
+        # Defense-in-depth: only an APPROVED revision is ever served via QR.
+        # Never expose draft/review/rejected/superseded content to the field.
+        if candidate is not None and candidate.status == RevisionStatus.APPROVED:
+            active_rev = candidate
 
     scan = ScanEvent(
         panel_id=panel.id,
@@ -84,4 +88,5 @@ async def resolve_token(
         }
         if active_rev
         else None,
+        "message": None if active_rev else "no approved revision yet",
     }

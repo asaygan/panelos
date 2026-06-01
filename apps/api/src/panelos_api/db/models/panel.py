@@ -45,6 +45,7 @@ class Panel(UUIDPKMixin, TimestampMixin, TenantMixin, Base):
     current_a: Mapped[str | None] = mapped_column(String(40), nullable=True)
     phase: Mapped[str | None] = mapped_column(String(40), nullable=True)
     mfr: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    customer: Mapped[str | None] = mapped_column(String(200), nullable=True)
     enclosure: Mapped[str | None] = mapped_column(String(80), nullable=True)
     ip_class: Mapped[str | None] = mapped_column(String(20), nullable=True)
     notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)

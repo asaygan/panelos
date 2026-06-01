@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pyotp
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from panelos_api.api.v1.schemas.auth import (
+    AcceptInviteIn,
+    InvitationInfoOut,
     LoginIn,
     LogoutIn,
     MeOut,
@@ -17,6 +19,7 @@ from panelos_api.api.v1.schemas.auth import (
     TokenOut,
 )
 from panelos_api.core.exceptions import Unauthorized
+from panelos_api.core.rate_limit import auth_limiter
 from panelos_api.deps import CurrentUser, get_current_user, get_db
 from panelos_api.repositories.membership_repo import MembershipRepo
 from panelos_api.services import auth_service
@@ -28,7 +31,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=TokenOut)
-async def login(payload: LoginIn, db: AsyncSession = Depends(get_db)) -> TokenOut:
+@auth_limiter.limit("10/minute")
+async def login(
+    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_db)
+) -> TokenOut:
     _, tokens = await auth_service.login(
         db,
         email=str(payload.email),
@@ -40,8 +46,36 @@ async def login(payload: LoginIn, db: AsyncSession = Depends(get_db)) -> TokenOu
 
 
 @router.post("/refresh", response_model=TokenOut)
-async def refresh(payload: RefreshIn, db: AsyncSession = Depends(get_db)) -> TokenOut:
+@auth_limiter.limit("30/minute")
+async def refresh(
+    request: Request, payload: RefreshIn, db: AsyncSession = Depends(get_db)
+) -> TokenOut:
     tokens = await auth_service.refresh_tokens(db, refresh_token=payload.refresh_token)
+    return TokenOut(access_token=tokens.access_token, refresh_token=tokens.refresh_token)
+
+
+@router.get("/invitations/{token}", response_model=InvitationInfoOut)
+async def get_invitation(token: str, db: AsyncSession = Depends(get_db)) -> InvitationInfoOut:
+    """Public: resolve an invitation token for the accept page."""
+    info = await auth_service.get_invitation(db, token=token)
+    return InvitationInfoOut(
+        email=info.email,  # type: ignore[arg-type]
+        company_name=info.company_name,
+        role=info.role,
+        expired=info.expired,
+        accepted=info.accepted,
+    )
+
+
+@router.post("/accept-invite", response_model=TokenOut)
+@auth_limiter.limit("10/minute")
+async def accept_invite(
+    request: Request, payload: AcceptInviteIn, db: AsyncSession = Depends(get_db)
+) -> TokenOut:
+    """Public: set password + activate membership from an invite token (auto-login)."""
+    _, _, tokens = await auth_service.accept_invite(
+        db, token=payload.token, name=payload.name, password=payload.password
+    )
     return TokenOut(access_token=tokens.access_token, refresh_token=tokens.refresh_token)
 
 

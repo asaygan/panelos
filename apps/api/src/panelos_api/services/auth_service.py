@@ -122,6 +122,18 @@ async def login(
     session.add(sess)
     user.last_login_at = datetime.now(UTC)
     await session.flush()
+
+    # Best-effort login audit against the user's first membership company.
+    if memberships:
+        await append_audit(
+            session,
+            company_id=memberships[0].company_id,
+            actor_id=user.id,
+            action=AuditAction.LOGIN,
+            target_type="user",
+            target_id=str(user.id),
+            meta={"device": device},
+        )
     return user, TokenPair(access_token=access, refresh_token=refresh)
 
 
@@ -167,6 +179,21 @@ async def logout(session: AsyncSession, *, refresh_token: str) -> None:
     if sess is not None and sess.revoked_at is None:
         sess.revoked_at = datetime.now(UTC)
         await session.flush()
+        membership = (
+            await session.execute(
+                select(Membership).where(Membership.user_id == sess.user_id).limit(1)
+            )
+        ).scalar_one_or_none()
+        if membership is not None:
+            await append_audit(
+                session,
+                company_id=membership.company_id,
+                actor_id=sess.user_id,
+                action=AuditAction.LOGOUT,
+                target_type="user",
+                target_id=str(sess.user_id),
+                meta={},
+            )
 
 
 async def invite_member(
@@ -200,14 +227,45 @@ async def invite_member(
     return inv
 
 
+@dataclass(slots=True)
+class InvitationInfo:
+    email: str
+    company_name: str
+    role: str
+    expired: bool
+    accepted: bool
+
+
+async def get_invitation(session: AsyncSession, *, token: str) -> InvitationInfo:
+    """Public lookup of an invitation by token for the accept page."""
+
+    inv = (
+        await session.execute(select(Invitation).where(Invitation.token == token))
+    ).scalar_one_or_none()
+    if inv is None:
+        raise NotFound("invitation not found")
+    company = await session.get(Company, inv.company_id)
+    return InvitationInfo(
+        email=inv.email,
+        company_name=company.name if company else "",
+        role=inv.role.value,
+        expired=inv.expires_at < datetime.now(UTC),
+        accepted=inv.accepted_at is not None,
+    )
+
+
 async def accept_invite(
     session: AsyncSession,
     *,
     token: str,
-    name: str,
+    name: str | None,
     password: str,
-) -> tuple[User, Membership]:
-    """Materialize a user + membership from an invitation token."""
+) -> tuple[User, Membership, TokenPair]:
+    """Validate an invitation, set the user's password, activate the membership.
+
+    Activates the existing ``status=invited`` membership (created by the invite
+    flow) and returns login tokens so the accepting user is auto-logged-in.
+    """
 
     inv = (
         await session.execute(select(Invitation).where(Invitation.token == token))
@@ -215,21 +273,85 @@ async def accept_invite(
     if inv is None or inv.accepted_at is not None or inv.expires_at < datetime.now(UTC):
         raise NotFound("invitation invalid or expired")
 
+    now = datetime.now(UTC)
     user = (
         await session.execute(select(User).where(User.email == inv.email))
     ).scalar_one_or_none()
     if user is None:
-        user = User(email=inv.email, name=name, password_hash=hash_password(password))
+        user = User(
+            email=inv.email,
+            name=name or inv.email.split("@")[0],
+            password_hash=hash_password(password),
+            is_active=True,
+        )
         session.add(user)
         await session.flush()
+    else:
+        user.password_hash = hash_password(password)
+        user.is_active = True
+        if name:
+            user.name = name
 
-    membership = Membership(
-        company_id=inv.company_id,
-        user_id=user.id,
-        role=inv.role,
-        accepted_at=datetime.now(UTC),
-    )
-    session.add(membership)
-    inv.accepted_at = datetime.now(UTC)
+    # Activate the membership created during invite (else create one).
+    membership = (
+        await session.execute(
+            select(Membership).where(
+                Membership.company_id == inv.company_id,
+                Membership.user_id == user.id,
+            )
+        )
+    ).scalar_one_or_none()
+    if membership is None:
+        membership = Membership(
+            company_id=inv.company_id,
+            user_id=user.id,
+            role=inv.role,
+            status="active",
+            accepted_at=now,
+        )
+        session.add(membership)
+    else:
+        membership.status = "active"
+        membership.accepted_at = now
+    inv.accepted_at = now
     await session.flush()
-    return user, membership
+
+    await append_audit(
+        session,
+        company_id=inv.company_id,
+        actor_id=user.id,
+        action=AuditAction.INVITE_ACCEPTED,
+        target_type="membership",
+        target_id=str(membership.id),
+        meta={"email": inv.email},
+    )
+    await append_audit(
+        session,
+        company_id=inv.company_id,
+        actor_id=user.id,
+        action=AuditAction.USER_ACTIVATED,
+        target_type="membership",
+        target_id=str(membership.id),
+        meta={"status": "active", "via": "invite_accept"},
+    )
+
+    # Auto-login: issue tokens + persist a refresh session.
+    settings = get_settings()
+    company_ids = [str(membership.company_id)]
+    access = issue_token(
+        subject=str(user.id),
+        token_type="access",
+        extra_claims={"companies": company_ids},
+    )
+    refresh = issue_token(subject=str(user.id), token_type="refresh")
+    session.add(
+        UserSession(
+            user_id=user.id,
+            token_hash=_hash_refresh(refresh),
+            device="invite-accept",
+            expires_at=now + timedelta(days=settings.REFRESH_TOKEN_TTL_DAYS),
+        )
+    )
+    user.last_login_at = now
+    await session.flush()
+    return user, membership, TokenPair(access_token=access, refresh_token=refresh)

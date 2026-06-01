@@ -30,6 +30,7 @@ class LabelSpec:
     current: str = ""
     phase: str = ""
     mfr: str = ""
+    customer: str = ""
     enclosure: str = ""
     location: str = ""
     area: str = ""

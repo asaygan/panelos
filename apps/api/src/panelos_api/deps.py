@@ -96,7 +96,15 @@ async def get_current_membership(
     elif len(memberships) == 1:
         m = memberships[0]
     else:
-        raise Forbidden("specify X-Company-Id when user belongs to multiple companies")
+        # Multi-membership user without an explicit X-Company-Id: fall back to a
+        # deterministic default (first *active* membership ordered by created_at)
+        # instead of hard-403ing the request.
+        active = sorted(
+            (mm for mm in memberships if mm.status == "active"),
+            key=lambda mm: mm.created_at,
+        )
+        candidates = active or sorted(memberships, key=lambda mm: mm.created_at)
+        m = candidates[0]
 
     await set_tenant_guc(db, m.company_id)
     return CurrentMembership(user=user, company_id=m.company_id, role=m.role)

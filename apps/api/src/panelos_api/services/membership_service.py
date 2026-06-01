@@ -14,11 +14,14 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import delete, select
 
+from panelos_api.config import get_settings
 from panelos_api.core.audit import append_audit
+from panelos_api.core.email import send_invite_email
 from panelos_api.core.exceptions import Conflict, Forbidden, NotFound
 from panelos_api.core.ids import new_invitation_token
 from panelos_api.core.rbac import Role
 from panelos_api.db.models.audit_log import AuditAction
+from panelos_api.db.models.company import Company
 from panelos_api.db.models.invitation import Invitation
 from panelos_api.db.models.membership import Membership
 from panelos_api.db.models.membership_location_access import MembershipLocationAccess
@@ -29,6 +32,23 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 VALID_STATUSES = ("active", "suspended")
+
+
+def _accept_url(token: str) -> str:
+    base = get_settings().APP_URL.rstrip("/")
+    return f"{base}/accept/{token}"
+
+
+async def _send_invite(
+    session: AsyncSession, *, company_id: uuid.UUID, email: str, role: Role, token: str
+) -> None:
+    company = await session.get(Company, company_id)
+    send_invite_email(
+        to=email,
+        company_name=company.name if company else "your organization",
+        accept_url=_accept_url(token),
+        role=role.value,
+    )
 
 
 async def _get_membership(
@@ -137,6 +157,10 @@ async def invite(
     )
     session.add(inv)
     await session.flush()
+
+    await _send_invite(
+        session, company_id=company_id, email=email, role=role, token=inv.token
+    )
 
     await append_audit(
         session,
@@ -309,6 +333,9 @@ async def resend_invite(
         inv.accepted_at = None
     mem.invited_at = datetime.now(UTC)
     await session.flush()
+    await _send_invite(
+        session, company_id=company_id, email=email, role=mem.role, token=inv.token
+    )
     await append_audit(
         session,
         company_id=company_id,

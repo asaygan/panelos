@@ -92,6 +92,7 @@ async def _build_spec(
         current=panel.current_a or "",
         phase=panel.phase or "",
         mfr=panel.mfr or "",
+        customer=panel.customer or "",
         enclosure=panel.enclosure or "",
         location=location_name,
         area=panel.area or "",

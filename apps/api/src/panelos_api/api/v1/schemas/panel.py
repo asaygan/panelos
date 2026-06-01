@@ -19,6 +19,7 @@ class PanelOut(ORMModel):
     current_a: str | None = None
     phase: str | None = None
     mfr: str | None = None
+    customer: str | None = None
     enclosure: str | None = None
     area: str | None = None
     active_revision_id: uuid.UUID | None = None
@@ -36,6 +37,7 @@ class PanelCreateIn(ORMModel):
     current_a: str | None = None
     phase: str | None = None
     mfr: str | None = None
+    customer: str | None = None
     enclosure: str | None = None
     area: str | None = None
     ip_class: str | None = None
@@ -50,6 +52,7 @@ class PanelUpdateIn(ORMModel):
     current_a: str | None = None
     phase: str | None = None
     mfr: str | None = None
+    customer: str | None = None
     enclosure: str | None = None
     area: str | None = None
     ip_class: str | None = None

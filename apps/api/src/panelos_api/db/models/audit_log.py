@@ -30,6 +30,7 @@ class AuditAction(StrEnum):
     USER_SUSPENDED = "user.suspended"
     USER_ACTIVATED = "user.activated"
     INVITE_RESENT = "user.invite_resent"
+    INVITE_ACCEPTED = "user.invite_accepted"
     LOCATIONS_ASSIGNED = "user.locations_assigned"
     LOGIN = "auth.login"
     LOGOUT = "auth.logout"

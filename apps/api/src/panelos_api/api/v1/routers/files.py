@@ -74,6 +74,22 @@ async def finalize(
     )
     db.add(record)
     await db.flush()
+    from panelos_api.core.audit import append_audit
+    from panelos_api.db.models.audit_log import AuditAction
+
+    await append_audit(
+        db,
+        company_id=m.company_id,
+        actor_id=m.user.id,
+        action=AuditAction.FILE_UPLOADED,
+        target_type="file",
+        target_id=str(record.id),
+        meta={
+            "filename": payload.original_filename,
+            "sha256": record.sha256,
+            "size": record.byte_size,
+        },
+    )
     return FileOut.model_validate(record)
 
 

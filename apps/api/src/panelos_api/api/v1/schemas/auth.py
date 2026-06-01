@@ -40,3 +40,17 @@ class MfaSetupOut(BaseModel):
 
 class MfaVerifyIn(BaseModel):
     code: str
+
+
+class InvitationInfoOut(BaseModel):
+    email: EmailStr
+    company_name: str
+    role: str
+    expired: bool
+    accepted: bool
+
+
+class AcceptInviteIn(BaseModel):
+    token: str
+    name: str | None = None
+    password: str

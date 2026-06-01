@@ -35,6 +35,7 @@ def get_storage(settings: Settings | None = None) -> StorageProvider:
             url=s.SUPABASE_URL or "",
             service_key=s.SUPABASE_SERVICE_KEY or "",
             bucket=s.SUPABASE_BUCKET,
+            public_base_url=s.STORAGE_PUBLIC_BASE_URL,
         )
     if s.STORAGE_PROVIDER == "azure":
         from panelos_api.storage.azure import AzureStorage
