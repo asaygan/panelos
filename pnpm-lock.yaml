@@ -72,8 +72,8 @@ importers:
         specifier: 19.0.0-rc-66855b96-20241106
         version: 19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106)
       react-hook-form:
-        specifier: ^7.53.1
-        version: 7.76.1(react@19.0.0-rc-66855b96-20241106)
+        specifier: ^7.77.0
+        version: 7.77.0(react@19.0.0-rc-66855b96-20241106)
       react-pdf:
         specifier: ^9.1.1
         version: 9.2.1(react-dom@19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106))(react@19.0.0-rc-66855b96-20241106)(types-react@19.0.0-rc.1)
@@ -2901,8 +2901,8 @@ packages:
     peerDependencies:
       react: 19.0.0-rc-66855b96-20241106
 
-  react-hook-form@7.76.1:
-    resolution: {integrity: sha512-rYM7tPiWlu3nZchkR/ex7piyzui2vFPyaLnXnI/RnblB/L4qfMmyses8llJVtF1NpE9WBBsJlGtcSZzPCXW1qQ==}
+  react-hook-form@7.77.0:
+    resolution: {integrity: sha512-Sslh9YDYc0GDlWT/lxasnIduNo4v3yyvqRGvmGKUre5AFjDs/HV9/OafHGD8d+sB2yoL4UIL9L8X9i0WlZZebg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
@@ -6207,7 +6207,7 @@ snapshots:
       react: 19.0.0-rc-66855b96-20241106
       scheduler: 0.25.0-rc-66855b96-20241106
 
-  react-hook-form@7.76.1(react@19.0.0-rc-66855b96-20241106):
+  react-hook-form@7.77.0(react@19.0.0-rc-66855b96-20241106):
     dependencies:
       react: 19.0.0-rc-66855b96-20241106
 
