@@ -86,6 +86,94 @@ export async function loginAction(_prev: LoginState | undefined, formData: FormD
   redirect("/dashboard");
 }
 
+export interface AcceptInviteState {
+  error?: string;
+  ok?: boolean;
+}
+
+/**
+ * Public onboarding: exchange an invite token + new password for login tokens,
+ * set the session cookies (mirroring loginAction), then the page redirects to
+ * the dashboard. Kept as a server action so the httpOnly cookies are set server-side.
+ */
+export async function acceptInviteAction(
+  _prev: AcceptInviteState | undefined,
+  formData: FormData,
+): Promise<AcceptInviteState> {
+  const token = String(formData.get("token") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm") ?? "");
+  if (!token) return { error: "Missing invitation token." };
+  if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password !== confirm) return { error: "Passwords do not match." };
+
+  const apiBase =
+    process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const secure = process.env.NODE_ENV === "production";
+
+  try {
+    const res = await fetch(`${apiBase}/api/v1/auth/accept-invite`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, name: name || null, password }),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      if (res.status === 404) return { error: "This invitation is invalid or no longer exists." };
+      if (res.status === 410) return { error: "This invitation has expired." };
+      if (res.status === 409) return { error: "This invitation has already been accepted." };
+      return { error: `Could not accept invitation (${res.status}).` };
+    }
+    const body = (await res.json()) as { access_token?: string; refresh_token?: string };
+    if (!body.access_token) return { error: "Activation failed: no token returned." };
+
+    const store = await cookies();
+    store.set("panelos_session", body.access_token, {
+      httpOnly: true,
+      secure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 15,
+    });
+    if (body.refresh_token) {
+      store.set("panelos_refresh", body.refresh_token, {
+        httpOnly: true,
+        secure,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
+    try {
+      const meRes = await fetch(`${apiBase}/api/v1/auth/me`, {
+        headers: { Authorization: `Bearer ${body.access_token}` },
+        cache: "no-store",
+      });
+      if (meRes.ok) {
+        const me = (await meRes.json()) as { companies?: { id: string }[] };
+        const companyId = me.companies?.[0]?.id;
+        if (companyId) {
+          store.set("panelos_company", companyId, {
+            httpOnly: false,
+            secure,
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7,
+          });
+        }
+      }
+    } catch {
+      // non-fatal
+    }
+  } catch (err) {
+    if (err instanceof ApiError) return { error: err.message };
+    return { error: "Network error — try again." };
+  }
+
+  redirect("/dashboard");
+}
+
 export async function logoutAction(): Promise<void> {
   try {
     await serverFetch<void>("/auth/logout", { method: "POST" });

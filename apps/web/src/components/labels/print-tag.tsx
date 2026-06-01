@@ -87,7 +87,7 @@ export function PrintTag({ panel, fields, scale = 1 }: PrintTagProps) {
             }}
           >
             {fields.serial && <Pair scale={scale} k="S/N" v={panel.serial} />}
-            {fields.rev && <Pair scale={scale} k="REV" v={panel.rev} />}
+            {fields.rev && <Pair scale={scale} k="REV" v={panel.rev ?? "—"} />}
             {fields.volt && <Pair scale={scale} k="V" v={panel.volt} />}
             {fields.loc && <Pair scale={scale} k="LOC" v={panel.loc.split(" — ")[0] ?? panel.loc} />}
           </div>

@@ -41,13 +41,14 @@ export function PanelOverview({
             }}
           >
             <Meta label="Serial number" value={panel.serial} mono />
+            <Meta label="Customer" value={panel.customer || "—"} />
             <Meta label="Manufacturer" value={panel.mfr} />
             <Meta label="Enclosure" value={panel.enclosure} />
             <Meta label="Voltage" value={panel.volt} mono />
             <Meta label="Main breaker" value={panel.amp} mono />
             <Meta label="Configuration" value={panel.phase} mono />
             <Meta label="Installed" value={panel.install} mono />
-            <Meta label="Components" value={`${panel.comps} devices`} />
+            <Meta label="Components" value={`${panel.comps ?? components.length} devices`} />
           </div>
         </Card>
 

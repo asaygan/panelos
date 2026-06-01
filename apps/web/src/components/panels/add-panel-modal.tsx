@@ -21,6 +21,7 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
   const [tag, setTag] = useState("");
   const [name, setName] = useState("");
   const [serial, setSerial] = useState("");
+  const [customer, setCustomer] = useState("");
   const [locationId, setLocationId] = useState("");
   const [voltage, setVoltage] = useState("");
   const [current, setCurrent] = useState("");
@@ -29,6 +30,7 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
     setTag("");
     setName("");
     setSerial("");
+    setCustomer("");
     setLocationId("");
     setVoltage("");
     setCurrent("");
@@ -40,6 +42,7 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
       tag,
       name,
       serial,
+      customer: customer || undefined,
       location_id: locationId || undefined,
       voltage: voltage || undefined,
       current_a: current || undefined,
@@ -89,6 +92,13 @@ export function AddPanelModal({ open, onOpenChange, locations, onCreated }: AddP
         </div>
         <Field label="Name">
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="MCC Line 6" />
+        </Field>
+        <Field label="Customer">
+          <Input
+            value={customer}
+            onChange={(e) => setCustomer(e.target.value)}
+            placeholder="End customer / owner (optional)"
+          />
         </Field>
         <Field label="Location">
           <Select value={locationId} onChange={(e) => setLocationId(e.target.value)}>

@@ -51,8 +51,8 @@ export default function DemoPanelsPage() {
         (q === "" || (p.name + p.serial + p.tag + p.mfr).toLowerCase().includes(q.toLowerCase())),
     );
     r = [...r].sort((a, b) => {
-      const av = a[sort.key];
-      const bv = b[sort.key];
+      const av = a[sort.key] ?? "";
+      const bv = b[sort.key] ?? "";
       const cmp = av < bv ? -1 : av > bv ? 1 : 0;
       return sort.dir === "asc" ? cmp : -cmp;
     });

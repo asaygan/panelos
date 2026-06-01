@@ -51,8 +51,8 @@ export default function PanelsPage() {
         (q === "" || (p.name + p.serial + p.tag + p.mfr).toLowerCase().includes(q.toLowerCase())),
     );
     r = [...r].sort((a, b) => {
-      const av = a[sort.key];
-      const bv = b[sort.key];
+      const av = a[sort.key] ?? "";
+      const bv = b[sort.key] ?? "";
       const cmp = av < bv ? -1 : av > bv ? 1 : 0;
       return sort.dir === "asc" ? cmp : -cmp;
     });
@@ -121,11 +121,15 @@ export default function PanelsPage() {
         {p.volt} <span style={{ color: "var(--c-ink-4)" }}>{p.amp}</span>
       </td>
       <td>{p.mfr}</td>
-      <td className="mono strong">{p.rev}</td>
+      <td className="mono strong">
+        {p.rev ?? <span style={{ color: "var(--c-ink-4)" }}>·</span>}
+      </td>
       <td>
         <StatusBadge status={p.status} />
       </td>
-      <td className="num">{p.comps}</td>
+      <td className="num">
+        {p.comps ?? <span style={{ color: "var(--c-ink-4)" }}>·</span>}
+      </td>
       <td style={{ color: "var(--c-ink-3)", fontSize: 11 }}>{p.updated.split(" ")[0]}</td>
       <td onClick={(e) => e.stopPropagation()}>
         <Menu

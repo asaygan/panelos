@@ -1,5 +1,8 @@
-// TODO: replace with generated types from `pnpm codegen` -> src/generated/openapi.ts
-// Hand-written mirrors of the API plan section 3 schema.
+// View-model types consumed by the presentational components. API DTOs come from
+// the generated OpenAPI schema (`@panelos/types/generated`, aliased in endpoints.ts);
+// the adapters in `adapters.ts` map those generated DTOs into the view-models below.
+// Only UI-shaped types live here — no hand-written mirrors of API request/response
+// schemas (those are sourced from codegen).
 
 import type { PanelStatus, RevisionStatus } from "@/lib/utils/status";
 
@@ -101,6 +104,7 @@ export interface Panel {
   serial: string;
   qr_token: string;
   name: string;
+  customer?: string;
   loc: string;
   area: string;
   volt: string;
@@ -108,10 +112,13 @@ export interface Panel {
   phase: string;
   mfr: string;
   enclosure: string;
-  rev: string;
-  revCount: number;
+  /** Active revision letter. Undefined in list views where it isn't cheaply resolvable. */
+  rev?: string;
+  /** Total revision count. Undefined in list views. */
+  revCount?: number;
   status: PanelStatus;
-  comps: number;
+  /** Component count. Undefined in list views (only resolved on panel detail). */
+  comps?: number;
   install: string;
   updated: string;
   by: string;
@@ -170,35 +177,3 @@ export interface ActivityItem {
   icon: string;
 }
 
-export interface ScanEvent {
-  id: string;
-  panel_id: string;
-  user_id?: string | null;
-  at: string;
-  device?: string;
-  ip?: string;
-}
-
-export interface Label {
-  id: string;
-  panel_id: string;
-  template: "engraved" | "print";
-  size: string;
-  fields_json: Record<string, boolean>;
-  output_storage_key?: string;
-  format: "png" | "svg" | "pdf";
-}
-
-export interface SearchHit {
-  type: "panel" | "nav";
-  id: string;
-  label: string;
-  sub?: string;
-  status?: PanelStatus;
-}
-
-export interface PresignedUpload {
-  url: string;
-  fields?: Record<string, string>;
-  key: string;
-}

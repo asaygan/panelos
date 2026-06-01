@@ -21,6 +21,8 @@ export type QrResolveDTO = Schemas["QrResolveOut"];
 export type RoleDTO = Schemas["RoleOut"];
 export type AuditLogDTO = Schemas["AuditLogOut"];
 export type RoleEnum = Schemas["Role"];
+export type InvitationInfoDTO = Schemas["InvitationInfoOut"];
+export type TokenOutDTO = Schemas["TokenOut"];
 
 export interface SearchHitDTO {
   type: string;
@@ -44,6 +46,12 @@ export const auth = {
   logout: () => api.post<void>("/auth/logout"),
   me: () => api.get<MeDTO>("/auth/me"),
   refresh: () => api.post<LoginResponse>("/auth/refresh"),
+  /** Public: resolve an invitation token for the accept page. */
+  getInvitation: (token: string) =>
+    api.get<InvitationInfoDTO>(`/auth/invitations/${encodeURIComponent(token)}`),
+  /** Public: set password + activate membership; returns login tokens (auto-login). */
+  acceptInvite: (body: Schemas["AcceptInviteIn"]) =>
+    api.post<TokenOutDTO>("/auth/accept-invite", body),
 };
 
 // ── Panels ──────────────────────────────────────────────────────────────────

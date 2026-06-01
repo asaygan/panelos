@@ -12,11 +12,15 @@ import type { User } from "@/lib/api/types";
 export function AppShell({
   user,
   company,
+  companies = [],
+  activeCompanyId = "",
   counts,
   children,
 }: {
   user: Pick<User, "name" | "initials" | "color">;
   company: string;
+  companies?: { id: string; role: string }[];
+  activeCompanyId?: string;
   counts: { panels: number; rev: number };
   children: ReactNode;
 }) {
@@ -28,7 +32,14 @@ export function AppShell({
   return (
     <ToastProvider>
       <div style={{ height: "100vh", display: "flex", overflow: "hidden" }}>
-        <Sidebar collapsed={collapsed} onCollapse={setCollapsed} counts={counts} company={company} />
+        <Sidebar
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          counts={counts}
+          company={company}
+          companies={companies}
+          activeCompanyId={activeCompanyId}
+        />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
           <TopBar user={user} onOpenSearch={() => setCmdOpen(true)} />
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>

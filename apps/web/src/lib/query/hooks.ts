@@ -40,6 +40,7 @@ import {
   userToView,
   type PanelViewContext,
 } from "@/lib/api/adapters";
+import type { UserNameMap } from "@/lib/api/adapters";
 import type {
   AuditEntry,
   Component,
@@ -52,6 +53,22 @@ import type {
 } from "@/lib/api/types";
 
 type Schemas = ApiComponents["schemas"];
+
+/**
+ * Best-effort user_id → name map for resolving actor UUIDs inside queryFns.
+ * The members list needs admin scope; on failure we return {} so views fall back
+ * to "—" rather than ever showing a raw UUID.
+ */
+async function fetchUserNameMap(): Promise<UserNameMap> {
+  try {
+    const members = await users.list();
+    const map: UserNameMap = {};
+    for (const m of members) map[m.user_id] = m.name || m.email;
+    return map;
+  } catch {
+    return {};
+  }
+}
 
 // ── Reads ─────────────────────────────────────────────────────────────────────
 
@@ -70,8 +87,12 @@ export function usePanels(
   return useQuery({
     queryKey: queryKeys.panels.list(params),
     queryFn: async () => {
-      const [items, locs] = await Promise.all([panels.list(params), locations.list()]);
-      return items.map((p) => panelToView(p, { locations: locs }));
+      const [items, locs, userMap] = await Promise.all([
+        panels.list(params),
+        locations.list(),
+        fetchUserNameMap(),
+      ]);
+      return items.map((p) => panelToView(p, { locations: locs, users: userMap }));
     },
   });
 }
@@ -82,16 +103,18 @@ export function usePanel(id: string): UseQueryResult<Panel> {
     queryKey: queryKeys.panels.detail(id),
     enabled: !!id,
     queryFn: async () => {
-      const [dto, locs, revs, comps] = await Promise.all([
+      const [dto, locs, revs, comps, userMap] = await Promise.all([
         panels.get(id),
         locations.list(),
         panels.revisions(id),
         panels.components(id),
+        fetchUserNameMap(),
       ]);
       const ctx: PanelViewContext = {
         locations: locs,
         revisions: revs,
         componentCount: comps.length,
+        users: userMap,
       };
       return panelToView(dto, ctx);
     },
@@ -110,7 +133,10 @@ export function usePanelRevisions(id: string): UseQueryResult<Revision[]> {
   return useQuery({
     queryKey: queryKeys.panels.revisions(id),
     enabled: !!id,
-    queryFn: async () => (await panels.revisions(id)).map((r) => revisionToView(r)),
+    queryFn: async () => {
+      const [revs, userMap] = await Promise.all([panels.revisions(id), fetchUserNameMap()]);
+      return revs.map((r) => revisionToView(r, 0, userMap));
+    },
   });
 }
 
@@ -192,8 +218,12 @@ export function useRevisionQueue(filter?: "draft" | "review" | "all") {
   return useQuery({
     queryKey: queryKeys.revisions.queue(filter),
     queryFn: async () => {
-      const [queue, panelList] = await Promise.all([revisions.queue(filter), panels.list()]);
-      return queue.map((r) => revisionRequestToView(r, panelList));
+      const [queue, panelList, userMap] = await Promise.all([
+        revisions.queue(filter),
+        panels.list(),
+        fetchUserNameMap(),
+      ]);
+      return queue.map((r) => revisionRequestToView(r, panelList, userMap));
     },
   });
 }
@@ -202,6 +232,20 @@ export function useUsers(filters?: UserListParams): UseQueryResult<Member[]> {
   return useQuery({
     queryKey: queryKeys.users.list(filters),
     queryFn: async () => (await users.list(filters)).map(userToView),
+  });
+}
+
+/**
+ * user_id → display name map for resolving actor UUIDs in revision/audit views.
+ * Best-effort: the members list requires admin scope, so failures resolve to an
+ * empty map (callers then render "—" instead of a raw UUID — never the UUID).
+ */
+export function useUserNameMap(): UseQueryResult<UserNameMap> {
+  return useQuery({
+    queryKey: [...queryKeys.users.all(), "name-map"],
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: fetchUserNameMap,
   });
 }
 

@@ -150,7 +150,9 @@ export default function DashboardPage() {
                     <span style={{ color: "var(--c-ink-3)" }}>· {p.name}</span>
                   </td>
                   <td>{p.loc}</td>
-                  <td className="mono">{p.rev}</td>
+                  <td className="mono">
+                    {p.rev ?? <span style={{ color: "var(--c-ink-4)" }}>·</span>}
+                  </td>
                   <td>
                     <StatusBadge status={p.status} />
                   </td>

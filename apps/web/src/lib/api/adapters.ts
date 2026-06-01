@@ -39,6 +39,25 @@ function asRevStatus(s: string): RevisionStatus {
   return (REV_STATUSES as string[]).includes(s) ? (s as RevisionStatus) : "draft";
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Map of user_id → display name, used to resolve actor UUIDs in revision/audit views. */
+export type UserNameMap = Record<string, string>;
+
+/**
+ * Resolve an actor identifier to a human-readable name. Never surfaces a raw UUID:
+ * if a UUID can't be resolved (members not loaded / out of scope), returns "—".
+ */
+export function resolveActor(
+  raw: string | null | undefined,
+  users?: UserNameMap,
+): string {
+  if (!raw) return "—";
+  if (users && users[raw]) return users[raw]!;
+  if (UUID_RE.test(raw)) return "—";
+  return raw;
+}
+
 function fmtDateTime(iso: string | null | undefined): string {
   return formatDate(iso, {
     year: "numeric",
@@ -53,16 +72,25 @@ export interface PanelViewContext {
   locations?: LocationDTO[];
   revisions?: RevisionDTO[];
   componentCount?: number;
+  users?: UserNameMap;
 }
 
-/** Map a PanelOut → the Panel view-model. Extra context resolves derived fields. */
+/**
+ * Map a PanelOut → the Panel view-model. Extra context resolves derived fields.
+ *
+ * `rev`/`revCount`/`comps` are only meaningful when the caller supplies the
+ * `revisions`/`componentCount` context (panel detail). In list/dashboard views
+ * those aren't cheaply available (would be N+1), so they stay undefined and the
+ * UI renders a neutral placeholder rather than a misleading "—"/"0".
+ */
 export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
   const loc = ctx.locations?.find((l) => l.id === dto.location_id);
+  const hasRevCtx = ctx.revisions !== undefined;
   const revs = ctx.revisions ?? [];
   const active = dto.active_revision_id
     ? revs.find((r) => r.id === dto.active_revision_id)
     : revs.find((r) => r.status === "approved");
-  const lastBy = revs[0]?.created_by ?? "—";
+  const lastBy = resolveActor(revs[0]?.created_by, ctx.users);
   return {
     id: dto.id,
     company_id: "",
@@ -71,6 +99,7 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     serial: dto.serial,
     qr_token: dto.qr_token,
     name: dto.name,
+    customer: dto.customer ?? "—",
     loc: loc?.name ?? "—",
     area: dto.area ?? "—",
     volt: dto.voltage ?? "—",
@@ -78,10 +107,10 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     phase: dto.phase ?? "—",
     mfr: dto.mfr ?? "—",
     enclosure: dto.enclosure ?? "—",
-    rev: active?.revision_letter ?? "—",
-    revCount: revs.length,
+    rev: hasRevCtx ? (active?.revision_letter ?? "—") : undefined,
+    revCount: hasRevCtx ? revs.length : undefined,
     status: asPanelStatus(dto.status),
-    comps: ctx.componentCount ?? 0,
+    comps: ctx.componentCount,
     install: formatDate(dto.created_at),
     updated: fmtDateTime(dto.updated_at),
     by: lastBy,
@@ -91,16 +120,20 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
   };
 }
 
-export function revisionToView(dto: RevisionDTO, fileCount = 0): Revision {
+export function revisionToView(
+  dto: RevisionDTO,
+  fileCount = 0,
+  users?: UserNameMap,
+): Revision {
   return {
     id: dto.id,
     rev: dto.revision_letter,
     date: formatDate(dto.created_at),
-    by: dto.created_by ?? "—",
+    by: resolveActor(dto.created_by, users),
     status: asRevStatus(dto.status),
     note: dto.change_summary ?? "",
     files: fileCount,
-    approver: dto.approved_by ?? "—",
+    approver: resolveActor(dto.approved_by, users),
   };
 }
 
@@ -108,6 +141,7 @@ export function revisionToView(dto: RevisionDTO, fileCount = 0): Revision {
 export function revisionRequestToView(
   dto: RevisionDTO,
   panels?: PanelDTO[],
+  users?: UserNameMap,
 ): RevisionRequest {
   const panel = panels?.find((p) => p.id === dto.panel_id);
   const status: "draft" | "review" = dto.status === "review" ? "review" : "draft";
@@ -121,7 +155,7 @@ export function revisionRequestToView(
     tag: panel?.tag ?? "—",
     rev: dto.revision_letter,
     from: prevLetter === "@" ? "—" : prevLetter,
-    by: dto.created_by ?? "—",
+    by: resolveActor(dto.created_by, users),
     date: formatDate(dto.created_at),
     status,
     note: dto.change_summary ?? "",

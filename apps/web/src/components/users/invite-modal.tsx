@@ -50,7 +50,7 @@ export function InviteModal({ open, onOpenChange, locations, blockOwnerRole }: I
         location_ids: selected,
         message: message.trim() || undefined,
       });
-      toast.success(`Invitation sent to ${email}.`);
+      toast.success(`Invitation sent to ${email}. They'll get a link to set a password and join.`);
       reset();
       onOpenChange(false);
     } catch (err) {
