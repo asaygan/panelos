@@ -12,6 +12,7 @@ class CompanyOut(ORMModel):
     short_name: str | None = None
     standards_profile: str | None = None
     logo_key: str | None = None
+    public_qr_access_enabled: bool = True
 
 
 class CompanyUpdateIn(ORMModel):
@@ -19,6 +20,7 @@ class CompanyUpdateIn(ORMModel):
     short_name: str | None = None
     standards_profile: str | None = None
     logo_key: str | None = None
+    public_qr_access_enabled: bool | None = None
 
 
 class LocationOut(ORMModel):

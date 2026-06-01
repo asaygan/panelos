@@ -40,7 +40,10 @@ COPY --from=builder /app/alembic.ini /app/alembic.ini
 RUN mkdir -p /usr/share/fonts/truetype/panelos \
  && cp /app/src/panelos_api/labels/assets/*.ttf /usr/share/fonts/truetype/panelos/ 2>/dev/null || true \
  && fc-cache -f || true
+RUN chmod +x /app/scripts/start.sh
 USER panelos
 EXPOSE 8000
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["uvicorn", "panelos_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# start.sh runs `alembic upgrade head` then launches uvicorn (honors $PORT), so
+# migrations apply automatically on every deploy.
+CMD ["/app/scripts/start.sh"]

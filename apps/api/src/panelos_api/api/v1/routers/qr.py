@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, Header, Request, Response
 
 from panelos_api.api.v1.schemas.qr import QrResolveOut
-from panelos_api.deps import get_db
+from panelos_api.deps import CurrentUser, get_db, get_optional_user
+from panelos_api.repositories.membership_repo import MembershipRepo
 from panelos_api.services import qr_service
 
 if TYPE_CHECKING:
@@ -21,11 +22,23 @@ async def resolve(
     token: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
+    viewer: CurrentUser | None = Depends(get_optional_user),
     user_agent: str | None = Header(default=None, alias="User-Agent"),
 ) -> QrResolveOut:
     ip = request.client.host if request.client else None
+    viewer_company_ids = None
+    viewer_id = None
+    if viewer is not None:
+        viewer_id = viewer.id
+        memberships = await MembershipRepo(db).for_user(viewer.id)
+        viewer_company_ids = {m.company_id for m in memberships}
     data = await qr_service.resolve_token(
-        db, token=token, user_id=None, ip=ip, device=user_agent
+        db,
+        token=token,
+        user_id=viewer_id,
+        ip=ip,
+        device=user_agent,
+        viewer_company_ids=viewer_company_ids,
     )
     return QrResolveOut(**data)
 

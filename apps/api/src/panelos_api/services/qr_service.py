@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from panelos_api.config import get_settings
 from panelos_api.core.exceptions import NotFound
+from panelos_api.db.models.company import Company
 from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
 from panelos_api.db.models.scan_event import ScanEvent
@@ -48,14 +49,27 @@ async def resolve_token(
     user_id: uuid.UUID | None,
     ip: str | None,
     device: str | None,
+    viewer_company_ids: set[uuid.UUID] | None = None,
 ) -> dict[str, Any]:
-    """Look up panel by token, log a scan event, return minimal JSON."""
+    """Look up panel by token, log a scan event, return minimal JSON.
+
+    ``viewer_company_ids`` is the set of companies the (optionally authenticated)
+    scanner belongs to. When the panel's company has ``public_qr_access_enabled``
+    False and the scanner is not a member of that company, identity fields are
+    blanked and no revision is served (``restricted=True``) — schematics are never
+    exposed to anonymous/foreign scanners.
+    """
 
     panel = (
         await session.execute(select(Panel).where(Panel.qr_token == token))
     ).scalar_one_or_none()
     if panel is None:
         raise NotFound("qr token unknown")
+
+    company = await session.get(Company, panel.company_id)
+    public_ok = company is None or company.public_qr_access_enabled
+    is_member = viewer_company_ids is not None and panel.company_id in viewer_company_ids
+    restricted = not public_ok and not is_member
 
     active_rev: PanelRevision | None = None
     if panel.active_revision_id:
@@ -65,15 +79,30 @@ async def resolve_token(
         if candidate is not None and candidate.status == RevisionStatus.APPROVED:
             active_rev = candidate
 
+    # Log the scan regardless (the scan happened); don't record a served revision
+    # when access is restricted.
+    served_rev = None if restricted else (active_rev.id if active_rev else None)
     scan = ScanEvent(
         panel_id=panel.id,
         user_id=user_id,
-        revision_id_served=active_rev.id if active_rev else None,
+        revision_id_served=served_rev,
         ip=ip,
         device=device,
     )
     session.add(scan)
     await session.flush()
+
+    if restricted:
+        return {
+            "panel_id": str(panel.id),
+            "tag": panel.tag,  # the printed tag identifies the asset; details require sign-in
+            "name": "",
+            "serial": "",
+            "company_id": str(panel.company_id),
+            "active_revision": None,
+            "restricted": True,
+            "message": "Sign in with your organization to view this panel.",
+        }
 
     return {
         "panel_id": str(panel.id),
@@ -88,5 +117,6 @@ async def resolve_token(
         }
         if active_rev
         else None,
+        "restricted": False,
         "message": None if active_rev else "no approved revision yet",
     }

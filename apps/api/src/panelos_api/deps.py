@@ -76,6 +76,33 @@ async def get_current_user(
     return CurrentUser(id=user.id, email=user.email, name=user.name)
 
 
+async def get_optional_user(
+    request: Request,
+    creds: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> CurrentUser | None:
+    """Like ``get_current_user`` but returns None instead of 401 when unauthenticated.
+
+    Used by public endpoints (QR resolve) that behave differently for an
+    authenticated same-company member vs an anonymous scanner.
+    """
+
+    token = creds.credentials if creds and creds.credentials else request.cookies.get("panelos_session")
+    if not token:
+        return None
+    try:
+        claims = verify_token(token, expected_type="access", settings=settings)
+        user_id = uuid.UUID(str(claims["sub"]))
+    except Exception:
+        return None
+    user = await db.get(User, user_id)
+    if user is None or not user.is_active:
+        return None
+    request.state.user_id = str(user.id)
+    return CurrentUser(id=user.id, email=user.email, name=user.name)
+
+
 async def get_current_membership(
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

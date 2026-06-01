@@ -93,3 +93,41 @@ async def test_qr_resolves_approved_and_logs_scan(app_client, owner_auth) -> Non
 async def test_qr_unknown_token_404(app_client, owner_auth) -> None:  # type: ignore[no-untyped-def]
     r = await app_client.get(f"{API}/qr/this-token-does-not-exist")
     assert r.status_code == 404, r.text
+
+
+@pytest.mark.asyncio
+async def test_qr_restricted_when_public_access_disabled(app_client, owner_auth) -> None:  # type: ignore[no-untyped-def]
+    """Flag off: anonymous scan is restricted; an authenticated member sees full data."""
+    headers = owner_auth["headers"]
+    pid, token = await _qr_token_for(app_client, headers, "QR-PRIVATE")
+
+    # Approve a revision so there *is* content to (not) expose.
+    r = await app_client.post(
+        f"{API}/panels/{pid}/revisions", json={"change_summary": "v1"}, headers=headers
+    )
+    rev = r.json()["id"]
+    r = await app_client.post(f"{API}/revisions/{rev}/approve", headers=headers)
+    assert r.status_code == 200
+
+    # Disable public QR access for the org.
+    r = await app_client.put(
+        f"{API}/companies/me", json={"public_qr_access_enabled": False}, headers=headers
+    )
+    assert r.status_code == 200, r.text
+    assert r.json()["public_qr_access_enabled"] is False
+
+    # Anonymous scan → restricted: no name/serial/revision leaked.
+    r = await app_client.get(f"{API}/qr/{token}")
+    assert r.status_code == 200, r.text
+    anon = r.json()
+    assert anon["restricted"] is True
+    assert anon["name"] == "" and anon["serial"] == ""
+    assert anon["active_revision"] is None
+
+    # Authenticated same-company member → full access despite the flag.
+    r = await app_client.get(f"{API}/qr/{token}", headers=headers)
+    assert r.status_code == 200, r.text
+    member = r.json()
+    assert member["restricted"] is False
+    assert member["serial"] == "QR-PRIVATE"
+    assert member["active_revision"] is not None

@@ -1059,6 +1059,11 @@ export interface components {
             logo_key?: string | null;
             /** Name */
             name: string;
+            /**
+             * Public Qr Access Enabled
+             * @default true
+             */
+            public_qr_access_enabled: boolean;
             /** Short Name */
             short_name?: string | null;
             /** Slug */
@@ -1072,6 +1077,8 @@ export interface components {
             logo_key?: string | null;
             /** Name */
             name?: string | null;
+            /** Public Qr Access Enabled */
+            public_qr_access_enabled?: boolean | null;
             /** Short Name */
             short_name?: string | null;
             /** Standards Profile */
@@ -1416,7 +1423,7 @@ export interface components {
         /** LogoutIn */
         LogoutIn: {
             /** Refresh Token */
-            refresh_token: string;
+            refresh_token?: string | null;
         };
         /** MeOut */
         MeOut: {
@@ -1646,6 +1653,11 @@ export interface components {
             name: string;
             /** Panel Id */
             panel_id: string;
+            /**
+             * Restricted
+             * @default false
+             */
+            restricted: boolean;
             /** Serial */
             serial: string;
             /** Tag */
@@ -1654,7 +1666,7 @@ export interface components {
         /** RefreshIn */
         RefreshIn: {
             /** Refresh Token */
-            refresh_token: string;
+            refresh_token?: string | null;
         };
         /** RevisionCreateIn */
         RevisionCreateIn: {
@@ -1960,11 +1972,13 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                panelos_refresh?: string | null;
+            };
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["LogoutIn"];
+                "application/json": components["schemas"]["LogoutIn"] | null;
             };
         };
         responses: {
@@ -2070,11 +2084,13 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                panelos_refresh?: string | null;
+            };
         };
-        requestBody: {
+        requestBody?: {
             content: {
-                "application/json": components["schemas"]["RefreshIn"];
+                "application/json": components["schemas"]["RefreshIn"] | null;
             };
         };
         responses: {
