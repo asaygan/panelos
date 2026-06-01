@@ -12,7 +12,10 @@ pnpm lint
 pnpm build
 ```
 
-The API base URL is configured via `NEXT_PUBLIC_API_URL` (defaults to `http://localhost:8000`). `/api/v1/*` is rewritten to the upstream FastAPI app at build time.
+API wiring uses two env vars:
+
+- **`NEXT_PUBLIC_API_BASE`** (browser, default `/api/v1`) — the relative path the client calls. Stays relative in every environment so requests are same-origin and auth cookies flow through.
+- **`API_INTERNAL_URL`** (server/build, default `http://localhost:8000`) — the upstream FastAPI origin the Next rewrite proxies `/api/v1/*` to. In prod set it to the API's public URL. The legacy `NEXT_PUBLIC_API_URL` is still honored as a fallback.
 
 ## Design fidelity
 
@@ -27,13 +30,12 @@ The visual language is a direct port of the PanelOS design system prototype (`/t
 
 - `src/app/` — App Router routes (`(auth)` for login, `(app)` for shell-wrapped screens).
 - `src/components/` — primitives, shell, tables, panels, labels, pdf, revisions, users, settings.
-- `src/lib/api/` — typed HTTP client and endpoint helpers. Generated types land in `src/generated/openapi.ts` (run `pnpm codegen` against a running API).
+- `src/lib/api/` — typed HTTP client and endpoint helpers. API DTOs come from the generated OpenAPI schema in `@panelos/types/generated` (run `pnpm codegen`); `src/lib/api/adapters.ts` maps those DTOs to the UI view-models in `types.ts`.
 - `src/middleware.ts` — gates `(app)` routes on the `panelos_session` cookie.
 - QR codes use `qrcode.react`; the deterministic placeholder pattern is preserved for offline / Storybook.
 - Schematic viewer uses `react-pdf`; the `blueprint` utility is reused as the loading state.
 
 ## Stubs / TODO
 
-- `src/lib/api/types.ts` is hand-written today. Replace with `src/generated/openapi.ts` when the API exposes `/api/v1/openapi.json`.
 - The dev-only Tweaks panel is gated behind `NEXT_PUBLIC_SHOW_TWEAKS=1`.
 - `apple-touch-icon.png` ships as a 1×1 placeholder.
