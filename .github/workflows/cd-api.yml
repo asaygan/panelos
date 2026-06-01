@@ -30,7 +30,7 @@ jobs:
     name: Build & push api image (GHCR artifact)
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Resolve version from tag
         id: version
         run: echo "version=${GITHUB_REF_NAME#api-v}" >> "$GITHUB_OUTPUT"
