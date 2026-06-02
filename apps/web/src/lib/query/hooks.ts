@@ -160,6 +160,26 @@ export function useCreateSection(panelId: string) {
   });
 }
 
+/** Tree-level inline-add: create a section under a panel chosen at call-time. */
+export function useCreateSectionAny() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ panel_id, body }: { panel_id: string; body: Schemas["SectionCreateIn"] }) =>
+      sections.create(panel_id, body),
+    onSuccess: (_d, { panel_id }) => invalidateTreeAndSections(qc, panel_id),
+  });
+}
+
+/** Tree-level drag-to-move: reparent a section to a different panel. */
+export function useMoveSection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ section_id, panel_id }: { section_id: string; panel_id: string }) =>
+      sections.move(section_id, { panel_id }),
+    onSuccess: (_d, { panel_id }) => invalidateTreeAndSections(qc, panel_id),
+  });
+}
+
 export function useUpdateSection(panelId: string) {
   const qc = useQueryClient();
   return useMutation({
@@ -600,7 +620,10 @@ export function useCreatePanel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: Schemas["PanelCreateIn"]) => panels.create(body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.panels.all() }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.panels.all() });
+      qc.invalidateQueries({ queryKey: queryKeys.panelSets.tree() });
+    },
   });
 }
 

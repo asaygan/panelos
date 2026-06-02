@@ -17,7 +17,14 @@ import { AddPanelSetModal } from "@/components/panels/add-panel-set-modal";
 import { PanelTreeEditor } from "@/components/panels/tree/panel-tree-editor";
 import { NodeDetailPanel } from "@/components/panels/tree/node-detail-panel";
 import { useSelection } from "@/components/panels/tree/selection";
-import { usePanels, useLocations, useArchivePanel, useTree } from "@/lib/query/hooks";
+import {
+  usePanels,
+  useLocations,
+  useArchivePanel,
+  useCreatePanel,
+  useCreateSectionAny,
+  useTree,
+} from "@/lib/query/hooks";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { Panel } from "@/lib/api/types";
 
@@ -94,6 +101,8 @@ export default function PanelsPage() {
   const { data: tree, isLoading: treeLoading, isError: treeError } = useTree();
   const archivePanel = useArchivePanel();
   const selection = useSelection();
+  const createPanel = useCreatePanel();
+  const createSection = useCreateSectionAny();
 
   const rows = useMemo(() => {
     let r = allPanels.filter(
@@ -357,6 +366,17 @@ export default function PanelsPage() {
                   sets={tree.sets}
                   unassigned={tree.unassigned}
                   selection={selection}
+                  onCreatePanel={({ name, panel_set_id }) =>
+                    createPanel.mutateAsync({ name, panel_set_id: panel_set_id ?? undefined })
+                  }
+                  onCreateSection={({ panel_id, name }) =>
+                    createSection.mutateAsync({
+                      panel_id,
+                      // section_type is defaulted server-side to CUSTOM; codegen marks
+                      // it required because it has a default value, so send explicitly.
+                      body: { name, section_type: "custom" },
+                    })
+                  }
                 />
               )}
             </div>

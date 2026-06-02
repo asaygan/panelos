@@ -7,6 +7,7 @@ import { Empty } from "@/components/primitives/empty";
 import { SECTION_TYPE_META } from "@/lib/api/adapters";
 import type { Panel, PanelSetNode } from "@/lib/api/types";
 import type { PanelStatus } from "@/lib/utils/status";
+import { InlineAddRow } from "./inline-add-row";
 import type { NodeRef, SelectionApi } from "./selection";
 
 const STATUS_ORDER: PanelStatus[] = ["fault", "warn", "ok", "idle"];
@@ -21,6 +22,9 @@ export interface PanelTreeEditorProps {
   sets: PanelSetNode[];
   unassigned: Panel[];
   selection: SelectionApi;
+  /** Inline quick-create: returns the new panel id (used to keep selection sane). */
+  onCreatePanel?: (args: { name: string; panel_set_id: string | null }) => Promise<unknown>;
+  onCreateSection?: (args: { panel_id: string; name: string }) => Promise<unknown>;
 }
 
 /** Selectable, collapsible 3-level tree (Set → Panel → Section).
@@ -29,7 +33,13 @@ export interface PanelTreeEditorProps {
  * Phase 3 will add inline "+ Add Panel"/"+ Add Section" rows.
  * Phase 5 will wrap rows with @dnd-kit draggable/droppable.
  */
-export function PanelTreeEditor({ sets, unassigned, selection }: PanelTreeEditorProps) {
+export function PanelTreeEditor({
+  sets,
+  unassigned,
+  selection,
+  onCreatePanel,
+  onCreateSection,
+}: PanelTreeEditorProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggle = (key: string) => setCollapsed((c) => ({ ...c, [key]: !c[key] }));
 
@@ -191,46 +201,75 @@ export function PanelTreeEditor({ sets, unassigned, selection }: PanelTreeEditor
                       <StatusBadge status={p.status} />
                     </div>
 
-                    {panelOpen &&
-                      sections.map((s) => {
-                        const meta = SECTION_TYPE_META[s.section_type];
-                        const sRef: NodeRef = { kind: "section", id: s.id };
-                        const sSelected = selection.isSelected(sRef);
-                        return (
-                          <div
-                            key={s.id}
-                            onClick={() => selection.select(sRef)}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              padding: "6px 12px 6px 58px",
-                              borderBottom: "1px solid var(--c-line)",
-                              cursor: "pointer",
-                              background: sSelected ? "var(--c-accent-soft, var(--c-surface-2))" : "transparent",
-                              borderLeft: sSelected ? "3px solid var(--c-accent)" : "3px solid transparent",
-                            }}
-                          >
-                            <Icon name={meta.icon} size={13} style={{ color: "var(--c-ink-4)", flex: "none" }} />
-                            <span style={{ fontSize: 12, color: "var(--c-ink-2)" }}>{s.name}</span>
-                            <span
-                              className="mono"
+                    {panelOpen && (
+                      <>
+                        {sections.map((s) => {
+                          const meta = SECTION_TYPE_META[s.section_type];
+                          const sRef: NodeRef = { kind: "section", id: s.id };
+                          const sSelected = selection.isSelected(sRef);
+                          return (
+                            <div
+                              key={s.id}
+                              onClick={() => selection.select(sRef)}
                               style={{
-                                fontSize: 9.5,
-                                color: "var(--c-ink-4)",
-                                background: "var(--c-surface-3)",
-                                padding: "1px 5px",
-                                borderRadius: 3,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "6px 12px 6px 58px",
+                                borderBottom: "1px solid var(--c-line)",
+                                cursor: "pointer",
+                                background: sSelected
+                                  ? "var(--c-accent-soft, var(--c-surface-2))"
+                                  : "transparent",
+                                borderLeft: sSelected
+                                  ? "3px solid var(--c-accent)"
+                                  : "3px solid transparent",
                               }}
                             >
-                              {meta.label}
-                            </span>
-                          </div>
-                        );
-                      })}
+                              <Icon
+                                name={meta.icon}
+                                size={13}
+                                style={{ color: "var(--c-ink-4)", flex: "none" }}
+                              />
+                              <span style={{ fontSize: 12, color: "var(--c-ink-2)" }}>{s.name}</span>
+                              <span
+                                className="mono"
+                                style={{
+                                  fontSize: 9.5,
+                                  color: "var(--c-ink-4)",
+                                  background: "var(--c-surface-3)",
+                                  padding: "1px 5px",
+                                  borderRadius: 3,
+                                }}
+                              >
+                                {meta.label}
+                              </span>
+                            </div>
+                          );
+                        })}
+                        {onCreateSection && (
+                          <InlineAddRow
+                            label={sections.length === 0 ? "Add first section" : "Add section"}
+                            icon="plus"
+                            indent={58}
+                            placeholder="Section name (Enter to save)"
+                            onCreate={(name) => onCreateSection({ panel_id: p.id, name })}
+                          />
+                        )}
+                      </>
+                    )}
                   </Fragment>
                 );
               })}
+            {setOpen && onCreatePanel && g.ref?.kind === "set" && (
+              <InlineAddRow
+                label={g.panels.length === 0 ? "Add first panel" : "Add panel"}
+                icon="zap"
+                indent={30}
+                placeholder="Panel name (Enter to save · Shift+Enter for next)"
+                onCreate={(name) => onCreatePanel({ name, panel_set_id: g.ref!.id })}
+              />
+            )}
           </Fragment>
         );
       })}

@@ -113,6 +113,8 @@ export const sections = {
   update: (id: string, body: Schemas["SectionUpdateIn"]) =>
     api.put<SectionDTO>(`/sections/${id}`, body),
   remove: (id: string) => api.delete<void>(`/sections/${id}`),
+  move: (id: string, body: Schemas["SectionMoveIn"]) =>
+    api.post<SectionDTO>(`/sections/${id}/move`, body),
 };
 
 // ── Revisions ─────────────────────────────────────────────────────────────────
