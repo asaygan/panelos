@@ -14,6 +14,7 @@ import {
   useDeleteSection,
 } from "@/lib/query/hooks";
 import { SECTION_TYPE_META } from "@/lib/api/adapters";
+import { PANEL_STATUS_ORDER, STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { NodeRef } from "./selection";
 import type { Panel, PanelSetNode, Section, SectionType } from "@/lib/api/types";
 
@@ -185,6 +186,23 @@ function PanelEditor({ panel }: { panel: Panel }) {
     <div>
       <Header kind="Panel" title={panel.tag} sub={panel.name} />
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <Field label="Lifecycle status">
+          <Select
+            value={panel.status}
+            onChange={(e) => {
+              const next = e.target.value as PanelStatus;
+              if (next !== panel.status) {
+                mut.mutate({ id: panel.id, body: { status: next } });
+              }
+            }}
+          >
+            {PANEL_STATUS_ORDER.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_META[s].label}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <Field label="Tag">
           <Input
             value={fields.tag}

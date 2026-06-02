@@ -177,10 +177,11 @@ export default function DemoPanelsPage() {
         </Select>
         <Select style={{ width: "auto" }} value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="all">Any status</option>
-          <option value="ok">Energized</option>
-          <option value="warn">Attention</option>
-          <option value="fault">Fault</option>
-          <option value="idle">Offline</option>
+          {(["draft", "engineering", "released", "installed", "commissioned", "in_service", "archived"] as const).map((s) => (
+            <option key={s} value={s}>
+              {STATUS_META[s].label}
+            </option>
+          ))}
         </Select>
         <div style={{ display: "flex", alignItems: "center", gap: 6, paddingLeft: 6, borderLeft: "1px solid var(--c-line)" }}>
           <Icon name="list" size={14} style={{ color: "var(--c-ink-3)" }} />
@@ -251,7 +252,15 @@ export default function DemoPanelsPage() {
                     const isOpen = !collapsed[key];
                     const ids = items.map((i) => i.id);
                     const gAllSel = ids.every((id) => sel.includes(id));
-                    const counts: Record<PanelStatus, number> = { ok: 0, warn: 0, fault: 0, idle: 0 };
+                    const counts: Record<PanelStatus, number> = {
+                      draft: 0,
+                      engineering: 0,
+                      released: 0,
+                      installed: 0,
+                      commissioned: 0,
+                      in_service: 0,
+                      archived: 0,
+                    };
                     items.forEach((i) => counts[i.status]++);
                     const label = groupBy === "status" ? (STATUS_META[key as PanelStatus]?.label ?? key) : key;
                     return (
@@ -283,7 +292,7 @@ export default function DemoPanelsPage() {
                                 {items.length}
                               </span>
                               <div style={{ display: "flex", alignItems: "center", gap: 7, marginLeft: 6 }}>
-                                {(["fault", "warn", "ok", "idle"] as const).map((s) =>
+                                {(["draft", "engineering", "released", "installed", "commissioned", "in_service", "archived"] as const).map((s) =>
                                   counts[s] > 0 ? (
                                     <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10.5, color: "var(--c-ink-3)" }}>
                                       <span className={`dot dot-${s}`} style={{ width: 6, height: 6, borderRadius: "50%" }} />

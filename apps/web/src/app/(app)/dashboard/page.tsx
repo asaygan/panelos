@@ -90,11 +90,20 @@ export default function DashboardPage() {
   const { data: panels = [] } = usePanels();
   const { data: locations = [] } = useLocations();
   const { data: queue = [] } = useRevisionQueue("all");
-  const attention = panels.filter((p) => p.status !== "ok" || p.issues > 0).slice(0, 6);
+  // "Attention" now = panels still in design (draft/engineering) or archived.
+  const attention = panels
+    .filter(
+      (p) =>
+        p.status === "draft" || p.status === "engineering" || p.status === "archived",
+    )
+    .slice(0, 6);
   const activity = useActivity(attention.map((p) => p.id));
 
   const totalPanels = panels.length;
-  const openFaults = panels.filter((p) => p.status === "fault").length;
+  // Re-purposed: "In design" = panels still in draft/engineering.
+  const openFaults = panels.filter(
+    (p) => p.status === "draft" || p.status === "engineering",
+  ).length;
   const revPending = queue.length;
   const revInReview = queue.filter((r) => r.status === "review").length;
 
@@ -109,7 +118,7 @@ export default function DashboardPage() {
         }}
       >
         <KPI label="Total panels" value={String(totalPanels)} tone="ok" icon="server" spark={[40, 42, 41, 44, 46, 45, 48, 52]} />
-        <KPI label="Open faults" value={String(openFaults)} tone="fault" delta={openFaults ? "needs review" : undefined} icon="alert-triangle" spark={[1, 0, 2, 1, 3, 2, 4, 3]} />
+        <KPI label="In design" value={String(openFaults)} tone="idle" delta={openFaults ? "draft + engineering" : undefined} icon="git-branch" spark={[1, 0, 2, 1, 3, 2, 4, 3]} />
         <KPI label="Revisions pending" value={String(revPending)} tone="idle" delta={revInReview ? `${revInReview} in review` : undefined} icon="git-branch" spark={[2, 3, 2, 4, 3, 5, 4, 4]} />
         <KPI label="Scans today" value={String(activity.length)} unit="field" tone="ok" icon="scan-line" spark={[20, 24, 18, 30, 28, 34, 31, 38]} />
       </div>

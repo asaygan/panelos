@@ -22,7 +22,7 @@ const PLACEHOLDER: Panel = {
   enclosure: "NEMA 12",
   rev: "E",
   revCount: 1,
-  status: "ok",
+  status: "in_service",
   comps: 0,
   install: "—",
   updated: "—",

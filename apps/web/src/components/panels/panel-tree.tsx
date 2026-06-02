@@ -9,10 +9,26 @@ import { SECTION_TYPE_META } from "@/lib/api/adapters";
 import type { PanelStatus } from "@/lib/utils/status";
 import type { Panel, PanelSetNode } from "@/lib/api/types";
 
-const STATUS_ORDER: PanelStatus[] = ["fault", "warn", "ok", "idle"];
+const STATUS_ORDER: PanelStatus[] = [
+  "draft",
+  "engineering",
+  "released",
+  "installed",
+  "commissioned",
+  "in_service",
+  "archived",
+];
 
 function statusCounts(panels: Panel[]): Record<PanelStatus, number> {
-  const c: Record<PanelStatus, number> = { ok: 0, warn: 0, fault: 0, idle: 0 };
+  const c: Record<PanelStatus, number> = {
+    draft: 0,
+    engineering: 0,
+    released: 0,
+    installed: 0,
+    commissioned: 0,
+    in_service: 0,
+    archived: 0,
+  };
   for (const p of panels) c[p.status]++;
   return c;
 }

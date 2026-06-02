@@ -55,7 +55,15 @@ export function GroupedTable<T>({
               const isOpen = !collapsed[key];
               const ids = items.map(rowKey);
               const allSel = selectedIds ? ids.every((id) => selectedIds.includes(id)) : false;
-              const counts: Record<PanelStatus, number> = { ok: 0, warn: 0, fault: 0, idle: 0 };
+              const counts: Record<PanelStatus, number> = {
+                draft: 0,
+                engineering: 0,
+                released: 0,
+                installed: 0,
+                commissioned: 0,
+                in_service: 0,
+                archived: 0,
+              };
               if (getStatus) items.forEach((i) => counts[getStatus(i)]++);
               return (
                 <Fragment key={key}>
@@ -102,7 +110,7 @@ export function GroupedTable<T>({
                         </span>
                         {getStatus && (
                           <div style={{ display: "flex", alignItems: "center", gap: 7, marginLeft: 6 }}>
-                            {(["fault", "warn", "ok", "idle"] as const).map((s) =>
+                            {(["draft", "engineering", "released", "installed", "commissioned", "in_service", "archived"] as const).map((s) =>
                               counts[s] > 0 ? (
                                 <span
                                   key={s}

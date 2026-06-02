@@ -7,7 +7,7 @@ export interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, label }: StatusBadgeProps) {
-  const m = STATUS_META[status] ?? STATUS_META.idle;
+  const m = STATUS_META[status] ?? STATUS_META.draft;
   return (
     <span className={cn("badge", m.cls)}>
       <span className={cn("dot", m.dot)} />

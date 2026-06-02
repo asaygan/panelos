@@ -37,11 +37,19 @@ import type {
 } from "./types";
 import type { PanelStatus, RevisionStatus } from "@/lib/utils/status";
 
-const PANEL_STATUSES: PanelStatus[] = ["ok", "warn", "fault", "idle"];
+const PANEL_STATUSES: PanelStatus[] = [
+  "draft",
+  "engineering",
+  "released",
+  "installed",
+  "commissioned",
+  "in_service",
+  "archived",
+];
 const REV_STATUSES: RevisionStatus[] = ["draft", "review", "approved", "superseded", "rejected"];
 
 function asPanelStatus(s: string): PanelStatus {
-  return (PANEL_STATUSES as string[]).includes(s) ? (s as PanelStatus) : "idle";
+  return (PANEL_STATUSES as string[]).includes(s) ? (s as PanelStatus) : "draft";
 }
 function asRevStatus(s: string): RevisionStatus {
   return (REV_STATUSES as string[]).includes(s) ? (s as RevisionStatus) : "draft";
@@ -123,7 +131,8 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     install: formatDate(dto.created_at),
     updated: fmtDateTime(dto.updated_at),
     by: lastBy,
-    issues: dto.status === "fault" ? 1 : dto.status === "warn" ? 1 : 0,
+    // Legacy operational-issues field; lifecycle status no longer encodes alarms.
+    issues: 0,
     scanned: fmtDateTime(dto.updated_at),
     active_revision_id: dto.active_revision_id ?? null,
   };
