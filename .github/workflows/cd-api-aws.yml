@@ -1,0 +1,57 @@
+name: CD (api → AWS ECR + App Runner)
+
+# Build the API Docker image and push it to ECR on every push to main.
+# App Runner is configured to auto-deploy when the :latest tag is updated in
+# the watched ECR repository, so no explicit redeploy step is needed here.
+#
+# Required GitHub Actions secrets:
+#   AWS_ROLE_ARN     — IAM role assumable via GitHub OIDC. Trust policy must
+#                      allow `repo:asaygan/panelos:ref:refs/heads/main`.
+#                      Policy: ECR push to panelos-api repo + describe.
+#   AWS_REGION       — eu-central-1
+#   ECR_REPOSITORY   — e.g. 707578706524.dkr.ecr.eu-central-1.amazonaws.com/panelos-api
+#
+# The companion workflow .github/workflows/cd-api.yml still publishes versioned
+# GHCR artifacts on `api-v*` tags for rollbacks. They run on disjoint triggers.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/cd-api-aws.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cd-api-aws-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write  # for AWS OIDC
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build & push api image (ECR)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/api
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.ECR_REPOSITORY }}:latest
+            ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

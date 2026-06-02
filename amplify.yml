@@ -1,0 +1,39 @@
+# AWS Amplify Hosting build spec for the Next.js web app (monorepo).
+#
+# Configure in the Amplify console:
+#   - App root:           apps/web
+#   - Monorepo:           Yes (this file lives at the repo root)
+#   - Build settings:     "Use a buildspec from your repository"
+#
+# Env vars to set in Amplify (no secrets in this file):
+#   NEXT_PUBLIC_API_BASE        /api/v1
+#   API_INTERNAL_URL            https://<app-runner-url>     # for the Next rewrite proxy
+#   NEXT_PUBLIC_APP_URL         https://<amplify-domain>
+#
+# pnpm is installed via corepack; pnpm 9 matches the lockfile's compatRange.
+
+version: 1
+applications:
+  - appRoot: apps/web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - corepack enable
+            - corepack prepare pnpm@9 --activate
+            # Install workspace deps from the monorepo root, then build the web app.
+            - cd ../..
+            - pnpm install --frozen-lockfile
+            - pnpm -F @panelos/types codegen || true
+        build:
+          commands:
+            - pnpm -F @panelos/web build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - node_modules/**/*
+          - ../../node_modules/**/*
+          - apps/web/.next/cache/**/*
