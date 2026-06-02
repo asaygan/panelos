@@ -1,7 +1,8 @@
-"""Section lifecycle (functional parts inside a panel)."""
+"""Cabinet lifecycle (physical compartments inside a Panel)."""
 
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import func, select
@@ -9,51 +10,48 @@ from sqlalchemy import func, select
 from panelos_api.core.audit import append_audit
 from panelos_api.core.exceptions import NotFound
 from panelos_api.db.models.audit_log import AuditAction
+from panelos_api.db.models.cabinet import Cabinet
 from panelos_api.db.models.panel import Panel
-from panelos_api.db.models.section import Section, SectionType
 
 if TYPE_CHECKING:
-    import uuid
-
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+async def _get(session: AsyncSession, *, company_id: uuid.UUID, cabinet_id: uuid.UUID) -> Cabinet:
+    row = (
+        await session.execute(
+            select(Cabinet).where(Cabinet.id == cabinet_id, Cabinet.company_id == company_id)
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        raise NotFound("cabinet not found")
+    return row
 
 
 async def list_for_panel(
     session: AsyncSession, *, company_id: uuid.UUID, panel_id: uuid.UUID
-) -> list[Section]:
+) -> list[Cabinet]:
     rows = (
         await session.execute(
-            select(Section)
-            .where(Section.company_id == company_id, Section.panel_id == panel_id)
-            .order_by(Section.position, Section.created_at)
+            select(Cabinet)
+            .where(Cabinet.company_id == company_id, Cabinet.panel_id == panel_id)
+            .order_by(Cabinet.position, Cabinet.created_at)
         )
     ).scalars().all()
     return list(rows)
 
 
-async def _get(session: AsyncSession, *, company_id: uuid.UUID, section_id: uuid.UUID) -> Section:
-    row = (
-        await session.execute(
-            select(Section).where(Section.id == section_id, Section.company_id == company_id)
-        )
-    ).scalar_one_or_none()
-    if row is None:
-        raise NotFound("section not found")
-    return row
-
-
-async def create_section(
+async def create_cabinet(
     session: AsyncSession,
     *,
     company_id: uuid.UUID,
     actor_id: uuid.UUID,
     panel_id: uuid.UUID,
-    section_type: SectionType,
     name: str,
-    description: str | None = None,
+    code: str | None = None,
+    notes: str | None = None,
     position: int | None = None,
-) -> Section:
-    # Parent panel must belong to the caller's company.
+) -> Cabinet:
     panel = (
         await session.execute(
             select(Panel).where(Panel.id == panel_id, Panel.company_id == company_id)
@@ -65,72 +63,71 @@ async def create_section(
     if position is None:
         max_pos = (
             await session.execute(
-                select(func.max(Section.position)).where(Section.panel_id == panel_id)
+                select(func.max(Cabinet.position)).where(Cabinet.panel_id == panel_id)
             )
         ).scalar_one_or_none()
         position = 0 if max_pos is None else max_pos + 1
 
-    section = Section(
+    cabinet = Cabinet(
         company_id=company_id,
         panel_id=panel_id,
-        section_type=section_type,
         name=name,
-        description=description,
+        code=code,
         position=position,
+        notes=notes,
     )
-    session.add(section)
+    session.add(cabinet)
     await session.flush()
     await append_audit(
         session,
         company_id=company_id,
         actor_id=actor_id,
-        action=AuditAction.SECTION_CREATED,
-        target_type="section",
-        target_id=str(section.id),
-        meta={"panel_id": str(panel_id), "name": name, "type": section_type.value},
+        action=AuditAction.CABINET_CREATED,
+        target_type="cabinet",
+        target_id=str(cabinet.id),
+        meta={"panel_id": str(panel_id), "name": name},
     )
-    return section
+    return cabinet
 
 
-async def update_section(
+async def update_cabinet(
     session: AsyncSession,
     *,
     company_id: uuid.UUID,
     actor_id: uuid.UUID,
-    section_id: uuid.UUID,
+    cabinet_id: uuid.UUID,
     changes: dict[str, Any],
-) -> Section:
-    section = await _get(session, company_id=company_id, section_id=section_id)
+) -> Cabinet:
+    cabinet = await _get(session, company_id=company_id, cabinet_id=cabinet_id)
     forbidden = {"id", "company_id", "panel_id", "created_at"}
     applied: dict[str, Any] = {}
     for k, v in changes.items():
-        if k in forbidden or not hasattr(section, k):
+        if k in forbidden or not hasattr(cabinet, k):
             continue
-        setattr(section, k, v)
-        applied[k] = v.value if hasattr(v, "value") else v
+        setattr(cabinet, k, v)
+        applied[k] = v
     await session.flush()
     await append_audit(
         session,
         company_id=company_id,
         actor_id=actor_id,
-        action=AuditAction.SECTION_UPDATED,
-        target_type="section",
-        target_id=str(section.id),
+        action=AuditAction.CABINET_UPDATED,
+        target_type="cabinet",
+        target_id=str(cabinet.id),
         meta={"changes": applied},
     )
-    return section
+    return cabinet
 
 
-async def move_section(
+async def move_cabinet(
     session: AsyncSession,
     *,
     company_id: uuid.UUID,
     actor_id: uuid.UUID,
-    section_id: uuid.UUID,
+    cabinet_id: uuid.UUID,
     target_panel_id: uuid.UUID,
-) -> Section:
-    """Reparent a section to another panel in the same company (drag-to-move)."""
-    section = await _get(session, company_id=company_id, section_id=section_id)
+) -> Cabinet:
+    cabinet = await _get(session, company_id=company_id, cabinet_id=cabinet_id)
     target = (
         await session.execute(
             select(Panel).where(Panel.id == target_panel_id, Panel.company_id == company_id)
@@ -138,45 +135,44 @@ async def move_section(
     ).scalar_one_or_none()
     if target is None:
         raise NotFound("target panel not found")
-
-    from_panel_id = section.panel_id
+    from_panel_id = cabinet.panel_id
     if target_panel_id != from_panel_id:
         max_pos = (
             await session.execute(
-                select(func.max(Section.position)).where(Section.panel_id == target_panel_id)
+                select(func.max(Cabinet.position)).where(Cabinet.panel_id == target_panel_id)
             )
         ).scalar_one_or_none()
-        section.panel_id = target_panel_id
-        section.position = 0 if max_pos is None else max_pos + 1
+        cabinet.panel_id = target_panel_id
+        cabinet.position = 0 if max_pos is None else max_pos + 1
         await session.flush()
     await append_audit(
         session,
         company_id=company_id,
         actor_id=actor_id,
-        action=AuditAction.SECTION_UPDATED,
-        target_type="section",
-        target_id=str(section.id),
+        action=AuditAction.CABINET_UPDATED,
+        target_type="cabinet",
+        target_id=str(cabinet.id),
         meta={"moved_from": str(from_panel_id), "moved_to": str(target_panel_id)},
     )
-    return section
+    return cabinet
 
 
-async def delete_section(
+async def delete_cabinet(
     session: AsyncSession,
     *,
     company_id: uuid.UUID,
     actor_id: uuid.UUID,
-    section_id: uuid.UUID,
+    cabinet_id: uuid.UUID,
 ) -> None:
-    section = await _get(session, company_id=company_id, section_id=section_id)
+    cabinet = await _get(session, company_id=company_id, cabinet_id=cabinet_id)
     await append_audit(
         session,
         company_id=company_id,
         actor_id=actor_id,
-        action=AuditAction.SECTION_DELETED,
-        target_type="section",
-        target_id=str(section.id),
-        meta={"panel_id": str(section.panel_id)},
+        action=AuditAction.CABINET_DELETED,
+        target_type="cabinet",
+        target_id=str(cabinet.id),
+        meta={"panel_id": str(cabinet.panel_id)},
     )
-    await session.delete(section)
+    await session.delete(cabinet)
     await session.flush()

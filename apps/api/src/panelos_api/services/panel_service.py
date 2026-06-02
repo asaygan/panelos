@@ -1,4 +1,9 @@
-"""Panel lifecycle."""
+"""Panel lifecycle.
+
+Panels live under a System Group (which lives under a Project). Lifecycle status
+is NOT a Panel concern in the new hierarchy (it lives on Project + System Group),
+so this service no longer reads/writes panel.status.
+"""
 
 from __future__ import annotations
 
@@ -14,8 +19,7 @@ from panelos_api.core.audit import append_audit
 from panelos_api.core.exceptions import NotFound
 from panelos_api.core.ids import new_qr_token
 from panelos_api.db.models.audit_log import AuditAction
-from panelos_api.db.models.panel import Panel, PanelStatus
-from panelos_api.db.models.panel_status_history import PanelStatusHistory
+from panelos_api.db.models.panel import Panel
 from panelos_api.repositories.panel_repo import PanelRepo
 
 if TYPE_CHECKING:
@@ -70,7 +74,6 @@ async def create_panel(
         name=name,
         location_id=location_id,
         qr_token=new_qr_token(),
-        status=PanelStatus.DRAFT,
         **{k: v for k, v in metadata.items() if hasattr(Panel, k)},
     )
     session.add(panel)
@@ -84,17 +87,6 @@ async def create_panel(
         target_id=str(panel.id),
         meta={"tag": tag, "serial": serial},
     )
-    # Seed status_history with the initial state so the timeline starts on day 1.
-    session.add(
-        PanelStatusHistory(
-            company_id=company_id,
-            panel_id=panel.id,
-            from_status=None,
-            to_status=panel.status,
-            changed_by=actor_id,
-        )
-    )
-    await session.flush()
     return panel
 
 
@@ -112,22 +104,9 @@ async def update_metadata(
         raise NotFound("panel not found")
     forbidden = {"id", "company_id", "qr_token", "created_at"}
 
-    # Snapshot the pre-change status so we can record a status-transition row +
-    # dedicated audit entry when it moves. Free transitions allowed.
-    prev_status: PanelStatus = panel.status
-    status_change: tuple[PanelStatus, PanelStatus] | None = None
-
     applied: dict[str, Any] = {}
     for k, v in changes.items():
         if k in forbidden or not hasattr(panel, k):
-            continue
-        # Status changes follow their own audit + history path below; skip the
-        # generic update meta to keep the lifecycle timeline clean.
-        if k == "status":
-            new_status = v if isinstance(v, PanelStatus) else PanelStatus(v)
-            if new_status != prev_status:
-                panel.status = new_status
-                status_change = (prev_status, new_status)
             continue
         setattr(panel, k, v)
         # Coerce non-JSON-serializable values (UUID, Enum) for the audit meta.
@@ -149,56 +128,7 @@ async def update_metadata(
             target_id=str(panel.id),
             meta={"changes": applied},
         )
-    if status_change is not None:
-        old, new = status_change
-        session.add(
-            PanelStatusHistory(
-                company_id=company_id,
-                panel_id=panel.id,
-                from_status=old,
-                to_status=new,
-                changed_by=actor_id,
-            )
-        )
-        await append_audit(
-            session,
-            company_id=company_id,
-            actor_id=actor_id,
-            action=AuditAction.PANEL_STATUS_CHANGED,
-            target_type="panel",
-            target_id=str(panel.id),
-            meta={"from": old.value, "to": new.value},
-        )
-        await session.flush()
     return panel
-
-
-async def list_status_history(
-    session: AsyncSession,
-    *,
-    company_id: uuid.UUID,
-    panel_id: uuid.UUID,
-    limit: int = 200,
-) -> list[PanelStatusHistory]:
-    """Return the panel's lifecycle timeline (newest first)."""
-    from sqlalchemy import select
-
-    repo = PanelRepo(session, company_id)
-    panel = await repo.get(panel_id)
-    if panel is None:
-        raise NotFound("panel not found")
-    rows = (
-        await session.execute(
-            select(PanelStatusHistory)
-            .where(
-                PanelStatusHistory.company_id == company_id,
-                PanelStatusHistory.panel_id == panel_id,
-            )
-            .order_by(PanelStatusHistory.created_at.desc())
-            .limit(limit)
-        )
-    ).scalars().all()
-    return list(rows)
 
 
 async def archive_panel(

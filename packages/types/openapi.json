@@ -193,6 +193,181 @@
         "title": "Body_import_components_api_v1_revisions__revision_id__components_import_post",
         "type": "object"
       },
+      "CabinetCreateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CabinetCreateIn",
+        "type": "object"
+      },
+      "CabinetMoveIn": {
+        "description": "Reparent a cabinet to a different panel (same company).",
+        "properties": {
+          "panel_id": {
+            "format": "uuid",
+            "title": "Panel Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "panel_id"
+        ],
+        "title": "CabinetMoveIn",
+        "type": "object"
+      },
+      "CabinetOut": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "panel_id": {
+            "format": "uuid",
+            "title": "Panel Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "panel_id",
+          "name",
+          "position",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CabinetOut",
+        "type": "object"
+      },
+      "CabinetUpdateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "title": "CabinetUpdateIn",
+        "type": "object"
+      },
       "CompanyOut": {
         "properties": {
           "id": {
@@ -617,6 +792,21 @@
         "title": "FinalizeRequest",
         "type": "object"
       },
+      "GroupType": {
+        "enum": [
+          "mcc",
+          "lvdp",
+          "mv",
+          "plc",
+          "pfc",
+          "ups",
+          "scada",
+          "dcs",
+          "custom"
+        ],
+        "title": "GroupType",
+        "type": "string"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1001,6 +1191,20 @@
         },
         "title": "LabelTemplateUpdateIn",
         "type": "object"
+      },
+      "LifecycleStatus": {
+        "description": "draft \u2192 engineering \u2192 released \u2192 installed \u2192 commissioned \u2192 in_service \u2192 archived.\n\nFree transitions are allowed; every change is audited and written to the\nmatching history table (project_status_history / group_status_history).",
+        "enum": [
+          "draft",
+          "engineering",
+          "released",
+          "installed",
+          "commissioned",
+          "in_service",
+          "archived"
+        ],
+        "title": "LifecycleStatus",
+        "type": "string"
       },
       "LocationCreateIn": {
         "properties": {
@@ -1394,11 +1598,11 @@
         "title": "Page[PanelOut]",
         "type": "object"
       },
-      "Page_PanelSetOut_": {
+      "Page_ProjectOut_": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/PanelSetOut"
+              "$ref": "#/components/schemas/ProjectOut"
             },
             "title": "Items",
             "type": "array"
@@ -1418,7 +1622,7 @@
         "required": [
           "items"
         ],
-        "title": "Page[PanelSetOut]",
+        "title": "Page[ProjectOut]",
         "type": "object"
       },
       "PanelCreateIn": {
@@ -1516,18 +1720,6 @@
             ],
             "title": "Notes"
           },
-          "panel_set_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Panel Set Id"
-          },
           "phase": {
             "anyOf": [
               {
@@ -1549,6 +1741,18 @@
               }
             ],
             "title": "Serial"
+          },
+          "system_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Group Id"
           },
           "tag": {
             "anyOf": [
@@ -1615,6 +1819,13 @@
               }
             ],
             "title": "Area"
+          },
+          "cabinets": {
+            "items": {
+              "$ref": "#/components/schemas/CabinetOut"
+            },
+            "title": "Cabinets",
+            "type": "array"
           },
           "created_at": {
             "format": "date-time",
@@ -1686,18 +1897,6 @@
             "title": "Name",
             "type": "string"
           },
-          "panel_set_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Panel Set Id"
-          },
           "phase": {
             "anyOf": [
               {
@@ -1713,19 +1912,21 @@
             "title": "Qr Token",
             "type": "string"
           },
-          "sections": {
-            "items": {
-              "$ref": "#/components/schemas/SectionOut"
-            },
-            "title": "Sections",
-            "type": "array"
-          },
           "serial": {
             "title": "Serial",
             "type": "string"
           },
-          "status": {
-            "$ref": "#/components/schemas/PanelStatus"
+          "system_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Group Id"
           },
           "tag": {
             "title": "Tag",
@@ -1754,7 +1955,6 @@
           "serial",
           "name",
           "qr_token",
-          "status",
           "location_id",
           "created_at",
           "updated_at"
@@ -1869,18 +2069,6 @@
             "title": "Name",
             "type": "string"
           },
-          "panel_set_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Panel Set Id"
-          },
           "phase": {
             "anyOf": [
               {
@@ -1900,8 +2088,17 @@
             "title": "Serial",
             "type": "string"
           },
-          "status": {
-            "$ref": "#/components/schemas/PanelStatus"
+          "system_group_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Group Id"
           },
           "tag": {
             "title": "Tag",
@@ -1930,349 +2127,11 @@
           "serial",
           "name",
           "qr_token",
-          "status",
           "location_id",
           "created_at",
           "updated_at"
         ],
         "title": "PanelOut",
-        "type": "object"
-      },
-      "PanelSetCreateIn": {
-        "properties": {
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "PanelSetCreateIn",
-        "type": "object"
-      },
-      "PanelSetNode": {
-        "properties": {
-          "archived_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Archived At"
-          },
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "panels": {
-            "items": {
-              "$ref": "#/components/schemas/PanelNode"
-            },
-            "title": "Panels",
-            "type": "array"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "PanelSetNode",
-        "type": "object"
-      },
-      "PanelSetOut": {
-        "properties": {
-          "archived_at": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Archived At"
-          },
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "PanelSetOut",
-        "type": "object"
-      },
-      "PanelSetUpdateIn": {
-        "properties": {
-          "code": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Code"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "location_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Location Id"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          }
-        },
-        "title": "PanelSetUpdateIn",
-        "type": "object"
-      },
-      "PanelStatus": {
-        "description": "Panel **lifecycle** status (not operational/SCADA).\n\nTracks where a panel is in its asset lifecycle from design through retirement.\nFree transitions between values are allowed; every change is audited and\nrecorded in ``panel_status_history`` so the timeline can be replayed later.",
-        "enum": [
-          "draft",
-          "engineering",
-          "released",
-          "installed",
-          "commissioned",
-          "in_service",
-          "archived"
-        ],
-        "title": "PanelStatus",
-        "type": "string"
-      },
-      "PanelStatusHistoryOut": {
-        "description": "One lifecycle transition. ``from_status`` is None for the initial entry.",
-        "properties": {
-          "changed_by": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Changed By"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "from_status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/PanelStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "note": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Note"
-          },
-          "panel_id": {
-            "format": "uuid",
-            "title": "Panel Id",
-            "type": "string"
-          },
-          "to_status": {
-            "$ref": "#/components/schemas/PanelStatus"
-          }
-        },
-        "required": [
-          "id",
-          "panel_id",
-          "to_status",
-          "created_at"
-        ],
-        "title": "PanelStatusHistoryOut",
         "type": "object"
       },
       "PanelUpdateIn": {
@@ -2377,18 +2236,6 @@
             ],
             "title": "Notes"
           },
-          "panel_set_id": {
-            "anyOf": [
-              {
-                "format": "uuid",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Panel Set Id"
-          },
           "phase": {
             "anyOf": [
               {
@@ -2400,15 +2247,17 @@
             ],
             "title": "Phase"
           },
-          "status": {
+          "system_group_id": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/PanelStatus"
+                "format": "uuid",
+                "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "System Group Id"
           },
           "tag": {
             "anyOf": [
@@ -2511,6 +2360,438 @@
           "expires_in"
         ],
         "title": "PresignResponse",
+        "type": "object"
+      },
+      "ProjectCreateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "customer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus",
+            "default": "draft"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ProjectCreateIn",
+        "type": "object"
+      },
+      "ProjectNode": {
+        "properties": {
+          "archived_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/SystemGroupNode"
+            },
+            "title": "Groups",
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lifecycle_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectNode",
+        "type": "object"
+      },
+      "ProjectOut": {
+        "properties": {
+          "archived_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "customer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lifecycle_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectOut",
+        "type": "object"
+      },
+      "ProjectStatusHistoryOut": {
+        "properties": {
+          "changed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          }
+        },
+        "required": [
+          "id",
+          "to_status",
+          "created_at",
+          "project_id"
+        ],
+        "title": "ProjectStatusHistoryOut",
+        "type": "object"
+      },
+      "ProjectUpdateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "customer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "lifecycle_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "location_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Site"
+          }
+        },
+        "title": "ProjectUpdateIn",
         "type": "object"
       },
       "QrResolveOut": {
@@ -2767,188 +3048,6 @@
         "title": "RoleOut",
         "type": "object"
       },
-      "SectionCreateIn": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "position": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Position"
-          },
-          "section_type": {
-            "$ref": "#/components/schemas/SectionType",
-            "default": "custom"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "title": "SectionCreateIn",
-        "type": "object"
-      },
-      "SectionMoveIn": {
-        "description": "Reparent a section to a different panel (same company).",
-        "properties": {
-          "panel_id": {
-            "format": "uuid",
-            "title": "Panel Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "panel_id"
-        ],
-        "title": "SectionMoveIn",
-        "type": "object"
-      },
-      "SectionOut": {
-        "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "panel_id": {
-            "format": "uuid",
-            "title": "Panel Id",
-            "type": "string"
-          },
-          "position": {
-            "title": "Position",
-            "type": "integer"
-          },
-          "section_type": {
-            "$ref": "#/components/schemas/SectionType"
-          },
-          "updated_at": {
-            "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "panel_id",
-          "section_type",
-          "name",
-          "position",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "SectionOut",
-        "type": "object"
-      },
-      "SectionType": {
-        "enum": [
-          "incoming",
-          "distribution",
-          "feeder",
-          "vfd",
-          "softstarter",
-          "capacitor",
-          "metering",
-          "plc_cpu",
-          "plc_io",
-          "network",
-          "ups",
-          "terminal",
-          "hmi",
-          "protection",
-          "generator",
-          "custom"
-        ],
-        "title": "SectionType",
-        "type": "string"
-      },
-      "SectionUpdateIn": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Name"
-          },
-          "position": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Position"
-          },
-          "section_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SectionType"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "title": "SectionUpdateIn",
-        "type": "object"
-      },
       "SheetOut": {
         "properties": {
           "file_id": {
@@ -2997,6 +3096,324 @@
         "title": "StatusChangeIn",
         "type": "object"
       },
+      "SystemGroupCreateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_type": {
+            "$ref": "#/components/schemas/GroupType",
+            "default": "custom"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus",
+            "default": "draft"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SystemGroupCreateIn",
+        "type": "object"
+      },
+      "SystemGroupNode": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_type": {
+            "$ref": "#/components/schemas/GroupType"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "panels": {
+            "items": {
+              "$ref": "#/components/schemas/PanelNode"
+            },
+            "title": "Panels",
+            "type": "array"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "group_type",
+          "lifecycle_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SystemGroupNode",
+        "type": "object"
+      },
+      "SystemGroupOut": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_type": {
+            "$ref": "#/components/schemas/GroupType"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "group_type",
+          "lifecycle_status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SystemGroupOut",
+        "type": "object"
+      },
+      "SystemGroupStatusHistoryOut": {
+        "properties": {
+          "changed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "system_group_id": {
+            "format": "uuid",
+            "title": "System Group Id",
+            "type": "string"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/LifecycleStatus"
+          }
+        },
+        "required": [
+          "id",
+          "to_status",
+          "created_at",
+          "system_group_id"
+        ],
+        "title": "SystemGroupStatusHistoryOut",
+        "type": "object"
+      },
+      "SystemGroupUpdateIn": {
+        "properties": {
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "group_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lifecycle_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          }
+        },
+        "title": "SystemGroupUpdateIn",
+        "type": "object"
+      },
       "TokenOut": {
         "properties": {
           "access_token": {
@@ -3022,11 +3439,11 @@
       },
       "TreeOut": {
         "properties": {
-          "panel_sets": {
+          "projects": {
             "items": {
-              "$ref": "#/components/schemas/PanelSetNode"
+              "$ref": "#/components/schemas/ProjectNode"
             },
-            "title": "Panel Sets",
+            "title": "Projects",
             "type": "array"
           },
           "unassigned_panels": {
@@ -3639,6 +4056,209 @@
         "summary": "Refresh",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/v1/cabinets/{cabinet_id}": {
+      "delete": {
+        "operationId": "delete_cabinet_api_v1_cabinets__cabinet_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cabinet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Cabinet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Cabinet",
+        "tags": [
+          "cabinets"
+        ]
+      },
+      "put": {
+        "operationId": "update_cabinet_api_v1_cabinets__cabinet_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cabinet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Cabinet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CabinetUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CabinetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Cabinet",
+        "tags": [
+          "cabinets"
+        ]
+      }
+    },
+    "/api/v1/cabinets/{cabinet_id}/move": {
+      "post": {
+        "operationId": "move_cabinet_api_v1_cabinets__cabinet_id__move_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "cabinet_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Cabinet Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CabinetMoveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CabinetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Move Cabinet",
+        "tags": [
+          "cabinets"
         ]
       }
     },
@@ -5229,464 +5849,6 @@
         ]
       }
     },
-    "/api/v1/panel-sets": {
-      "get": {
-        "operationId": "list_panel_sets_api_v1_panel_sets_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "cursor",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "format": "uuid",
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Cursor"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "default": 100,
-              "maximum": 200,
-              "title": "Limit",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Page_PanelSetOut_"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "List Panel Sets",
-        "tags": [
-          "panel-sets"
-        ]
-      },
-      "post": {
-        "operationId": "create_panel_set_api_v1_panel_sets_post",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PanelSetCreateIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PanelSetOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Panel Set",
-        "tags": [
-          "panel-sets"
-        ]
-      }
-    },
-    "/api/v1/panel-sets/tree": {
-      "get": {
-        "description": "Assemble the full Panel Set \u2192 Panel \u2192 Section tree in 3 scoped queries.",
-        "operationId": "panel_set_tree_api_v1_panel_sets_tree_get",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TreeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Panel Set Tree",
-        "tags": [
-          "panel-sets"
-        ]
-      }
-    },
-    "/api/v1/panel-sets/{panel_set_id}": {
-      "delete": {
-        "operationId": "archive_panel_set_api_v1_panel_sets__panel_set_id__delete",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_set_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Set Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Archive Panel Set",
-        "tags": [
-          "panel-sets"
-        ]
-      },
-      "get": {
-        "operationId": "get_panel_set_api_v1_panel_sets__panel_set_id__get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_set_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Set Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PanelSetOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Get Panel Set",
-        "tags": [
-          "panel-sets"
-        ]
-      },
-      "put": {
-        "operationId": "update_panel_set_api_v1_panel_sets__panel_set_id__put",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_set_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Set Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PanelSetUpdateIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PanelSetOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Update Panel Set",
-        "tags": [
-          "panel-sets"
-        ]
-      }
-    },
-    "/api/v1/panel-sets/{panel_set_id}/panels": {
-      "get": {
-        "operationId": "panel_set_panels_api_v1_panel_sets__panel_set_id__panels_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_set_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Set Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/PanelOut"
-                  },
-                  "title": "Response Panel Set Panels Api V1 Panel Sets  Panel Set Id  Panels Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Panel Set Panels",
-        "tags": [
-          "panel-sets"
-        ]
-      }
-    },
     "/api/v1/panels": {
       "get": {
         "operationId": "list_panels_api_v1_panels_get",
@@ -5706,22 +5868,6 @@
                 }
               ],
               "title": "Location Id"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Status"
             }
           },
           {
@@ -6145,6 +6291,146 @@
         ]
       }
     },
+    "/api/v1/panels/{panel_id}/cabinets": {
+      "get": {
+        "operationId": "list_cabinets_api_v1_panels__panel_id__cabinets_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "panel_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Panel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CabinetOut"
+                  },
+                  "title": "Response List Cabinets Api V1 Panels  Panel Id  Cabinets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Cabinets",
+        "tags": [
+          "cabinets"
+        ]
+      },
+      "post": {
+        "operationId": "create_cabinet_api_v1_panels__panel_id__cabinets_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "panel_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Panel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CabinetCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CabinetOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Cabinet",
+        "tags": [
+          "cabinets"
+        ]
+      }
+    },
     "/api/v1/panels/{panel_id}/components": {
       "get": {
         "operationId": "list_panel_components_api_v1_panels__panel_id__components_get",
@@ -6353,146 +6639,6 @@
         ]
       }
     },
-    "/api/v1/panels/{panel_id}/sections": {
-      "get": {
-        "operationId": "list_sections_api_v1_panels__panel_id__sections_get",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/SectionOut"
-                  },
-                  "title": "Response List Sections Api V1 Panels  Panel Id  Sections Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "List Sections",
-        "tags": [
-          "sections"
-        ]
-      },
-      "post": {
-        "operationId": "create_section_api_v1_panels__panel_id__sections_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "panel_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "title": "Panel Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Company-Id",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Company-Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SectionCreateIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SectionOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ],
-        "summary": "Create Section",
-        "tags": [
-          "sections"
-        ]
-      }
-    },
     "/api/v1/panels/{panel_id}/sheets": {
       "get": {
         "description": "Attached sheets for a revision (for thumbnails / PDF viewer).\n\nWith ``revision_id`` returns that revision's sheets. Otherwise prefers the\nmost recent revision (draft-aware) so freshly uploaded sheets show, falling\nback to the active revision.",
@@ -6579,18 +6725,407 @@
         ]
       }
     },
-    "/api/v1/panels/{panel_id}/status-history": {
+    "/api/v1/projects": {
       "get": {
-        "description": "Lifecycle timeline for a panel \u2014 every status transition, newest first.",
-        "operationId": "panel_status_history_api_v1_panels__panel_id__status_history_get",
+        "operationId": "list_projects_api_v1_projects_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_ProjectOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Projects",
+        "tags": [
+          "projects"
+        ]
+      },
+      "post": {
+        "operationId": "create_project_api_v1_projects_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/tree": {
+      "get": {
+        "description": "Assemble the Project \u2192 System Group \u2192 Panel \u2192 Cabinet tree (4 scoped queries).",
+        "operationId": "project_tree_api_v1_projects_tree_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreeOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Project Tree",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}": {
+      "delete": {
+        "operationId": "archive_project_api_v1_projects__project_id__delete",
         "parameters": [
           {
             "in": "path",
-            "name": "panel_id",
+            "name": "project_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Panel Id",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Archive Project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "get": {
+        "operationId": "get_project_api_v1_projects__project_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Project",
+        "tags": [
+          "projects"
+        ]
+      },
+      "put": {
+        "operationId": "update_project_api_v1_projects__project_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpdateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/groups": {
+      "get": {
+        "operationId": "project_groups_api_v1_projects__project_id__groups_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
               "type": "string"
             }
           },
@@ -6617,9 +7152,9 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/PanelStatusHistoryOut"
+                    "$ref": "#/components/schemas/SystemGroupOut"
                   },
-                  "title": "Response Panel Status History Api V1 Panels  Panel Id  Status History Get",
+                  "title": "Response Project Groups Api V1 Projects  Project Id  Groups Get",
                   "type": "array"
                 }
               }
@@ -6642,9 +7177,217 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Panel Status History",
+        "summary": "Project Groups",
         "tags": [
-          "panels"
+          "projects"
+        ]
+      },
+      "post": {
+        "operationId": "create_group_in_project_api_v1_projects__project_id__groups_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SystemGroupCreateIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemGroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Group In Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/panels": {
+      "get": {
+        "operationId": "project_panels_api_v1_projects__project_id__panels_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PanelOut"
+                  },
+                  "title": "Response Project Panels Api V1 Projects  Project Id  Panels Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Project Panels",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/status-history": {
+      "get": {
+        "operationId": "project_status_history_api_v1_projects__project_id__status_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectStatusHistoryOut"
+                  },
+                  "title": "Response Project Status History Api V1 Projects  Project Id  Status History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Project Status History",
+        "tags": [
+          "projects"
         ]
       }
     },
@@ -7466,17 +8209,17 @@
         ]
       }
     },
-    "/api/v1/sections/{section_id}": {
+    "/api/v1/system-groups/{group_id}": {
       "delete": {
-        "operationId": "delete_section_api_v1_sections__section_id__delete",
+        "operationId": "delete_system_group_api_v1_system_groups__group_id__delete",
         "parameters": [
           {
             "in": "path",
-            "name": "section_id",
+            "name": "group_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Section Id",
+              "title": "Group Id",
               "type": "string"
             }
           },
@@ -7517,21 +8260,83 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Delete Section",
+        "summary": "Delete System Group",
         "tags": [
-          "sections"
+          "system-groups"
+        ]
+      },
+      "get": {
+        "operationId": "get_system_group_api_v1_system_groups__group_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemGroupOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get System Group",
+        "tags": [
+          "system-groups"
         ]
       },
       "put": {
-        "operationId": "update_section_api_v1_sections__section_id__put",
+        "operationId": "update_system_group_api_v1_system_groups__group_id__put",
         "parameters": [
           {
             "in": "path",
-            "name": "section_id",
+            "name": "group_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Section Id",
+              "title": "Group Id",
               "type": "string"
             }
           },
@@ -7556,7 +8361,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SectionUpdateIn"
+                "$ref": "#/components/schemas/SystemGroupUpdateIn"
               }
             }
           },
@@ -7567,7 +8372,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SectionOut"
+                  "$ref": "#/components/schemas/SystemGroupOut"
                 }
               }
             },
@@ -7589,23 +8394,23 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Update Section",
+        "summary": "Update System Group",
         "tags": [
-          "sections"
+          "system-groups"
         ]
       }
     },
-    "/api/v1/sections/{section_id}/move": {
-      "post": {
-        "operationId": "move_section_api_v1_sections__section_id__move_post",
+    "/api/v1/system-groups/{group_id}/panels": {
+      "get": {
+        "operationId": "group_panels_api_v1_system_groups__group_id__panels_get",
         "parameters": [
           {
             "in": "path",
-            "name": "section_id",
+            "name": "group_id",
             "required": true,
             "schema": {
               "format": "uuid",
-              "title": "Section Id",
+              "title": "Group Id",
               "type": "string"
             }
           },
@@ -7626,22 +8431,16 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SectionMoveIn"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SectionOut"
+                  "items": {
+                    "$ref": "#/components/schemas/PanelOut"
+                  },
+                  "title": "Response Group Panels Api V1 System Groups  Group Id  Panels Get",
+                  "type": "array"
                 }
               }
             },
@@ -7663,9 +8462,77 @@
             "HTTPBearer": []
           }
         ],
-        "summary": "Move Section",
+        "summary": "Group Panels",
         "tags": [
-          "sections"
+          "system-groups"
+        ]
+      }
+    },
+    "/api/v1/system-groups/{group_id}/status-history": {
+      "get": {
+        "operationId": "group_status_history_api_v1_system_groups__group_id__status_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "group_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Group Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SystemGroupStatusHistoryOut"
+                  },
+                  "title": "Response Group Status History Api V1 System Groups  Group Id  Status History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Group Status History",
+        "tags": [
+          "system-groups"
         ]
       }
     },

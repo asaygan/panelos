@@ -1,10 +1,9 @@
-"""Panel schemas."""
+"""Panel schemas. Panel sits under a System Group, has no lifecycle status."""
 
 import uuid
 from datetime import datetime
 
 from panelos_api.api.v1.schemas.common import ORMModel
-from panelos_api.db.models.panel import PanelStatus
 
 
 class PanelOut(ORMModel):
@@ -13,8 +12,7 @@ class PanelOut(ORMModel):
     serial: str
     name: str
     qr_token: str
-    status: PanelStatus
-    panel_set_id: uuid.UUID | None = None
+    system_group_id: uuid.UUID | None = None
     location_id: uuid.UUID | None
     voltage: str | None = None
     current_a: str | None = None
@@ -35,7 +33,7 @@ class PanelCreateIn(ORMModel):
     # unique tag (slug of name) and a unique serial. Provided values win.
     tag: str | None = None
     serial: str | None = None
-    panel_set_id: uuid.UUID | None = None
+    system_group_id: uuid.UUID | None = None
     location_id: uuid.UUID | None = None
     voltage: str | None = None
     current_a: str | None = None
@@ -51,7 +49,7 @@ class PanelCreateIn(ORMModel):
 class PanelUpdateIn(ORMModel):
     name: str | None = None
     tag: str | None = None
-    panel_set_id: uuid.UUID | None = None
+    system_group_id: uuid.UUID | None = None
     location_id: uuid.UUID | None = None
     voltage: str | None = None
     current_a: str | None = None
@@ -62,16 +60,3 @@ class PanelUpdateIn(ORMModel):
     area: str | None = None
     ip_class: str | None = None
     notes: str | None = None
-    status: PanelStatus | None = None
-
-
-class PanelStatusHistoryOut(ORMModel):
-    """One lifecycle transition. ``from_status`` is None for the initial entry."""
-
-    id: uuid.UUID
-    panel_id: uuid.UUID
-    from_status: PanelStatus | None = None
-    to_status: PanelStatus
-    changed_by: uuid.UUID | None = None
-    note: str | None = None
-    created_at: datetime

@@ -17,6 +17,9 @@ class AuditAction(StrEnum):
     PANEL_CREATED = "panel.created"
     PANEL_UPDATED = "panel.updated"
     PANEL_ARCHIVED = "panel.archived"
+    # NB: ``panel.status_changed`` is kept in the enum so historical audit rows
+    # (pre-migration 0009, when Panel still carried lifecycle status) remain
+    # readable, but new code never emits it. New lifecycle actions live below.
     PANEL_STATUS_CHANGED = "panel.status_changed"
     PANEL_SET_CREATED = "panel_set.created"
     PANEL_SET_UPDATED = "panel_set.updated"
@@ -24,6 +27,18 @@ class AuditAction(StrEnum):
     SECTION_CREATED = "section.created"
     SECTION_UPDATED = "section.updated"
     SECTION_DELETED = "section.deleted"
+    # New hierarchy (migration 0009) — Project → System Group → Panel → Cabinet.
+    PROJECT_CREATED = "project.created"
+    PROJECT_UPDATED = "project.updated"
+    PROJECT_ARCHIVED = "project.archived"
+    PROJECT_STATUS_CHANGED = "project.status_changed"
+    SYSTEM_GROUP_CREATED = "system_group.created"
+    SYSTEM_GROUP_UPDATED = "system_group.updated"
+    SYSTEM_GROUP_DELETED = "system_group.deleted"
+    SYSTEM_GROUP_STATUS_CHANGED = "system_group.status_changed"
+    CABINET_CREATED = "cabinet.created"
+    CABINET_UPDATED = "cabinet.updated"
+    CABINET_DELETED = "cabinet.deleted"
     REVISION_CREATED = "revision.created"
     REVISION_SUBMITTED = "revision.submitted"
     REVISION_APPROVED = "revision.approved"

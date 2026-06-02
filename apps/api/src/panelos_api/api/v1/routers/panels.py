@@ -10,12 +10,7 @@ from sqlalchemy import select
 
 from panelos_api.api.v1.schemas.common import Page
 from panelos_api.api.v1.schemas.file import SheetOut
-from panelos_api.api.v1.schemas.panel import (
-    PanelCreateIn,
-    PanelOut,
-    PanelStatusHistoryOut,
-    PanelUpdateIn,
-)
+from panelos_api.api.v1.schemas.panel import PanelCreateIn, PanelOut, PanelUpdateIn
 from panelos_api.core.exceptions import NotFound
 from panelos_api.core.rbac import Permission
 from panelos_api.db.models.panel_revision import PanelRevision
@@ -34,7 +29,6 @@ router = APIRouter(prefix="/panels", tags=["panels"])
 @router.get("", response_model=Page[PanelOut])
 async def list_panels(
     location_id: uuid.UUID | None = Query(default=None),
-    status_filter: str | None = Query(default=None, alias="status"),
     q: str | None = Query(default=None),
     cursor: uuid.UUID | None = Query(default=None),
     limit: int = Query(default=50, le=200),
@@ -43,7 +37,7 @@ async def list_panels(
 ) -> Page[PanelOut]:
     repo = PanelRepo(db, m.company_id)
     rows = await repo.list_filtered(
-        location_id=location_id, status=status_filter, q=q, cursor=cursor, limit=limit
+        location_id=location_id, status=None, q=q, cursor=cursor, limit=limit
     )
     next_cursor = str(rows[-1].id) if len(rows) == limit else None
     return Page[PanelOut](items=[PanelOut.model_validate(p) for p in rows], next_cursor=next_cursor)
@@ -102,19 +96,6 @@ async def archive_panel(
     await panel_service.archive_panel(
         db, company_id=m.company_id, actor_id=m.user.id, panel_id=panel_id
     )
-
-
-@router.get("/{panel_id}/status-history", response_model=list[PanelStatusHistoryOut])
-async def panel_status_history(
-    panel_id: uuid.UUID,
-    m: CurrentMembership = Depends(get_current_membership),
-    db: AsyncSession = Depends(get_db),
-) -> list[PanelStatusHistoryOut]:
-    """Lifecycle timeline for a panel — every status transition, newest first."""
-    rows = await panel_service.list_status_history(
-        db, company_id=m.company_id, panel_id=panel_id
-    )
-    return [PanelStatusHistoryOut.model_validate(r) for r in rows]
 
 
 @router.get("/{panel_id}/sheets", response_model=list[SheetOut])

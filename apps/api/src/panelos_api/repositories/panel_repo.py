@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 from panelos_api.db.models.panel import Panel
 from panelos_api.repositories.base import BaseRepo
@@ -25,16 +25,15 @@ class PanelRepo(BaseRepo[Panel]):
         self,
         *,
         location_id: uuid.UUID | None = None,
-        status: str | None = None,
+        status: str | None = None,  # ignored after migration 0009 (kept for sig stability)
         q: str | None = None,
         limit: int = 100,
         cursor: uuid.UUID | None = None,
     ) -> list[Panel]:
+        del status  # Panel no longer carries lifecycle status (lives on Project/Group).
         stmt = self._scope(select(Panel))
         if location_id is not None:
             stmt = stmt.where(Panel.location_id == location_id)
-        if status is not None:
-            stmt = stmt.where(Panel.status == status)
         if q:
             like = f"%{q}%"
             stmt = stmt.where(
@@ -44,8 +43,3 @@ class PanelRepo(BaseRepo[Panel]):
             stmt = stmt.where(Panel.id > cursor)
         stmt = stmt.order_by(Panel.id.asc()).limit(limit)
         return list((await self.session.execute(stmt)).scalars().all())
-
-    async def count_by_status(self) -> dict[str, int]:
-        stmt = self._scope(select(Panel.status, func.count()).group_by(Panel.status))
-        rows = (await self.session.execute(stmt)).all()
-        return {str(s): int(c) for s, c in rows}

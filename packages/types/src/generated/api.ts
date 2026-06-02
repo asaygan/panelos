@@ -183,6 +183,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cabinets/{cabinet_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Cabinet */
+        put: operations["update_cabinet_api_v1_cabinets__cabinet_id__put"];
+        post?: never;
+        /** Delete Cabinet */
+        delete: operations["delete_cabinet_api_v1_cabinets__cabinet_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cabinets/{cabinet_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Cabinet */
+        post: operations["move_cabinet_api_v1_cabinets__cabinet_id__move_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/me": {
         parameters: {
             query?: never;
@@ -514,80 +549,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/panel-sets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Panel Sets */
-        get: operations["list_panel_sets_api_v1_panel_sets_get"];
-        put?: never;
-        /** Create Panel Set */
-        post: operations["create_panel_set_api_v1_panel_sets_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/panel-sets/tree": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Panel Set Tree
-         * @description Assemble the full Panel Set → Panel → Section tree in 3 scoped queries.
-         */
-        get: operations["panel_set_tree_api_v1_panel_sets_tree_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/panel-sets/{panel_set_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Panel Set */
-        get: operations["get_panel_set_api_v1_panel_sets__panel_set_id__get"];
-        /** Update Panel Set */
-        put: operations["update_panel_set_api_v1_panel_sets__panel_set_id__put"];
-        post?: never;
-        /** Archive Panel Set */
-        delete: operations["archive_panel_set_api_v1_panel_sets__panel_set_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/panel-sets/{panel_set_id}/panels": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Panel Set Panels */
-        get: operations["panel_set_panels_api_v1_panel_sets__panel_set_id__panels_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/panels": {
         parameters: {
             query?: never;
@@ -642,6 +603,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/panels/{panel_id}/cabinets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cabinets */
+        get: operations["list_cabinets_api_v1_panels__panel_id__cabinets_get"];
+        put?: never;
+        /** Create Cabinet */
+        post: operations["create_cabinet_api_v1_panels__panel_id__cabinets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/panels/{panel_id}/components": {
         parameters: {
             query?: never;
@@ -677,24 +656,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/panels/{panel_id}/sections": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Sections */
-        get: operations["list_sections_api_v1_panels__panel_id__sections_get"];
-        put?: never;
-        /** Create Section */
-        post: operations["create_section_api_v1_panels__panel_id__sections_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/panels/{panel_id}/sheets": {
         parameters: {
             query?: never;
@@ -719,7 +680,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/panels/{panel_id}/status-history": {
+    "/api/v1/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Projects */
+        get: operations["list_projects_api_v1_projects_get"];
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_v1_projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/tree": {
         parameters: {
             query?: never;
             header?: never;
@@ -727,10 +706,81 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Panel Status History
-         * @description Lifecycle timeline for a panel — every status transition, newest first.
+         * Project Tree
+         * @description Assemble the Project → System Group → Panel → Cabinet tree (4 scoped queries).
          */
-        get: operations["panel_status_history_api_v1_panels__panel_id__status_history_get"];
+        get: operations["project_tree_api_v1_projects_tree_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Project */
+        get: operations["get_project_api_v1_projects__project_id__get"];
+        /** Update Project */
+        put: operations["update_project_api_v1_projects__project_id__put"];
+        post?: never;
+        /** Archive Project */
+        delete: operations["archive_project_api_v1_projects__project_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Groups */
+        get: operations["project_groups_api_v1_projects__project_id__groups_get"];
+        put?: never;
+        /** Create Group In Project */
+        post: operations["create_group_in_project_api_v1_projects__project_id__groups_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/panels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Panels */
+        get: operations["project_panels_api_v1_projects__project_id__panels_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/projects/{project_id}/status-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Project Status History */
+        get: operations["project_status_history_api_v1_projects__project_id__status_history_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -948,35 +998,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/sections/{section_id}": {
+    "/api/v1/system-groups/{group_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        /** Update Section */
-        put: operations["update_section_api_v1_sections__section_id__put"];
+        /** Get System Group */
+        get: operations["get_system_group_api_v1_system_groups__group_id__get"];
+        /** Update System Group */
+        put: operations["update_system_group_api_v1_system_groups__group_id__put"];
         post?: never;
-        /** Delete Section */
-        delete: operations["delete_section_api_v1_sections__section_id__delete"];
+        /** Delete System Group */
+        delete: operations["delete_system_group_api_v1_system_groups__group_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/sections/{section_id}/move": {
+    "/api/v1/system-groups/{group_id}/panels": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Group Panels */
+        get: operations["group_panels_api_v1_system_groups__group_id__panels_get"];
         put?: never;
-        /** Move Section */
-        post: operations["move_section_api_v1_sections__section_id__move_post"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/system-groups/{group_id}/status-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Group Status History */
+        get: operations["group_status_history_api_v1_system_groups__group_id__status_history_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1200,6 +1268,70 @@ export interface components {
             /** File */
             file: string;
         };
+        /** CabinetCreateIn */
+        CabinetCreateIn: {
+            /** Code */
+            code?: string | null;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes?: string | null;
+            /** Position */
+            position?: number | null;
+        };
+        /**
+         * CabinetMoveIn
+         * @description Reparent a cabinet to a different panel (same company).
+         */
+        CabinetMoveIn: {
+            /**
+             * Panel Id
+             * Format: uuid
+             */
+            panel_id: string;
+        };
+        /** CabinetOut */
+        CabinetOut: {
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Notes */
+            notes?: string | null;
+            /**
+             * Panel Id
+             * Format: uuid
+             */
+            panel_id: string;
+            /** Position */
+            position: number;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** CabinetUpdateIn */
+        CabinetUpdateIn: {
+            /** Code */
+            code?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Position */
+            position?: number | null;
+        };
         /** CompanyOut */
         CompanyOut: {
             /**
@@ -1337,6 +1469,11 @@ export interface components {
             /** Sha256 */
             sha256?: string | null;
         };
+        /**
+         * GroupType
+         * @enum {string}
+         */
+        GroupType: "mcc" | "lvdp" | "mv" | "plc" | "pfc" | "ups" | "scada" | "dcs" | "custom";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1509,6 +1646,15 @@ export interface components {
             /** Size Mm */
             size_mm?: string | null;
         };
+        /**
+         * LifecycleStatus
+         * @description draft → engineering → released → installed → commissioned → in_service → archived.
+         *
+         *     Free transitions are allowed; every change is audited and written to the
+         *     matching history table (project_status_history / group_status_history).
+         * @enum {string}
+         */
+        LifecycleStatus: "draft" | "engineering" | "released" | "installed" | "commissioned" | "in_service" | "archived";
         /** LocationCreateIn */
         LocationCreateIn: {
             /** Code */
@@ -1650,10 +1796,10 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
-        /** Page[PanelSetOut] */
-        Page_PanelSetOut_: {
+        /** Page[ProjectOut] */
+        Page_ProjectOut_: {
             /** Items */
-            items: components["schemas"]["PanelSetOut"][];
+            items: components["schemas"]["ProjectOut"][];
             /** Next Cursor */
             next_cursor?: string | null;
         };
@@ -1677,12 +1823,12 @@ export interface components {
             name: string;
             /** Notes */
             notes?: string | null;
-            /** Panel Set Id */
-            panel_set_id?: string | null;
             /** Phase */
             phase?: string | null;
             /** Serial */
             serial?: string | null;
+            /** System Group Id */
+            system_group_id?: string | null;
             /** Tag */
             tag?: string | null;
             /** Voltage */
@@ -1696,6 +1842,8 @@ export interface components {
             archived_at?: string | null;
             /** Area */
             area?: string | null;
+            /** Cabinets */
+            cabinets?: components["schemas"]["CabinetOut"][];
             /**
              * Created At
              * Format: date-time
@@ -1718,17 +1866,14 @@ export interface components {
             mfr?: string | null;
             /** Name */
             name: string;
-            /** Panel Set Id */
-            panel_set_id?: string | null;
             /** Phase */
             phase?: string | null;
             /** Qr Token */
             qr_token: string;
-            /** Sections */
-            sections?: components["schemas"]["SectionOut"][];
             /** Serial */
             serial: string;
-            status: components["schemas"]["PanelStatus"];
+            /** System Group Id */
+            system_group_id?: string | null;
             /** Tag */
             tag: string;
             /**
@@ -1769,15 +1914,14 @@ export interface components {
             mfr?: string | null;
             /** Name */
             name: string;
-            /** Panel Set Id */
-            panel_set_id?: string | null;
             /** Phase */
             phase?: string | null;
             /** Qr Token */
             qr_token: string;
             /** Serial */
             serial: string;
-            status: components["schemas"]["PanelStatus"];
+            /** System Group Id */
+            system_group_id?: string | null;
             /** Tag */
             tag: string;
             /**
@@ -1787,123 +1931,6 @@ export interface components {
             updated_at: string;
             /** Voltage */
             voltage?: string | null;
-        };
-        /** PanelSetCreateIn */
-        PanelSetCreateIn: {
-            /** Code */
-            code?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Location Id */
-            location_id?: string | null;
-            /** Name */
-            name: string;
-        };
-        /** PanelSetNode */
-        PanelSetNode: {
-            /** Archived At */
-            archived_at?: string | null;
-            /** Code */
-            code?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Description */
-            description?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Location Id */
-            location_id?: string | null;
-            /** Name */
-            name: string;
-            /** Panels */
-            panels?: components["schemas"]["PanelNode"][];
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-        };
-        /** PanelSetOut */
-        PanelSetOut: {
-            /** Archived At */
-            archived_at?: string | null;
-            /** Code */
-            code?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Description */
-            description?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Location Id */
-            location_id?: string | null;
-            /** Name */
-            name: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-        };
-        /** PanelSetUpdateIn */
-        PanelSetUpdateIn: {
-            /** Code */
-            code?: string | null;
-            /** Description */
-            description?: string | null;
-            /** Location Id */
-            location_id?: string | null;
-            /** Name */
-            name?: string | null;
-        };
-        /**
-         * PanelStatus
-         * @description Panel **lifecycle** status (not operational/SCADA).
-         *
-         *     Tracks where a panel is in its asset lifecycle from design through retirement.
-         *     Free transitions between values are allowed; every change is audited and
-         *     recorded in ``panel_status_history`` so the timeline can be replayed later.
-         * @enum {string}
-         */
-        PanelStatus: "draft" | "engineering" | "released" | "installed" | "commissioned" | "in_service" | "archived";
-        /**
-         * PanelStatusHistoryOut
-         * @description One lifecycle transition. ``from_status`` is None for the initial entry.
-         */
-        PanelStatusHistoryOut: {
-            /** Changed By */
-            changed_by?: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            from_status?: components["schemas"]["PanelStatus"] | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Note */
-            note?: string | null;
-            /**
-             * Panel Id
-             * Format: uuid
-             */
-            panel_id: string;
-            to_status: components["schemas"]["PanelStatus"];
         };
         /** PanelUpdateIn */
         PanelUpdateIn: {
@@ -1925,11 +1952,10 @@ export interface components {
             name?: string | null;
             /** Notes */
             notes?: string | null;
-            /** Panel Set Id */
-            panel_set_id?: string | null;
             /** Phase */
             phase?: string | null;
-            status?: components["schemas"]["PanelStatus"] | null;
+            /** System Group Id */
+            system_group_id?: string | null;
             /** Tag */
             tag?: string | null;
             /** Voltage */
@@ -1968,6 +1994,131 @@ export interface components {
             method: string;
             /** Url */
             url: string;
+        };
+        /** ProjectCreateIn */
+        ProjectCreateIn: {
+            /** Code */
+            code?: string | null;
+            /** Customer */
+            customer?: string | null;
+            /** Description */
+            description?: string | null;
+            /** @default draft */
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Location Id */
+            location_id?: string | null;
+            /** Name */
+            name: string;
+            /** Site */
+            site?: string | null;
+        };
+        /** ProjectNode */
+        ProjectNode: {
+            /** Archived At */
+            archived_at?: string | null;
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Customer */
+            customer?: string | null;
+            /** Description */
+            description?: string | null;
+            /** Groups */
+            groups?: components["schemas"]["SystemGroupNode"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Location Id */
+            location_id?: string | null;
+            /** Name */
+            name: string;
+            /** Site */
+            site?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ProjectOut */
+        ProjectOut: {
+            /** Archived At */
+            archived_at?: string | null;
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Customer */
+            customer?: string | null;
+            /** Description */
+            description?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Location Id */
+            location_id?: string | null;
+            /** Name */
+            name: string;
+            /** Site */
+            site?: string | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** ProjectStatusHistoryOut */
+        ProjectStatusHistoryOut: {
+            /** Changed By */
+            changed_by?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            from_status?: components["schemas"]["LifecycleStatus"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            to_status: components["schemas"]["LifecycleStatus"];
+        };
+        /** ProjectUpdateIn */
+        ProjectUpdateIn: {
+            /** Code */
+            code?: string | null;
+            /** Customer */
+            customer?: string | null;
+            /** Description */
+            description?: string | null;
+            lifecycle_status?: components["schemas"]["LifecycleStatus"] | null;
+            /** Location Id */
+            location_id?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Site */
+            site?: string | null;
         };
         /** QrResolveOut */
         QrResolveOut: {
@@ -2064,73 +2215,6 @@ export interface components {
             permissions: components["schemas"]["PermissionOut"][];
             role: components["schemas"]["Role"];
         };
-        /** SectionCreateIn */
-        SectionCreateIn: {
-            /** Description */
-            description?: string | null;
-            /** Name */
-            name: string;
-            /** Position */
-            position?: number | null;
-            /** @default custom */
-            section_type: components["schemas"]["SectionType"];
-        };
-        /**
-         * SectionMoveIn
-         * @description Reparent a section to a different panel (same company).
-         */
-        SectionMoveIn: {
-            /**
-             * Panel Id
-             * Format: uuid
-             */
-            panel_id: string;
-        };
-        /** SectionOut */
-        SectionOut: {
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Description */
-            description?: string | null;
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Name */
-            name: string;
-            /**
-             * Panel Id
-             * Format: uuid
-             */
-            panel_id: string;
-            /** Position */
-            position: number;
-            section_type: components["schemas"]["SectionType"];
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-        };
-        /**
-         * SectionType
-         * @enum {string}
-         */
-        SectionType: "incoming" | "distribution" | "feeder" | "vfd" | "softstarter" | "capacitor" | "metering" | "plc_cpu" | "plc_io" | "network" | "ups" | "terminal" | "hmi" | "protection" | "generator" | "custom";
-        /** SectionUpdateIn */
-        SectionUpdateIn: {
-            /** Description */
-            description?: string | null;
-            /** Name */
-            name?: string | null;
-            /** Position */
-            position?: number | null;
-            section_type?: components["schemas"]["SectionType"] | null;
-        };
         /** SheetOut */
         SheetOut: {
             /**
@@ -2155,6 +2239,120 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** SystemGroupCreateIn */
+        SystemGroupCreateIn: {
+            /** Code */
+            code?: string | null;
+            /** Description */
+            description?: string | null;
+            /** @default custom */
+            group_type: components["schemas"]["GroupType"];
+            /** @default draft */
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Name */
+            name: string;
+        };
+        /** SystemGroupNode */
+        SystemGroupNode: {
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            group_type: components["schemas"]["GroupType"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Name */
+            name: string;
+            /** Panels */
+            panels?: components["schemas"]["PanelNode"][];
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SystemGroupOut */
+        SystemGroupOut: {
+            /** Code */
+            code?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description?: string | null;
+            group_type: components["schemas"]["GroupType"];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            lifecycle_status: components["schemas"]["LifecycleStatus"];
+            /** Name */
+            name: string;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SystemGroupStatusHistoryOut */
+        SystemGroupStatusHistoryOut: {
+            /** Changed By */
+            changed_by?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            from_status?: components["schemas"]["LifecycleStatus"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * System Group Id
+             * Format: uuid
+             */
+            system_group_id: string;
+            to_status: components["schemas"]["LifecycleStatus"];
+        };
+        /** SystemGroupUpdateIn */
+        SystemGroupUpdateIn: {
+            /** Code */
+            code?: string | null;
+            /** Description */
+            description?: string | null;
+            group_type?: components["schemas"]["GroupType"] | null;
+            lifecycle_status?: components["schemas"]["LifecycleStatus"] | null;
+            /** Name */
+            name?: string | null;
+            /** Project Id */
+            project_id?: string | null;
+        };
         /** TokenOut */
         TokenOut: {
             /** Access Token */
@@ -2169,8 +2367,8 @@ export interface components {
         };
         /** TreeOut */
         TreeOut: {
-            /** Panel Sets */
-            panel_sets?: components["schemas"]["PanelSetNode"][];
+            /** Projects */
+            projects?: components["schemas"]["ProjectNode"][];
             /** Unassigned Panels */
             unassigned_panels?: components["schemas"]["PanelNode"][];
         };
@@ -2503,6 +2701,111 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_cabinet_api_v1_cabinets__cabinet_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                cabinet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CabinetUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CabinetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_cabinet_api_v1_cabinets__cabinet_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                cabinet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_cabinet_api_v1_cabinets__cabinet_id__move_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                cabinet_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CabinetMoveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CabinetOut"];
                 };
             };
             /** @description Validation Error */
@@ -3386,245 +3689,10 @@ export interface operations {
             };
         };
     };
-    list_panel_sets_api_v1_panel_sets_get: {
-        parameters: {
-            query?: {
-                cursor?: string | null;
-                limit?: number;
-            };
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Page_PanelSetOut_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_panel_set_api_v1_panel_sets_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PanelSetCreateIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PanelSetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    panel_set_tree_api_v1_panel_sets_tree_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TreeOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_panel_set_api_v1_panel_sets__panel_set_id__get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_set_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PanelSetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_panel_set_api_v1_panel_sets__panel_set_id__put: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_set_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PanelSetUpdateIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PanelSetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    archive_panel_set_api_v1_panel_sets__panel_set_id__delete: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_set_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    panel_set_panels_api_v1_panel_sets__panel_set_id__panels_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_set_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PanelOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     list_panels_api_v1_panels_get: {
         parameters: {
             query?: {
                 location_id?: string | null;
-                status?: string | null;
                 q?: string | null;
                 cursor?: string | null;
                 limit?: number;
@@ -3830,6 +3898,76 @@ export interface operations {
             };
         };
     };
+    list_cabinets_api_v1_panels__panel_id__cabinets_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                panel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CabinetOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_cabinet_api_v1_panels__panel_id__cabinets_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                panel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CabinetCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CabinetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_panel_components_api_v1_panels__panel_id__components_get: {
         parameters: {
             query?: never;
@@ -3933,76 +4071,6 @@ export interface operations {
             };
         };
     };
-    list_sections_api_v1_panels__panel_id__sections_get: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SectionOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_section_api_v1_panels__panel_id__sections_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Company-Id"?: string | null;
-            };
-            path: {
-                panel_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SectionCreateIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SectionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     panel_sheets_api_v1_panels__panel_id__sheets_get: {
         parameters: {
             query?: {
@@ -4038,14 +4106,114 @@ export interface operations {
             };
         };
     };
-    panel_status_history_api_v1_panels__panel_id__status_history_get: {
+    list_projects_api_v1_projects_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ProjectOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_project_api_v1_projects_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_tree_api_v1_projects_tree_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TreeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_project_api_v1_projects__project_id__get: {
         parameters: {
             query?: never;
             header?: {
                 "X-Company-Id"?: string | null;
             };
             path: {
-                panel_id: string;
+                project_id: string;
             };
             cookie?: never;
         };
@@ -4057,7 +4225,211 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PanelStatusHistoryOut"][];
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_project_api_v1_projects__project_id__put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_project_api_v1_projects__project_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_groups_api_v1_projects__project_id__groups_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemGroupOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_group_in_project_api_v1_projects__project_id__groups_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemGroupCreateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_panels_api_v1_projects__project_id__panels_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PanelOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    project_status_history_api_v1_projects__project_id__status_history_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectStatusHistoryOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4506,22 +4878,18 @@ export interface operations {
             };
         };
     };
-    update_section_api_v1_sections__section_id__put: {
+    get_system_group_api_v1_system_groups__group_id__get: {
         parameters: {
             query?: never;
             header?: {
                 "X-Company-Id"?: string | null;
             };
             path: {
-                section_id: string;
+                group_id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SectionUpdateIn"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4529,7 +4897,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SectionOut"];
+                    "application/json": components["schemas"]["SystemGroupOut"];
                 };
             };
             /** @description Validation Error */
@@ -4543,14 +4911,51 @@ export interface operations {
             };
         };
     };
-    delete_section_api_v1_sections__section_id__delete: {
+    update_system_group_api_v1_system_groups__group_id__put: {
         parameters: {
             query?: never;
             header?: {
                 "X-Company-Id"?: string | null;
             };
             path: {
-                section_id: string;
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemGroupUpdateIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_system_group_api_v1_system_groups__group_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                group_id: string;
             };
             cookie?: never;
         };
@@ -4574,22 +4979,18 @@ export interface operations {
             };
         };
     };
-    move_section_api_v1_sections__section_id__move_post: {
+    group_panels_api_v1_system_groups__group_id__panels_get: {
         parameters: {
             query?: never;
             header?: {
                 "X-Company-Id"?: string | null;
             };
             path: {
-                section_id: string;
+                group_id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SectionMoveIn"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4597,7 +4998,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SectionOut"];
+                    "application/json": components["schemas"]["PanelOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    group_status_history_api_v1_system_groups__group_id__status_history_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemGroupStatusHistoryOut"][];
                 };
             };
             /** @description Validation Error */

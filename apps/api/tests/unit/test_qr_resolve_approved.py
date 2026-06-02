@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.compiler import compiles
 
 from panelos_api.db.models.company import Company
-from panelos_api.db.models.panel import Panel, PanelStatus
+from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
 from panelos_api.services import qr_service, revision_service
 
@@ -31,7 +31,6 @@ async def _seed_panel(session) -> tuple[uuid.UUID, Panel]:  # type: ignore[no-un
         serial=f"SN-{uuid.uuid4().hex[:8]}",
         name="Main Panel",
         qr_token=uuid.uuid4().hex[:24],
-        status=PanelStatus.INSTALLED,
     )
     session.add(panel)
     await session.flush()
