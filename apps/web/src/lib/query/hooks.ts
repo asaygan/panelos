@@ -147,6 +147,17 @@ export function useCreatePanelSet() {
   });
 }
 
+export function useUpdatePanelSet() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Schemas["PanelSetUpdateIn"] }) =>
+      panelSets.update(id, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.panelSets.all() });
+    },
+  });
+}
+
 function invalidateTreeAndSections(qc: ReturnType<typeof useQueryClient>, panelId?: string) {
   qc.invalidateQueries({ queryKey: queryKeys.panelSets.tree() });
   if (panelId) qc.invalidateQueries({ queryKey: queryKeys.sections.forPanel(panelId) });
