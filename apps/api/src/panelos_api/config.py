@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://panelos:panelos@localhost:5432/panelos"
     DATABASE_SYNC_URL: str = "postgresql://panelos:panelos@localhost:5432/panelos"
+    # Component parts. When DB_HOST is set, DATABASE_URL/DATABASE_SYNC_URL are
+    # assembled at boot from these. Lets App Runner inject DB_PASSWORD from
+    # Secrets Manager without leaking the value into a plain env var.
+    DB_HOST: str | None = None
+    DB_PORT: int = 5432
+    DB_NAME: str = "postgres"
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str | None = None
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -110,6 +118,23 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Cached settings instance."""
+    """Cached settings instance.
 
-    return Settings()
+    When DB_HOST is provided (App Runner + Secrets Manager injection pattern),
+    assemble DATABASE_URL / DATABASE_SYNC_URL from the component parts so the
+    plaintext password never has to be set in a static env var.
+    """
+
+    s = Settings()
+    if s.DB_HOST and s.DB_PASSWORD:
+        from urllib.parse import quote_plus
+
+        pw = quote_plus(s.DB_PASSWORD)
+        user = quote_plus(s.DB_USER)
+        s.DATABASE_URL = (
+            f"postgresql+asyncpg://{user}:{pw}@{s.DB_HOST}:{s.DB_PORT}/{s.DB_NAME}"
+        )
+        s.DATABASE_SYNC_URL = (
+            f"postgresql+psycopg://{user}:{pw}@{s.DB_HOST}:{s.DB_PORT}/{s.DB_NAME}"
+        )
+    return s
