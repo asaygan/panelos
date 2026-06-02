@@ -13,7 +13,7 @@ import { Menu } from "@/components/primitives/menu";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { Icon } from "@/components/icons/icon";
 import { AddPanelModal } from "@/components/panels/add-panel-modal";
-import { AddPanelSetModal } from "@/components/panels/add-panel-set-modal";
+import { AddProjectModal } from "@/components/panels/add-project-modal";
 import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { PanelTreeEditor } from "@/components/panels/tree/panel-tree-editor";
 import { NodeDetailPanel } from "@/components/panels/tree/node-detail-panel";
@@ -24,9 +24,10 @@ import {
   usePanels,
   useLocations,
   useArchivePanel,
+  useCreateCabinetAny,
   useCreatePanel,
-  useCreateSectionAny,
-  useMoveSection,
+  useCreateSystemGroup,
+  useMoveCabinet,
   useTree,
   useUpdatePanel,
 } from "@/lib/query/hooks";
@@ -106,9 +107,10 @@ export default function PanelsPage() {
   const archivePanel = useArchivePanel();
   const selection = useSelection();
   const createPanel = useCreatePanel();
-  const createSection = useCreateSectionAny();
+  const createGroup = useCreateSystemGroup();
+  const createCabinet = useCreateCabinetAny();
   const updatePanel = useUpdatePanel();
-  const moveSection = useMoveSection();
+  const moveCabinet = useMoveCabinet();
 
   // Pending drop → confirm bar.
   const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
@@ -120,36 +122,35 @@ export default function PanelsPage() {
     const dragged = e.active?.data?.current as NodeRef | undefined;
     const target = e.over?.data?.current as NodeRef | undefined;
     if (!dragged || !target || !tree) return;
-    // Validate kind-to-kind:
-    // panel can drop on a Set; section can drop on a Panel. Anything else: ignore.
-    const allPanels: Panel[] = [
-      ...tree.sets.flatMap((s) => s.panels),
+    const allTreePanels: Panel[] = [
+      ...tree.projects.flatMap((proj) => proj.groups.flatMap((g) => g.panels)),
       ...tree.unassigned,
     ];
-    if (dragged.kind === "panel" && target.kind === "set") {
-      const p = allPanels.find((x) => x.id === dragged.id);
-      const s = tree.sets.find((x) => x.id === target.id);
-      if (!p || !s || p.panel_set_id === s.id) return;
+    // Validation: panel → group, cabinet → panel. Everything else ignored.
+    if (dragged.kind === "panel" && target.kind === "group") {
+      const p = allTreePanels.find((x) => x.id === dragged.id);
+      const g = tree.projects.flatMap((pr) => pr.groups).find((x) => x.id === target.id);
+      if (!p || !g || p.system_group_id === g.id) return;
       setPendingMove({
         kind: "panel",
         label: `${p.tag} — ${p.name}`,
-        to: s.name,
+        to: g.name,
         apply: () => {
-          updatePanel.mutate({ id: p.id, body: { panel_set_id: s.id } });
+          updatePanel.mutate({ id: p.id, body: { system_group_id: g.id } });
           setPendingMove(null);
         },
         cancel: () => setPendingMove(null),
       });
-    } else if (dragged.kind === "section" && target.kind === "panel") {
-      const sec = allPanels.flatMap((x) => x.sections ?? []).find((x) => x.id === dragged.id);
-      const p = allPanels.find((x) => x.id === target.id);
-      if (!sec || !p || sec.panel_id === p.id) return;
+    } else if (dragged.kind === "cabinet" && target.kind === "panel") {
+      const cab = allTreePanels.flatMap((x) => x.cabinets ?? []).find((x) => x.id === dragged.id);
+      const p = allTreePanels.find((x) => x.id === target.id);
+      if (!cab || !p || cab.panel_id === p.id) return;
       setPendingMove({
         kind: "section",
-        label: sec.name,
+        label: cab.name,
         to: `${p.tag} — ${p.name}`,
         apply: () => {
-          moveSection.mutate({ section_id: sec.id, panel_id: p.id });
+          moveCabinet.mutate({ cabinet_id: cab.id, panel_id: p.id });
           setPendingMove(null);
         },
         cancel: () => setPendingMove(null),
@@ -386,7 +387,7 @@ export default function PanelsPage() {
             </Btn>
           )}
           <Btn size="sm" icon="layout-grid" onClick={() => setAddSetOpen(true)}>
-            Add set
+            Add project
           </Btn>
           <Btn size="sm" variant="primary" icon="plus" onClick={() => setAddOpen(true)}>
             Add panel
@@ -418,19 +419,23 @@ export default function PanelsPage() {
               )}
               {!treeLoading && !treeError && tree && (
                 <PanelTreeEditor
-                  sets={tree.sets}
+                  projects={tree.projects}
                   unassigned={tree.unassigned}
                   selection={selection}
-                  onCreatePanel={({ name, panel_set_id }) =>
-                    createPanel.mutateAsync({ name, panel_set_id: panel_set_id ?? undefined })
-                  }
-                  onCreateSection={({ panel_id, name }) =>
-                    createSection.mutateAsync({
-                      panel_id,
-                      // section_type is defaulted server-side to CUSTOM; codegen marks
-                      // it required because it has a default value, so send explicitly.
-                      body: { name, section_type: "custom" },
+                  onCreateGroup={({ project_id, name }) =>
+                    createGroup.mutateAsync({
+                      projectId: project_id,
+                      body: { name, group_type: "custom" } as never,
                     })
+                  }
+                  onCreatePanel={({ name, system_group_id }) =>
+                    createPanel.mutateAsync({
+                      name,
+                      system_group_id: system_group_id ?? undefined,
+                    })
+                  }
+                  onCreateCabinet={({ panel_id, name }) =>
+                    createCabinet.mutateAsync({ panel_id, body: { name } })
                   }
                 />
               )}
@@ -440,7 +445,7 @@ export default function PanelsPage() {
             <div style={{ height: "100%", overflow: "auto" }}>
               <NodeDetailPanel
                 selected={selection.selected}
-                sets={tree?.sets ?? []}
+                projects={tree?.projects ?? []}
                 unassigned={tree?.unassigned ?? []}
               />
             </div>
@@ -607,7 +612,7 @@ export default function PanelsPage() {
         locations={locationList}
         onCreated={(id) => router.push(`/panels/${id}`)}
       />
-      <AddPanelSetModal open={addSetOpen} onOpenChange={setAddSetOpen} locations={locationList} />
+      <AddProjectModal open={addSetOpen} onOpenChange={setAddSetOpen} locations={locationList} />
       <MoveConfirmBar pending={pendingMove} />
     </Page>
   );

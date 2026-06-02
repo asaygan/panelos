@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Empty } from "@/components/primitives/empty";
 import { Field } from "@/components/primitives/field";
 import { Input } from "@/components/primitives/input";
@@ -8,21 +8,33 @@ import { Select } from "@/components/primitives/select";
 import { Btn } from "@/components/primitives/button";
 import { Icon } from "@/components/icons/icon";
 import {
+  useArchiveProject,
+  useDeleteCabinet,
+  useDeleteSystemGroup,
+  useUpdateCabinet,
   useUpdatePanel,
-  useUpdatePanelSet,
-  useUpdateSection,
-  useDeleteSection,
+  useUpdateProject,
+  useUpdateSystemGroup,
 } from "@/lib/query/hooks";
-import { SECTION_TYPE_META } from "@/lib/api/adapters";
+import { GROUP_TYPE_META } from "@/lib/api/adapters";
 import { PANEL_STATUS_ORDER, STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { NodeRef } from "./selection";
-import type { Panel, PanelSetNode, Section, SectionType } from "@/lib/api/types";
+import type {
+  Cabinet,
+  GroupType,
+  Panel,
+  ProjectNode,
+  SystemGroup,
+} from "@/lib/api/types";
 
-const TYPE_OPTIONS = Object.entries(SECTION_TYPE_META) as [SectionType, { label: string; icon: string }][];
+const GROUP_TYPE_OPTIONS = Object.entries(GROUP_TYPE_META) as [
+  GroupType,
+  { label: string; icon: string },
+][];
 
 export interface NodeDetailPanelProps {
   selected: NodeRef | null;
-  sets: PanelSetNode[];
+  projects: ProjectNode[];
   unassigned: Panel[];
 }
 
@@ -45,101 +57,280 @@ const Header = ({ kind, title, sub }: { kind: string; title: string; sub?: strin
       {kind}
     </div>
     <div style={{ fontSize: 16, fontWeight: 700, marginTop: 2 }}>{title}</div>
-    {sub && (
-      <div style={{ fontSize: 11, color: "var(--c-ink-3)", marginTop: 2 }}>{sub}</div>
-    )}
+    {sub && <div style={{ fontSize: 11, color: "var(--c-ink-3)", marginTop: 2 }}>{sub}</div>}
   </div>
 );
 
-export function NodeDetailPanel({ selected, sets, unassigned }: NodeDetailPanelProps) {
+export function NodeDetailPanel({ selected, projects, unassigned }: NodeDetailPanelProps) {
   if (selected == null) {
     return (
       <Empty
         icon="layout-grid"
         title="Select a node"
-        sub="Pick a panel set, panel, or section on the left to edit it here."
+        sub="Pick a project, system group, panel, or cabinet on the left to edit it here."
       />
     );
   }
 
-  if (selected.kind === "set") {
-    const s = sets.find((x) => x.id === selected.id);
-    if (!s) return <Empty icon="alert-triangle" title="Panel set not found" />;
-    return <SetEditor key={s.id} set={s} />;
+  if (selected.kind === "project") {
+    const p = projects.find((x) => x.id === selected.id);
+    if (!p) return <Empty icon="alert-triangle" title="Project not found" />;
+    return <ProjectEditor key={p.id} project={p} />;
   }
 
-  const allPanels: Panel[] = [...sets.flatMap((s) => s.panels), ...unassigned];
+  if (selected.kind === "group") {
+    for (const proj of projects) {
+      const g = proj.groups.find((x) => x.id === selected.id);
+      if (g)
+        return <GroupEditor key={g.id} group={g} totalPanels={g.panels.length} />;
+    }
+    return <Empty icon="alert-triangle" title="System group not found" />;
+  }
+
+  const allPanels: Panel[] = [
+    ...projects.flatMap((proj) => proj.groups.flatMap((g) => g.panels)),
+    ...unassigned,
+  ];
+
   if (selected.kind === "panel") {
     const p = allPanels.find((x) => x.id === selected.id);
     if (!p) return <Empty icon="alert-triangle" title="Panel not found" />;
     return <PanelEditor key={p.id} panel={p} />;
   }
 
-  const allSections: Section[] = allPanels.flatMap((p) => p.sections ?? []);
-  const sec = allSections.find((x) => x.id === selected.id);
-  if (!sec) return <Empty icon="alert-triangle" title="Section not found" />;
-  const parent = allPanels.find((p) => p.id === sec.panel_id);
-  return <SectionEditor key={sec.id} section={sec} parentPanelTag={parent?.tag} />;
+  // cabinet
+  const cab = allPanels.flatMap((p) => p.cabinets ?? []).find((c) => c.id === selected.id);
+  if (!cab) return <Empty icon="alert-triangle" title="Cabinet not found" />;
+  const parent = allPanels.find((p) => p.id === cab.panel_id);
+  return <CabinetEditor key={cab.id} cabinet={cab} parentPanelTag={parent?.tag} />;
 }
 
-// ─── Panel Set editor ───────────────────────────────────────────────────────
+// ─── Project editor ─────────────────────────────────────────────────────────
 
-function SetEditor({ set }: { set: PanelSetNode }) {
-  const mut = useUpdatePanelSet();
-  const [name, setName] = useState(set.name);
-  const [code, setCode] = useState(set.code ?? "");
-  const [description, setDescription] = useState(set.description ?? "");
+function ProjectEditor({ project }: { project: ProjectNode }) {
+  const mut = useUpdateProject();
+  const archive = useArchiveProject();
+  const [fields, setFields] = useState({
+    name: project.name,
+    code: project.code ?? "",
+    customer: project.customer ?? "",
+    site: project.site ?? "",
+    description: project.description ?? "",
+  });
 
   useEffect(() => {
-    setName(set.name);
-    setCode(set.code ?? "");
-    setDescription(set.description ?? "");
-  }, [set.id, set.name, set.code, set.description]);
+    setFields({
+      name: project.name,
+      code: project.code ?? "",
+      customer: project.customer ?? "",
+      site: project.site ?? "",
+      description: project.description ?? "",
+    });
+  }, [project.id, project.name, project.code, project.customer, project.site, project.description]);
 
-  const save = (patch: Partial<{ name: string; code: string; description: string }>) => {
-    const body: Record<string, string | null> = {};
-    for (const [k, v] of Object.entries(patch)) {
-      body[k] = (v ?? "").trim() === "" ? null : (v as string).trim();
-    }
-    if (Object.keys(body).length === 0) return;
-    mut.mutate({ id: set.id, body: body as never });
+  const save = (key: keyof typeof fields, current: string) => {
+    const original = (project[key as keyof ProjectNode] as string | undefined) ?? "";
+    if (current === original) return;
+    mut.mutate({ id: project.id, body: { [key]: current || null } as never });
   };
+
+  const totalGroups = project.groups.length;
+  const totalPanels = project.groups.reduce((acc, g) => acc + g.panels.length, 0);
 
   return (
     <div>
-      <Header kind="Panel set" title={set.name} sub={`${set.panels.length} panels`} />
+      <Header
+        kind="Project"
+        title={project.name}
+        sub={`${totalGroups} groups · ${totalPanels} panels`}
+      />
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <Field label="Lifecycle status">
+          <Select
+            value={project.lifecycle_status}
+            onChange={(e) => {
+              const next = e.target.value as PanelStatus;
+              if (next !== project.lifecycle_status)
+                mut.mutate({ id: project.id, body: { lifecycle_status: next } });
+            }}
+          >
+            {PANEL_STATUS_ORDER.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_META[s].label}
+              </option>
+            ))}
+          </Select>
+        </Field>
         <Field label="Name">
           <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onBlur={() => name !== set.name && save({ name })}
+            value={fields.name}
+            onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
+            onBlur={() => save("name", fields.name)}
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
           />
         </Field>
         <Field label="Code">
           <Input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            onBlur={() => code !== (set.code ?? "") && save({ code })}
-            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+            value={fields.code}
+            onChange={(e) => setFields((f) => ({ ...f, code: e.target.value }))}
+            onBlur={() => save("code", fields.code)}
+          />
+        </Field>
+        <Field label="Customer">
+          <Input
+            value={fields.customer}
+            onChange={(e) => setFields((f) => ({ ...f, customer: e.target.value }))}
+            onBlur={() => save("customer", fields.customer)}
+          />
+        </Field>
+        <Field label="Site">
+          <Input
+            value={fields.site}
+            onChange={(e) => setFields((f) => ({ ...f, site: e.target.value }))}
+            onBlur={() => save("site", fields.site)}
           />
         </Field>
         <Field label="Description">
           <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={() =>
-              description !== (set.description ?? "") && save({ description })
-            }
+            value={fields.description}
+            onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
+            onBlur={() => save("description", fields.description)}
           />
         </Field>
+        <div style={{ paddingTop: 6 }}>
+          <Btn
+            variant="ghost"
+            size="sm"
+            icon="x"
+            onClick={() => {
+              if (window.confirm(`Archive project "${project.name}"?`))
+                archive.mutate(project.id);
+            }}
+          >
+            Archive project
+          </Btn>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Panel editor ────────────────────────────────────────────────────────────
+// ─── System Group editor ────────────────────────────────────────────────────
+
+function GroupEditor({ group, totalPanels }: { group: SystemGroup; totalPanels: number }) {
+  const mut = useUpdateSystemGroup();
+  const del = useDeleteSystemGroup();
+  const [fields, setFields] = useState({
+    name: group.name,
+    code: group.code ?? "",
+    description: group.description ?? "",
+  });
+
+  useEffect(() => {
+    setFields({
+      name: group.name,
+      code: group.code ?? "",
+      description: group.description ?? "",
+    });
+  }, [group.id, group.name, group.code, group.description]);
+
+  return (
+    <div>
+      <Header
+        kind={GROUP_TYPE_META[group.group_type].label + " system group"}
+        title={group.name}
+        sub={`${totalPanels} panel${totalPanels === 1 ? "" : "s"}`}
+      />
+      <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        <Field label="Type">
+          <Select
+            value={group.group_type}
+            onChange={(e) => {
+              const next = e.target.value as GroupType;
+              if (next !== group.group_type)
+                mut.mutate({ id: group.id, body: { group_type: next } });
+            }}
+          >
+            {GROUP_TYPE_OPTIONS.map(([value, m]) => (
+              <option key={value} value={value}>
+                {m.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Lifecycle status">
+          <Select
+            value={group.lifecycle_status}
+            onChange={(e) => {
+              const next = e.target.value as PanelStatus;
+              if (next !== group.lifecycle_status)
+                mut.mutate({ id: group.id, body: { lifecycle_status: next } });
+            }}
+          >
+            {PANEL_STATUS_ORDER.map((s) => (
+              <option key={s} value={s}>
+                {STATUS_META[s].label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Name">
+          <Input
+            value={fields.name}
+            onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
+            onBlur={() =>
+              fields.name !== group.name &&
+              mut.mutate({ id: group.id, body: { name: fields.name } })
+            }
+            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+          />
+        </Field>
+        <Field label="Code">
+          <Input
+            value={fields.code}
+            onChange={(e) => setFields((f) => ({ ...f, code: e.target.value }))}
+            onBlur={() =>
+              fields.code !== (group.code ?? "") &&
+              mut.mutate({ id: group.id, body: { code: fields.code || null } as never })
+            }
+          />
+        </Field>
+        <Field label="Description">
+          <Input
+            value={fields.description}
+            onChange={(e) => setFields((f) => ({ ...f, description: e.target.value }))}
+            onBlur={() =>
+              fields.description !== (group.description ?? "") &&
+              mut.mutate({
+                id: group.id,
+                body: { description: fields.description || null } as never,
+              })
+            }
+          />
+        </Field>
+        <div style={{ paddingTop: 6 }}>
+          <Btn
+            variant="ghost"
+            size="sm"
+            icon="x"
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete system group "${group.name}"? Panels under it will become unassigned.`,
+                )
+              )
+                del.mutate(group.id);
+            }}
+          >
+            Delete group
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Panel editor (no lifecycle status; QR shown) ───────────────────────────
 
 function PanelEditor({ panel }: { panel: Panel }) {
   const mut = useUpdatePanel();
@@ -186,23 +377,6 @@ function PanelEditor({ panel }: { panel: Panel }) {
     <div>
       <Header kind="Panel" title={panel.tag} sub={panel.name} />
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-        <Field label="Lifecycle status">
-          <Select
-            value={panel.status}
-            onChange={(e) => {
-              const next = e.target.value as PanelStatus;
-              if (next !== panel.status) {
-                mut.mutate({ id: panel.id, body: { status: next } });
-              }
-            }}
-          >
-            {PANEL_STATUS_ORDER.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_META[s].label}
-              </option>
-            ))}
-          </Select>
-        </Field>
         <Field label="Tag">
           <Input
             value={fields.tag}
@@ -224,7 +398,6 @@ function PanelEditor({ panel }: { panel: Panel }) {
             value={fields.serial}
             onChange={(e) => setField("serial", e.target.value)}
             onBlur={() => save("serial", fields.serial)}
-            onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
           />
         </Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -279,67 +452,63 @@ function PanelEditor({ panel }: { panel: Panel }) {
   );
 }
 
-// ─── Section editor ──────────────────────────────────────────────────────────
+// ─── Cabinet editor ─────────────────────────────────────────────────────────
 
-function SectionEditor({
-  section,
+function CabinetEditor({
+  cabinet,
   parentPanelTag,
 }: {
-  section: Section;
+  cabinet: Cabinet;
   parentPanelTag?: string;
 }) {
-  const mut = useUpdateSection(section.panel_id);
-  const del = useDeleteSection(section.panel_id);
-  const [name, setName] = useState(section.name);
-  const [type, setType] = useState<SectionType>(section.section_type);
-  const [description, setDescription] = useState(section.description ?? "");
+  const mut = useUpdateCabinet(cabinet.panel_id);
+  const del = useDeleteCabinet(cabinet.panel_id);
+  const [fields, setFields] = useState({
+    name: cabinet.name,
+    code: cabinet.code ?? "",
+    notes: cabinet.notes ?? "",
+  });
 
   useEffect(() => {
-    setName(section.name);
-    setType(section.section_type);
-    setDescription(section.description ?? "");
-  }, [section.id, section.name, section.section_type, section.description]);
-
-  const meta = useMemo(() => SECTION_TYPE_META[section.section_type], [section.section_type]);
+    setFields({
+      name: cabinet.name,
+      code: cabinet.code ?? "",
+      notes: cabinet.notes ?? "",
+    });
+  }, [cabinet.id, cabinet.name, cabinet.code, cabinet.notes]);
 
   return (
     <div>
-      <Header kind="Section" title={section.name} sub={meta.label} />
+      <Header kind="Cabinet" title={cabinet.name} sub={cabinet.code} />
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
         <Field label="Name">
           <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={fields.name}
+            onChange={(e) => setFields((f) => ({ ...f, name: e.target.value }))}
             onBlur={() =>
-              name !== section.name && mut.mutate({ id: section.id, body: { name } })
+              fields.name !== cabinet.name &&
+              mut.mutate({ id: cabinet.id, body: { name: fields.name } })
             }
             onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
           />
         </Field>
-        <Field label="Type">
-          <Select
-            value={type}
-            onChange={(e) => {
-              const next = e.target.value as SectionType;
-              setType(next);
-              if (next !== section.section_type)
-                mut.mutate({ id: section.id, body: { section_type: next } });
-            }}
-          >
-            {TYPE_OPTIONS.map(([value, m]) => (
-              <option key={value} value={value}>
-                {m.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field label="Description">
+        <Field label="Code">
           <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={fields.code}
+            onChange={(e) => setFields((f) => ({ ...f, code: e.target.value }))}
             onBlur={() =>
-              description !== (section.description ?? "") &&
-              mut.mutate({ id: section.id, body: { description: description || null } as never })
+              fields.code !== (cabinet.code ?? "") &&
+              mut.mutate({ id: cabinet.id, body: { code: fields.code || null } as never })
+            }
+          />
+        </Field>
+        <Field label="Notes">
+          <Input
+            value={fields.notes}
+            onChange={(e) => setFields((f) => ({ ...f, notes: e.target.value }))}
+            onBlur={() =>
+              fields.notes !== (cabinet.notes ?? "") &&
+              mut.mutate({ id: cabinet.id, body: { notes: fields.notes || null } as never })
             }
           />
         </Field>
@@ -357,10 +526,10 @@ function SectionEditor({
             size="sm"
             icon="x"
             onClick={() => {
-              if (window.confirm(`Delete section "${section.name}"?`)) del.mutate(section.id);
+              if (window.confirm(`Delete cabinet "${cabinet.name}"?`)) del.mutate(cabinet.id);
             }}
           >
-            Delete section
+            Delete cabinet
           </Btn>
         </div>
       </div>

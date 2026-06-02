@@ -96,49 +96,58 @@ export interface Location {
   sub?: string;
 }
 
-/** The 16 functional section types (matches the API `section_type` enum). */
-export type SectionType =
-  | "incoming"
-  | "distribution"
-  | "feeder"
-  | "vfd"
-  | "softstarter"
-  | "capacitor"
-  | "metering"
-  | "plc_cpu"
-  | "plc_io"
-  | "network"
+/** System Group function types (matches the API `group_type` enum). */
+export type GroupType =
+  | "mcc"
+  | "lvdp"
+  | "mv"
+  | "plc"
+  | "pfc"
   | "ups"
-  | "terminal"
-  | "hmi"
-  | "protection"
-  | "generator"
+  | "scada"
+  | "dcs"
   | "custom";
 
-export interface Section {
+/** Cabinet — physical compartment inside a Panel (C1/C2/…). */
+export interface Cabinet {
   id: string;
   panel_id: string;
-  section_type: SectionType;
   name: string;
+  code?: string;
   position: number;
-  description?: string;
+  notes?: string;
 }
 
-/** A Panel Set — facility / process system grouping above panels. */
-export interface PanelSet {
+/** Project — top of the asset tree (facility/site). */
+export interface Project {
   id: string;
   name: string;
   code?: string;
+  customer?: string;
+  site?: string;
   description?: string;
   location_id?: string | null;
+  lifecycle_status: PanelStatus;
+  archived_at?: string | null;
+}
+
+/** System Group — MCC / LVDP / PLC / … bucket inside a Project. */
+export interface SystemGroup {
+  id: string;
+  project_id: string;
+  name: string;
+  code?: string;
+  group_type: GroupType;
+  lifecycle_status: PanelStatus;
+  description?: string;
 }
 
 export interface Panel {
   id: string;
   company_id: string;
   location_id: string;
-  /** Parent Panel Set (facility). Undefined for loose/unassigned panels. */
-  panel_set_id?: string | null;
+  /** Parent System Group. Undefined for loose/unassigned panels. */
+  system_group_id?: string | null;
   tag: string;
   serial: string;
   qr_token: string;
@@ -155,11 +164,14 @@ export interface Panel {
   rev?: string;
   /** Total revision count. Undefined in list views. */
   revCount?: number;
+  /** Deprecated. Panel has no real lifecycle status — lifecycle lives on Project
+   * + Group. Kept as a loose PanelStatus value so legacy presentational code
+   * that reads `panel.status` still type-checks; new UI ignores it. */
   status: PanelStatus;
   /** Component count. Undefined in list views (only resolved on panel detail). */
   comps?: number;
-  /** Sections inside this panel (present on tree / detail). */
-  sections?: Section[];
+  /** Cabinets inside this panel (present on tree / detail). */
+  cabinets?: Cabinet[];
   install: string;
   updated: string;
   by: string;
@@ -168,9 +180,17 @@ export interface Panel {
   active_revision_id?: string | null;
 }
 
-/** A Panel Set with its panels (tree node). */
-export interface PanelSetNode extends PanelSet {
-  panels: Panel[];
+/** Tree nodes for the assembled 4-level hierarchy. */
+export interface PanelNode extends Panel {
+  cabinets: Cabinet[];
+}
+
+export interface SystemGroupNode extends SystemGroup {
+  panels: PanelNode[];
+}
+
+export interface ProjectNode extends Project {
+  groups: SystemGroupNode[];
 }
 
 export interface Component {

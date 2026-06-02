@@ -3,16 +3,17 @@
 
 import type {
   AuditLogDTO,
+  CabinetDTO,
   ComponentDTO,
   LocationDTO,
   MemberDTO,
   PanelDTO,
-  PanelSetDTO,
+  ProjectDTO,
   RevisionDTO,
   RoleDTO,
-  SectionDTO,
   SheetDTO,
   SearchHitDTO,
+  SystemGroupDTO,
   TreeDTO,
 } from "./endpoints";
 import { formatDate, relativeTime } from "@/lib/utils/format";
@@ -20,20 +21,23 @@ import type { IconName } from "@/components/icons/icon";
 import type {
   ActivityItem,
   AuditEntry,
+  Cabinet,
   Component,
+  GroupType,
   Location,
   Member,
   MemberStatus,
   Panel,
-  PanelSet,
-  PanelSetNode,
+  PanelNode,
+  Project,
+  ProjectNode,
   Revision,
   RevisionRequest,
   Role,
   RoleView,
-  Section,
-  SectionType,
   Sheet,
+  SystemGroup,
+  SystemGroupNode,
 } from "./types";
 import type { PanelStatus, RevisionStatus } from "@/lib/utils/status";
 
@@ -48,9 +52,10 @@ const PANEL_STATUSES: PanelStatus[] = [
 ];
 const REV_STATUSES: RevisionStatus[] = ["draft", "review", "approved", "superseded", "rejected"];
 
-function asPanelStatus(s: string): PanelStatus {
+function asLifecycle(s: string): PanelStatus {
   return (PANEL_STATUSES as string[]).includes(s) ? (s as PanelStatus) : "draft";
 }
+
 function asRevStatus(s: string): RevisionStatus {
   return (REV_STATUSES as string[]).includes(s) ? (s as RevisionStatus) : "draft";
 }
@@ -111,7 +116,7 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     id: dto.id,
     company_id: "",
     location_id: dto.location_id ?? "",
-    panel_set_id: dto.panel_set_id ?? null,
+    system_group_id: dto.system_group_id ?? null,
     tag: dto.tag,
     serial: dto.serial,
     qr_token: dto.qr_token,
@@ -126,12 +131,12 @@ export function panelToView(dto: PanelDTO, ctx: PanelViewContext = {}): Panel {
     enclosure: dto.enclosure ?? "—",
     rev: hasRevCtx ? (active?.revision_letter ?? "—") : undefined,
     revCount: hasRevCtx ? revs.length : undefined,
-    status: asPanelStatus(dto.status),
+    // Panel has no lifecycle status; literal "draft" keeps the legacy field shape.
+    status: "draft",
     comps: ctx.componentCount,
     install: formatDate(dto.created_at),
     updated: fmtDateTime(dto.updated_at),
     by: lastBy,
-    // Legacy operational-issues field; lifecycle status no longer encodes alarms.
     issues: 0,
     scanned: fmtDateTime(dto.updated_at),
     active_revision_id: dto.active_revision_id ?? null,
@@ -200,66 +205,74 @@ export function sheetToView(dto: SheetDTO): Sheet {
   };
 }
 
-/** Label + icon for each section type (used in the tree + sections tab).
- * Icons are constrained to the project's existing IconName set. */
-export const SECTION_TYPE_META: Record<
-  SectionType,
-  { label: string; icon: IconName }
-> = {
-  incoming: { label: "Incoming", icon: "zap" },
-  distribution: { label: "Distribution", icon: "git-branch" },
-  feeder: { label: "Feeder", icon: "zap" },
-  vfd: { label: "VFD", icon: "activity" },
-  softstarter: { label: "Softstarter", icon: "rotate" },
-  capacitor: { label: "Capacitor", icon: "circle" },
-  metering: { label: "Metering", icon: "hash" },
-  plc_cpu: { label: "PLC CPU", icon: "cpu" },
-  plc_io: { label: "PLC I/O", icon: "sliders" },
-  network: { label: "Network", icon: "server" },
+/** Group type → label + icon (constrained to the project's IconName set). */
+export const GROUP_TYPE_META: Record<GroupType, { label: string; icon: IconName }> = {
+  mcc: { label: "MCC", icon: "zap" },
+  lvdp: { label: "LVDP", icon: "git-branch" },
+  mv: { label: "MV", icon: "activity" },
+  plc: { label: "PLC", icon: "cpu" },
+  pfc: { label: "PFC", icon: "circle" },
   ups: { label: "UPS", icon: "box" },
-  terminal: { label: "Terminal", icon: "list" },
-  hmi: { label: "HMI", icon: "layout-grid" },
-  protection: { label: "Protection", icon: "shield" },
-  generator: { label: "Generator", icon: "zap" },
+  scada: { label: "SCADA", icon: "layout-grid" },
+  dcs: { label: "DCS", icon: "server" },
   custom: { label: "Custom", icon: "box" },
 };
 
-export function sectionToView(dto: SectionDTO): Section {
+export function cabinetToView(dto: CabinetDTO): Cabinet {
   return {
     id: dto.id,
     panel_id: dto.panel_id,
-    section_type: dto.section_type as SectionType,
     name: dto.name,
+    code: dto.code ?? undefined,
     position: dto.position,
-    description: dto.description ?? undefined,
+    notes: dto.notes ?? undefined,
   };
 }
 
-export function panelSetToView(dto: PanelSetDTO): PanelSet {
+export function projectToView(dto: ProjectDTO): Project {
   return {
     id: dto.id,
     name: dto.name,
     code: dto.code ?? undefined,
+    customer: dto.customer ?? undefined,
+    site: dto.site ?? undefined,
     description: dto.description ?? undefined,
     location_id: dto.location_id ?? null,
+    lifecycle_status: asLifecycle(dto.lifecycle_status),
+    archived_at: dto.archived_at ?? null,
   };
 }
 
-/** Map the API tree DTO → an array of PanelSetNode view-models (+ unassigned bucket). */
+export function systemGroupToView(dto: SystemGroupDTO): SystemGroup {
+  return {
+    id: dto.id,
+    project_id: dto.project_id,
+    name: dto.name,
+    code: dto.code ?? undefined,
+    group_type: dto.group_type as GroupType,
+    lifecycle_status: asLifecycle(dto.lifecycle_status),
+    description: dto.description ?? undefined,
+  };
+}
+
+/** Map the API TreeOut → { projects, unassigned } view-models. */
 export function treeToView(
   dto: TreeDTO,
   ctx: PanelViewContext = {},
-): { sets: PanelSetNode[]; unassigned: Panel[] } {
-  const panelNode = (p: PanelDTO & { sections?: SectionDTO[] }): Panel => ({
+): { projects: ProjectNode[]; unassigned: Panel[] } {
+  const panelNode = (p: PanelDTO & { cabinets?: CabinetDTO[] }): PanelNode => ({
     ...panelToView(p, ctx),
-    sections: (p.sections ?? []).map(sectionToView),
+    cabinets: (p.cabinets ?? []).map(cabinetToView),
   });
-  const sets: PanelSetNode[] = (dto.panel_sets ?? []).map((s) => ({
-    ...panelSetToView(s),
-    panels: (s.panels ?? []).map(panelNode),
+  const projects: ProjectNode[] = (dto.projects ?? []).map((pr) => ({
+    ...projectToView(pr),
+    groups: (pr.groups ?? []).map((g: SystemGroupDTO & { panels?: (PanelDTO & { cabinets?: CabinetDTO[] })[] }): SystemGroupNode => ({
+      ...systemGroupToView(g),
+      panels: (g.panels ?? []).map(panelNode),
+    })),
   }));
   const unassigned = (dto.unassigned_panels ?? []).map(panelNode);
-  return { sets, unassigned };
+  return { projects, unassigned };
 }
 
 export function locationToView(dto: LocationDTO): Location {

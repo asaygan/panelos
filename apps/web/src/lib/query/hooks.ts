@@ -12,15 +12,16 @@ import {
   auth,
   company as companyApi,
   componentsApi,
+  cabinets,
   files,
   labels,
   labelTemplates,
   locations,
   panels,
-  panelSets,
+  projects,
   revisions,
   search as searchApi,
-  sections,
+  systemGroups,
   users,
   type LabelTemplateDTO,
   type RevisionDTO,
@@ -31,15 +32,15 @@ import type { components as ApiComponents } from "@panelos/types/generated";
 import {
   activityToView,
   auditToView,
+  cabinetToView,
   componentToView,
   locationToView,
-  panelSetToView,
   panelToView,
+  projectToView,
   revisionRequestToView,
   revisionToView,
   roleToView,
   searchHitToView,
-  sectionToView,
   sheetToView,
   treeToView,
   userToView,
@@ -48,15 +49,15 @@ import {
 import type { UserNameMap } from "@/lib/api/adapters";
 import type {
   AuditEntry,
+  Cabinet,
   Component,
   Location,
   Member,
   Panel,
-  PanelSet,
-  PanelSetNode,
+  Project,
+  ProjectNode,
   Revision,
   RoleView,
-  Section,
   Sheet,
 } from "@/lib/api/types";
 
@@ -105,13 +106,13 @@ export function usePanels(
   });
 }
 
-/** The Panel Set → Panel → Section tree (default panels view). */
-export function useTree(): UseQueryResult<{ sets: PanelSetNode[]; unassigned: Panel[] }> {
+/** The Project → System Group → Panel → Cabinet tree (default panels view). */
+export function useTree(): UseQueryResult<{ projects: ProjectNode[]; unassigned: Panel[] }> {
   return useQuery({
-    queryKey: queryKeys.panelSets.tree(),
+    queryKey: queryKeys.projects.tree(),
     queryFn: async () => {
       const [dto, locs, userMap] = await Promise.all([
-        panelSets.tree(),
+        projects.tree(),
         locations.list(),
         fetchUserNameMap(),
       ]);
@@ -120,91 +121,126 @@ export function useTree(): UseQueryResult<{ sets: PanelSetNode[]; unassigned: Pa
   });
 }
 
-/** Flat list of panel sets (for the add-panel set selector etc). */
-export function usePanelSets(): UseQueryResult<PanelSet[]> {
+export function useProjects(): UseQueryResult<Project[]> {
   return useQuery({
-    queryKey: queryKeys.panelSets.list(),
-    queryFn: async () => (await panelSets.list()).map(panelSetToView),
+    queryKey: queryKeys.projects.list(),
+    queryFn: async () => (await projects.list()).map(projectToView),
     staleTime: 60_000,
   });
 }
 
-export function usePanelSections(panelId: string): UseQueryResult<Section[]> {
+export function usePanelCabinets(panelId: string): UseQueryResult<Cabinet[]> {
   return useQuery({
-    queryKey: queryKeys.sections.forPanel(panelId),
+    queryKey: queryKeys.cabinets.forPanel(panelId),
     enabled: !!panelId,
-    queryFn: async () => (await sections.list(panelId)).map(sectionToView),
+    queryFn: async () => (await cabinets.list(panelId)).map(cabinetToView),
   });
 }
 
-export function useCreatePanelSet() {
+function invalidateTreeAndCabinets(qc: ReturnType<typeof useQueryClient>, panelId?: string) {
+  qc.invalidateQueries({ queryKey: queryKeys.projects.tree() });
+  if (panelId) qc.invalidateQueries({ queryKey: queryKeys.cabinets.forPanel(panelId) });
+}
+
+// ─── Projects ──────────────────────────────────────────────────────────────
+
+export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Schemas["PanelSetCreateIn"]) => panelSets.create(body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.panelSets.all() });
-    },
+    mutationFn: (body: Schemas["ProjectCreateIn"]) => projects.create(body),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-export function useUpdatePanelSet() {
+export function useUpdateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: Schemas["PanelSetUpdateIn"] }) =>
-      panelSets.update(id, body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.panelSets.all() });
-    },
+    mutationFn: ({ id, body }: { id: string; body: Schemas["ProjectUpdateIn"] }) =>
+      projects.update(id, body),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-function invalidateTreeAndSections(qc: ReturnType<typeof useQueryClient>, panelId?: string) {
-  qc.invalidateQueries({ queryKey: queryKeys.panelSets.tree() });
-  if (panelId) qc.invalidateQueries({ queryKey: queryKeys.sections.forPanel(panelId) });
-}
-
-export function useCreateSection(panelId: string) {
+export function useArchiveProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Schemas["SectionCreateIn"]) => sections.create(panelId, body),
-    onSuccess: () => invalidateTreeAndSections(qc, panelId),
+    mutationFn: (id: string) => projects.archive(id),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-/** Tree-level inline-add: create a section under a panel chosen at call-time. */
-export function useCreateSectionAny() {
+// ─── System Groups ─────────────────────────────────────────────────────────
+
+export function useCreateSystemGroup() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ panel_id, body }: { panel_id: string; body: Schemas["SectionCreateIn"] }) =>
-      sections.create(panel_id, body),
-    onSuccess: (_d, { panel_id }) => invalidateTreeAndSections(qc, panel_id),
+    mutationFn: ({ projectId, body }: { projectId: string; body: Schemas["SystemGroupCreateIn"] }) =>
+      projects.createGroup(projectId, body),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-/** Tree-level drag-to-move: reparent a section to a different panel. */
-export function useMoveSection() {
+export function useUpdateSystemGroup() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ section_id, panel_id }: { section_id: string; panel_id: string }) =>
-      sections.move(section_id, { panel_id }),
-    onSuccess: (_d, { panel_id }) => invalidateTreeAndSections(qc, panel_id),
+    mutationFn: ({ id, body }: { id: string; body: Schemas["SystemGroupUpdateIn"] }) =>
+      systemGroups.update(id, body),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-export function useUpdateSection(panelId: string) {
+export function useDeleteSystemGroup() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: Schemas["SectionUpdateIn"] }) =>
-      sections.update(id, body),
-    onSuccess: () => invalidateTreeAndSections(qc, panelId),
+    mutationFn: (id: string) => systemGroups.remove(id),
+    onSuccess: () => invalidateTreeAndCabinets(qc),
   });
 }
 
-export function useDeleteSection(panelId: string) {
+// ─── Cabinets ──────────────────────────────────────────────────────────────
+
+export function useCreateCabinet(panelId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => sections.remove(id),
-    onSuccess: () => invalidateTreeAndSections(qc, panelId),
+    mutationFn: (body: Schemas["CabinetCreateIn"]) => cabinets.create(panelId, body),
+    onSuccess: () => invalidateTreeAndCabinets(qc, panelId),
+  });
+}
+
+/** Tree-level inline-add: create a cabinet under a panel chosen at call-time. */
+export function useCreateCabinetAny() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ panel_id, body }: { panel_id: string; body: Schemas["CabinetCreateIn"] }) =>
+      cabinets.create(panel_id, body),
+    onSuccess: (_d, { panel_id }) => invalidateTreeAndCabinets(qc, panel_id),
+  });
+}
+
+/** Drag-to-move: reparent a cabinet to a different panel. */
+export function useMoveCabinet() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cabinet_id, panel_id }: { cabinet_id: string; panel_id: string }) =>
+      cabinets.move(cabinet_id, { panel_id }),
+    onSuccess: (_d, { panel_id }) => invalidateTreeAndCabinets(qc, panel_id),
+  });
+}
+
+export function useUpdateCabinet(panelId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Schemas["CabinetUpdateIn"] }) =>
+      cabinets.update(id, body),
+    onSuccess: () => invalidateTreeAndCabinets(qc, panelId),
+  });
+}
+
+export function useDeleteCabinet(panelId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => cabinets.remove(id),
+    onSuccess: () => invalidateTreeAndCabinets(qc, panelId),
   });
 }
 
@@ -633,7 +669,7 @@ export function useCreatePanel() {
     mutationFn: (body: Schemas["PanelCreateIn"]) => panels.create(body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.panels.all() });
-      qc.invalidateQueries({ queryKey: queryKeys.panelSets.tree() });
+      qc.invalidateQueries({ queryKey: queryKeys.projects.tree() });
     },
   });
 }

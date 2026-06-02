@@ -336,17 +336,18 @@ function DemoTreeView({ toast }: { toast: ReturnType<typeof useToast> }) {
       <Card style={{ overflow: "hidden" }}>
         <div style={{ height: "100%", overflow: "auto" }}>
           <PanelTreeEditor
-            sets={demoTree}
+            projects={demoTree}
             unassigned={[]}
             selection={selection}
+            onCreateGroup={stub}
             onCreatePanel={stub}
-            onCreateSection={stub}
+            onCreateCabinet={stub}
           />
         </div>
       </Card>
       <Card style={{ overflow: "hidden" }}>
         <div style={{ height: "100%", overflow: "auto" }}>
-          <NodeDetailPanel selected={selection.selected} sets={demoTree} unassigned={[]} />
+          <NodeDetailPanel selected={selection.selected} projects={demoTree} unassigned={[]} />
         </div>
       </Card>
     </div>

@@ -3,15 +3,13 @@
 import { Fragment, useState } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { Icon } from "@/components/icons/icon";
-import { StatusBadge } from "@/components/primitives/status-badge";
 import { Empty } from "@/components/primitives/empty";
-import { SECTION_TYPE_META } from "@/lib/api/adapters";
-import type { Panel, PanelSetNode } from "@/lib/api/types";
-import type { PanelStatus } from "@/lib/utils/status";
+import { GROUP_TYPE_META } from "@/lib/api/adapters";
+import { STATUS_META } from "@/lib/utils/status";
+import type { Cabinet, Panel, ProjectNode, SystemGroupNode } from "@/lib/api/types";
 import { InlineAddRow } from "./inline-add-row";
 import type { NodeRef, SelectionApi } from "./selection";
 
-/** dnd-kit id format: `<kind>:<id>`. The `data` payload carries the kind+id too. */
 function dragId(ref: NodeRef): string {
   return `${ref.kind}:${ref.id}`;
 }
@@ -40,10 +38,7 @@ function DroppableWrap({
   children,
 }: {
   refNode: NodeRef;
-  children: (args: {
-    setRef: (el: HTMLElement | null) => void;
-    isOver: boolean;
-  }) => React.ReactNode;
+  children: (args: { setRef: (el: HTMLElement | null) => void; isOver: boolean }) => React.ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `drop:${dragId(refNode)}`,
@@ -52,110 +47,61 @@ function DroppableWrap({
   return <>{children({ setRef: setNodeRef, isOver })}</>;
 }
 
-const STATUS_ORDER: PanelStatus[] = [
-  "draft",
-  "engineering",
-  "released",
-  "installed",
-  "commissioned",
-  "in_service",
-  "archived",
-];
-
-function statusCounts(panels: Panel[]): Record<PanelStatus, number> {
-  const c: Record<PanelStatus, number> = {
-    draft: 0,
-    engineering: 0,
-    released: 0,
-    installed: 0,
-    commissioned: 0,
-    in_service: 0,
-    archived: 0,
-  };
-  for (const p of panels) c[p.status]++;
-  return c;
-}
-
 export interface PanelTreeEditorProps {
-  sets: PanelSetNode[];
+  projects: ProjectNode[];
   unassigned: Panel[];
   selection: SelectionApi;
-  /** Inline quick-create: returns the new panel id (used to keep selection sane). */
-  onCreatePanel?: (args: { name: string; panel_set_id: string | null }) => Promise<unknown>;
-  onCreateSection?: (args: { panel_id: string; name: string }) => Promise<unknown>;
+  /** Inline quick-create handlers (omit to hide the rows). */
+  onCreateGroup?: (args: { project_id: string; name: string }) => Promise<unknown>;
+  onCreatePanel?: (args: { system_group_id: string | null; name: string }) => Promise<unknown>;
+  onCreateCabinet?: (args: { panel_id: string; name: string }) => Promise<unknown>;
 }
 
-/** Selectable, collapsible 3-level tree (Set → Panel → Section).
- *
- * Phase 2: row click selects (drives the right detail panel). Chevron toggles.
- * Phase 3 will add inline "+ Add Panel"/"+ Add Section" rows.
- * Phase 5 will wrap rows with @dnd-kit draggable/droppable.
- */
+/** Selectable, collapsible 4-level tree (Project → System Group → Panel → Cabinet). */
 export function PanelTreeEditor({
-  sets,
+  projects,
   unassigned,
   selection,
+  onCreateGroup,
   onCreatePanel,
-  onCreateSection,
+  onCreateCabinet,
 }: PanelTreeEditorProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggle = (key: string) => setCollapsed((c) => ({ ...c, [key]: !c[key] }));
 
-  const groups: { key: string; ref: NodeRef | null; name: string; code?: string; panels: Panel[] }[] = [
-    ...sets.map((s) => ({
-      key: `set:${s.id}`,
-      ref: { kind: "set" as const, id: s.id },
-      name: s.name,
-      code: s.code,
-      panels: s.panels,
-    })),
-    ...(unassigned.length
-      ? [{ key: "set:unassigned", ref: null, name: "Unassigned panels", code: undefined, panels: unassigned }]
-      : []),
-  ];
-
-  if (groups.length === 0) {
+  if (projects.length === 0 && unassigned.length === 0) {
     return (
       <Empty
         icon="layout-grid"
-        title="No panel sets yet"
-        sub="Create a panel set (a facility or system) to start organizing panels."
+        title="No projects yet"
+        sub="Create a project (a facility or site) to start organizing your assets."
       />
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
-      {groups.map((g) => {
-        const setOpen = !collapsed[g.key];
-        const counts = statusCounts(g.panels);
-        const setSelected = g.ref ? selection.isSelected(g.ref) : false;
+      {projects.map((proj) => {
+        const projKey = `proj:${proj.id}`;
+        const projOpen = !collapsed[projKey];
+        const projRef: NodeRef = { kind: "project", id: proj.id };
+        const projSelected = selection.isSelected(projRef);
+        const projStatus = STATUS_META[proj.lifecycle_status];
         return (
-          <Fragment key={g.key}>
-            {/* Panel Set row (droppable for panels) */}
-            <DroppableWrap refNode={g.ref ?? { kind: "set", id: "unassigned" }}>
-              {({ setRef, isOver }) => (
+          <Fragment key={proj.id}>
+            {/* Project row */}
             <div
-              ref={setRef}
               onClick={() => {
-                if (g.ref) selection.select(g.ref);
-                toggle(g.key);
+                selection.select(projRef);
+                toggle(projKey);
               }}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 9,
-                padding: "9px 12px",
-                background: isOver
-                  ? "var(--c-accent-soft, var(--c-surface-3))"
-                  : setSelected
-                  ? "var(--c-accent-soft, var(--c-surface-2))"
-                  : "var(--c-surface-2)",
-                borderLeft: setSelected
-                  ? "3px solid var(--c-accent)"
-                  : isOver
-                  ? "3px solid var(--c-accent)"
-                  : "3px solid transparent",
+                padding: "10px 12px",
+                background: projSelected ? "var(--c-accent-soft, var(--c-surface-2))" : "var(--c-surface-2)",
+                borderLeft: projSelected ? "3px solid var(--c-accent)" : "3px solid transparent",
                 borderBottom: "1px solid var(--c-line-strong)",
                 cursor: "pointer",
               }}
@@ -165,215 +111,282 @@ export function PanelTreeEditor({
                 size={14}
                 style={{
                   color: "var(--c-ink-3)",
-                  transform: setOpen ? "rotate(90deg)" : "none",
+                  transform: projOpen ? "rotate(90deg)" : "none",
                   transition: "transform .12s",
                   flex: "none",
                 }}
               />
-              <Icon name="layout-grid" size={14} style={{ color: "var(--c-accent)", flex: "none" }} />
-              <span style={{ fontWeight: 680, fontSize: "var(--fz)" }}>{g.name}</span>
-              {g.code && (
+              <Icon name="layout-grid" size={15} style={{ color: "var(--c-accent)", flex: "none" }} />
+              <span style={{ fontWeight: 700, fontSize: "var(--fz)" }}>{proj.name}</span>
+              {proj.code && (
                 <span className="mono" style={{ fontSize: 10, color: "var(--c-ink-4)" }}>
-                  {g.code}
+                  {proj.code}
                 </span>
               )}
               <span
-                className="mono"
-                style={{
-                  fontSize: 10,
-                  color: "var(--c-ink-3)",
-                  background: "var(--c-surface-3)",
-                  padding: "1px 6px",
-                  borderRadius: 4,
-                }}
+                className={`badge ${projStatus.cls}`}
+                style={{ marginLeft: "auto", fontSize: 10 }}
               >
-                {g.panels.length} {g.panels.length === 1 ? "panel" : "panels"}
+                <span className={`dot ${projStatus.dot}`} />
+                {projStatus.label}
               </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, marginLeft: 4 }}>
-                {STATUS_ORDER.map((s) =>
-                  counts[s] > 0 ? (
-                    <span
-                      key={s}
-                      style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10.5, color: "var(--c-ink-3)" }}
-                    >
-                      <span className={`dot dot-${s}`} style={{ width: 6, height: 6, borderRadius: "50%" }} />
-                      {counts[s]}
-                    </span>
-                  ) : null,
-                )}
-              </div>
             </div>
-              )}
-            </DroppableWrap>
 
-            {setOpen &&
-              g.panels.map((p) => {
-                const panelKey = `panel:${p.id}`;
-                const panelOpen = !collapsed[panelKey];
-                const sections = p.sections ?? [];
-                const panelRef: NodeRef = { kind: "panel", id: p.id };
-                const panelSelected = selection.isSelected(panelRef);
-                return (
-                  <Fragment key={p.id}>
-                    <DroppableWrap refNode={panelRef}>
-                      {({ setRef: setDropRef, isOver }) => (
-                    <DraggableRow refNode={panelRef}>
-                      {({ setRef: setDragRef, listeners, attributes, isDragging }) => (
-                    <div
-                      ref={(el) => {
-                        setDropRef(el);
-                        setDragRef(el);
-                      }}
-                      {...attributes}
-                      {...listeners}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 9,
-                        padding: "8px 12px 8px 30px",
-                        borderBottom: "1px solid var(--c-line)",
-                        cursor: "grab",
-                        opacity: isDragging ? 0.4 : 1,
-                        background: isOver
-                          ? "var(--c-accent-soft, var(--c-surface-3))"
-                          : panelSelected
-                          ? "var(--c-accent-soft, var(--c-surface-2))"
-                          : "transparent",
-                        borderLeft: panelSelected
-                          ? "3px solid var(--c-accent)"
-                          : isOver
-                          ? "3px solid var(--c-accent)"
-                          : "3px solid transparent",
-                      }}
-                      onClick={() => selection.select(panelRef)}
-                    >
-                      {sections.length > 0 ? (
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggle(panelKey);
-                          }}
-                          style={{ display: "inline-flex", flex: "none" }}
-                        >
-                          <Icon
-                            name="chevron-right"
-                            size={13}
-                            style={{
-                              color: "var(--c-ink-4)",
-                              transform: panelOpen ? "rotate(90deg)" : "none",
-                              transition: "transform .12s",
-                            }}
-                          />
-                        </span>
-                      ) : (
-                        <span style={{ width: 13, flex: "none" }} />
-                      )}
-                      <Icon name="zap" size={14} style={{ color: "var(--c-ink-3)", flex: "none" }} />
-                      <span style={{ fontWeight: 600, fontSize: "var(--fz)" }}>{p.tag}</span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          color: "var(--c-ink-3)",
-                          flex: 1,
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {p.name}
-                      </span>
-                      {p.rev && (
-                        <span className="mono" style={{ fontSize: 10, color: "var(--c-ink-4)" }}>
-                          rev {p.rev}
-                        </span>
-                      )}
-                      <StatusBadge status={p.status} />
-                    </div>
-                      )}
-                    </DraggableRow>
-                      )}
-                    </DroppableWrap>
-
-                    {panelOpen && (
-                      <>
-                        {sections.map((s) => {
-                          const meta = SECTION_TYPE_META[s.section_type];
-                          const sRef: NodeRef = { kind: "section", id: s.id };
-                          const sSelected = selection.isSelected(sRef);
-                          return (
-                            <DraggableRow refNode={sRef} key={s.id}>
-                              {({ setRef, listeners, attributes, isDragging }) => (
-                            <div
-                              ref={setRef}
-                              {...attributes}
-                              {...listeners}
-                              onClick={() => selection.select(sRef)}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "6px 12px 6px 58px",
-                                borderBottom: "1px solid var(--c-line)",
-                                cursor: "grab",
-                                opacity: isDragging ? 0.4 : 1,
-                                background: sSelected
-                                  ? "var(--c-accent-soft, var(--c-surface-2))"
-                                  : "transparent",
-                                borderLeft: sSelected
-                                  ? "3px solid var(--c-accent)"
-                                  : "3px solid transparent",
-                              }}
-                            >
-                              <Icon
-                                name={meta.icon}
-                                size={13}
-                                style={{ color: "var(--c-ink-4)", flex: "none" }}
-                              />
-                              <span style={{ fontSize: 12, color: "var(--c-ink-2)" }}>{s.name}</span>
-                              <span
-                                className="mono"
-                                style={{
-                                  fontSize: 9.5,
-                                  color: "var(--c-ink-4)",
-                                  background: "var(--c-surface-3)",
-                                  padding: "1px 5px",
-                                  borderRadius: 3,
-                                }}
-                              >
-                                {meta.label}
-                              </span>
-                            </div>
-                              )}
-                            </DraggableRow>
-                          );
-                        })}
-                        {onCreateSection && (
-                          <InlineAddRow
-                            label={sections.length === 0 ? "Add first section" : "Add section"}
-                            icon="plus"
-                            indent={58}
-                            placeholder="Section name (Enter to save)"
-                            onCreate={(name) => onCreateSection({ panel_id: p.id, name })}
-                          />
-                        )}
-                      </>
-                    )}
-                  </Fragment>
-                );
-              })}
-            {setOpen && onCreatePanel && g.ref?.kind === "set" && (
+            {projOpen &&
+              proj.groups.map((g) => renderGroup(g))}
+            {projOpen && onCreateGroup && (
               <InlineAddRow
-                label={g.panels.length === 0 ? "Add first panel" : "Add panel"}
-                icon="zap"
+                label={proj.groups.length === 0 ? "Add first system group" : "Add system group"}
+                icon="git-branch"
                 indent={30}
-                placeholder="Panel name (Enter to save · Shift+Enter for next)"
-                onCreate={(name) => onCreatePanel({ name, panel_set_id: g.ref!.id })}
+                placeholder="System group name (MCC, LVDP, PLC…)"
+                onCreate={(name) => onCreateGroup({ project_id: proj.id, name })}
               />
             )}
           </Fragment>
         );
       })}
+
+      {unassigned.length > 0 && (
+        <Fragment>
+          <div
+            style={{
+              padding: "8px 12px",
+              background: "var(--c-surface-2)",
+              borderBottom: "1px solid var(--c-line-strong)",
+              fontSize: 11,
+              color: "var(--c-ink-3)",
+            }}
+          >
+            Unassigned panels
+          </div>
+          {unassigned.map((p) => renderPanel(p))}
+        </Fragment>
+      )}
     </div>
   );
+
+  function renderGroup(g: SystemGroupNode) {
+    const groupKey = `group:${g.id}`;
+    const open = !collapsed[groupKey];
+    const ref: NodeRef = { kind: "group", id: g.id };
+    const sel = selection.isSelected(ref);
+    const meta = GROUP_TYPE_META[g.group_type];
+    const lcMeta = STATUS_META[g.lifecycle_status];
+    return (
+      <Fragment key={g.id}>
+        <DroppableWrap refNode={ref}>
+          {({ setRef, isOver }) => (
+            <div
+              ref={setRef}
+              onClick={() => {
+                selection.select(ref);
+                toggle(groupKey);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 9,
+                padding: "8px 12px 8px 30px",
+                background: isOver
+                  ? "var(--c-accent-soft, var(--c-surface-3))"
+                  : sel
+                  ? "var(--c-accent-soft, var(--c-surface-2))"
+                  : "transparent",
+                borderLeft:
+                  sel || isOver ? "3px solid var(--c-accent)" : "3px solid transparent",
+                borderBottom: "1px solid var(--c-line)",
+                cursor: "pointer",
+              }}
+            >
+              <Icon
+                name="chevron-right"
+                size={13}
+                style={{
+                  color: "var(--c-ink-3)",
+                  transform: open ? "rotate(90deg)" : "none",
+                  transition: "transform .12s",
+                  flex: "none",
+                }}
+              />
+              <Icon name={meta.icon} size={14} style={{ color: "var(--c-ink-3)", flex: "none" }} />
+              <span style={{ fontWeight: 660, fontSize: "var(--fz)" }}>{g.name}</span>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  color: "var(--c-ink-4)",
+                  background: "var(--c-surface-3)",
+                  padding: "1px 5px",
+                  borderRadius: 4,
+                }}
+              >
+                {meta.label}
+              </span>
+              <span
+                className={`badge ${lcMeta.cls}`}
+                style={{ marginLeft: "auto", fontSize: 10 }}
+              >
+                <span className={`dot ${lcMeta.dot}`} />
+                {lcMeta.label}
+              </span>
+            </div>
+          )}
+        </DroppableWrap>
+        {open && g.panels.map((p) => renderPanel(p))}
+        {open && onCreatePanel && (
+          <InlineAddRow
+            label={g.panels.length === 0 ? "Add first panel" : "Add panel"}
+            icon="zap"
+            indent={58}
+            placeholder="Panel name (Enter to save · Shift+Enter for next)"
+            onCreate={(name) => onCreatePanel({ system_group_id: g.id, name })}
+          />
+        )}
+      </Fragment>
+    );
+  }
+
+  function renderPanel(p: Panel) {
+    const panelKey = `panel:${p.id}`;
+    const open = !collapsed[panelKey];
+    const ref: NodeRef = { kind: "panel", id: p.id };
+    const sel = selection.isSelected(ref);
+    const cabinets = p.cabinets ?? [];
+    return (
+      <Fragment key={p.id}>
+        <DroppableWrap refNode={ref}>
+          {({ setRef: setDropRef, isOver }) => (
+            <DraggableRow refNode={ref}>
+              {({ setRef: setDragRef, listeners, attributes, isDragging }) => (
+                <div
+                  ref={(el) => {
+                    setDropRef(el);
+                    setDragRef(el);
+                  }}
+                  {...attributes}
+                  {...listeners}
+                  onClick={() => selection.select(ref)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 9,
+                    padding: "7px 12px 7px 78px",
+                    cursor: "grab",
+                    opacity: isDragging ? 0.4 : 1,
+                    background: isOver
+                      ? "var(--c-accent-soft, var(--c-surface-3))"
+                      : sel
+                      ? "var(--c-accent-soft, var(--c-surface-2))"
+                      : "transparent",
+                    borderLeft:
+                      sel || isOver ? "3px solid var(--c-accent)" : "3px solid transparent",
+                    borderBottom: "1px solid var(--c-line)",
+                  }}
+                >
+                  {cabinets.length > 0 ? (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggle(panelKey);
+                      }}
+                      style={{ display: "inline-flex", flex: "none" }}
+                    >
+                      <Icon
+                        name="chevron-right"
+                        size={12}
+                        style={{
+                          color: "var(--c-ink-4)",
+                          transform: open ? "rotate(90deg)" : "none",
+                          transition: "transform .12s",
+                        }}
+                      />
+                    </span>
+                  ) : (
+                    <span style={{ width: 12, flex: "none" }} />
+                  )}
+                  <Icon name="zap" size={13} style={{ color: "var(--c-ink-3)", flex: "none" }} />
+                  <span style={{ fontWeight: 600, fontSize: "var(--fz)" }}>{p.tag}</span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--c-ink-3)",
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {p.name}
+                  </span>
+                  {p.rev && (
+                    <span className="mono" style={{ fontSize: 10, color: "var(--c-ink-4)" }}>
+                      rev {p.rev}
+                    </span>
+                  )}
+                </div>
+              )}
+            </DraggableRow>
+          )}
+        </DroppableWrap>
+        {open &&
+          cabinets.map((c) => renderCabinet(c))}
+        {open && onCreateCabinet && (
+          <InlineAddRow
+            label={cabinets.length === 0 ? "Add first cabinet" : "Add cabinet"}
+            icon="box"
+            indent={110}
+            placeholder="Cabinet name (C1, Incoming, …)"
+            onCreate={(name) => onCreateCabinet({ panel_id: p.id, name })}
+          />
+        )}
+      </Fragment>
+    );
+  }
+
+  function renderCabinet(c: Cabinet) {
+    const ref: NodeRef = { kind: "cabinet", id: c.id };
+    const sel = selection.isSelected(ref);
+    return (
+      <DraggableRow key={c.id} refNode={ref}>
+        {({ setRef, listeners, attributes, isDragging }) => (
+          <div
+            ref={setRef}
+            {...attributes}
+            {...listeners}
+            onClick={() => selection.select(ref)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 12px 6px 110px",
+              cursor: "grab",
+              opacity: isDragging ? 0.4 : 1,
+              background: sel ? "var(--c-accent-soft, var(--c-surface-2))" : "transparent",
+              borderLeft: sel ? "3px solid var(--c-accent)" : "3px solid transparent",
+              borderBottom: "1px solid var(--c-line)",
+            }}
+          >
+            <Icon name="box" size={12} style={{ color: "var(--c-ink-4)", flex: "none" }} />
+            <span style={{ fontSize: 12, color: "var(--c-ink-2)" }}>{c.name}</span>
+            {c.code && (
+              <span
+                className="mono"
+                style={{
+                  fontSize: 9.5,
+                  color: "var(--c-ink-4)",
+                  background: "var(--c-surface-3)",
+                  padding: "1px 5px",
+                  borderRadius: 3,
+                }}
+              >
+                {c.code}
+              </span>
+            )}
+          </div>
+        )}
+      </DraggableRow>
+    );
+  }
 }

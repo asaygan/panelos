@@ -6,41 +6,49 @@ import { Btn } from "@/components/primitives/button";
 import { Field } from "@/components/primitives/field";
 import { Input } from "@/components/primitives/input";
 import { Select } from "@/components/primitives/select";
-import { useCreatePanelSet } from "@/lib/query/hooks";
+import { useCreateProject } from "@/lib/query/hooks";
 import type { Location } from "@/lib/api/types";
 
-export interface AddPanelSetModalProps {
+export interface AddProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   locations: Location[];
   onCreated?: (id: string) => void;
 }
 
-export function AddPanelSetModal({ open, onOpenChange, locations, onCreated }: AddPanelSetModalProps) {
-  const create = useCreatePanelSet();
+export function AddProjectModal({
+  open,
+  onOpenChange,
+  locations,
+  onCreated,
+}: AddProjectModalProps) {
+  const create = useCreateProject();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
+  const [customer, setCustomer] = useState("");
+  const [site, setSite] = useState("");
   const [locationId, setLocationId] = useState("");
-  const [description, setDescription] = useState("");
 
   const reset = () => {
     setName("");
     setCode("");
+    setCustomer("");
+    setSite("");
     setLocationId("");
-    setDescription("");
   };
 
   const submit = async () => {
     if (!name) return;
-    const ps = await create.mutateAsync({
+    const proj = await create.mutateAsync({
       name,
       code: code || undefined,
+      customer: customer || undefined,
+      site: site || undefined,
       location_id: locationId || undefined,
-      description: description || undefined,
-    });
+    } as never);
     reset();
     onOpenChange(false);
-    onCreated?.(ps.id);
+    onCreated?.(proj.id);
   };
 
   return (
@@ -50,8 +58,8 @@ export function AddPanelSetModal({ open, onOpenChange, locations, onCreated }: A
         if (!o) reset();
         onOpenChange(o);
       }}
-      title="Add panel set"
-      sub="A facility or process system that groups panels"
+      title="Add project"
+      sub="A facility or site (e.g. Haddehane, Su Arıtma Tesisi)"
       width={460}
       footer={
         <>
@@ -62,28 +70,23 @@ export function AddPanelSetModal({ open, onOpenChange, locations, onCreated }: A
             disabled={!name || create.isPending}
             onClick={submit}
           >
-            {create.isPending ? "Creating…" : "Create set"}
+            {create.isPending ? "Creating…" : "Create project"}
           </Btn>
         </>
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {create.isError && (
-          <div style={{ fontSize: 12, color: "var(--c-fault)" }}>
-            Could not create the panel set. Check your permissions and try again.
-          </div>
-        )}
         <Field label="Name">
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Water Treatment Plant Electrical System"
+            placeholder="Haddehane"
             autoFocus
           />
         </Field>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="Code">
-            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="WTP" />
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="HDH" />
           </Field>
           <Field label="Location">
             <Select value={locationId} onChange={(e) => setLocationId(e.target.value)}>
@@ -96,11 +99,18 @@ export function AddPanelSetModal({ open, onOpenChange, locations, onCreated }: A
             </Select>
           </Field>
         </div>
-        <Field label="Description">
+        <Field label="Customer">
           <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional"
+            value={customer}
+            onChange={(e) => setCustomer(e.target.value)}
+            placeholder="Eastgate Steel"
+          />
+        </Field>
+        <Field label="Site">
+          <Input
+            value={site}
+            onChange={(e) => setSite(e.target.value)}
+            placeholder="Buffalo, NY"
           />
         </Field>
       </div>

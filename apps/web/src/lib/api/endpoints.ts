@@ -23,9 +23,12 @@ export type AuditLogDTO = Schemas["AuditLogOut"];
 export type RoleEnum = Schemas["Role"];
 export type InvitationInfoDTO = Schemas["InvitationInfoOut"];
 export type TokenOutDTO = Schemas["TokenOut"];
-export type PanelSetDTO = Schemas["PanelSetOut"];
-export type SectionDTO = Schemas["SectionOut"];
+export type ProjectDTO = Schemas["ProjectOut"];
+export type SystemGroupDTO = Schemas["SystemGroupOut"];
+export type CabinetDTO = Schemas["CabinetOut"];
 export type TreeDTO = Schemas["TreeOut"];
+export type ProjectStatusHistoryDTO = Schemas["ProjectStatusHistoryOut"];
+export type SystemGroupStatusHistoryDTO = Schemas["SystemGroupStatusHistoryOut"];
 
 export interface SearchHitDTO {
   type: string;
@@ -89,32 +92,46 @@ export const panels = {
   components: (id: string) => api.get<ComponentDTO[]>(`/panels/${id}/components`),
 };
 
-// ── Panel Sets + Sections ─────────────────────────────────────────────────────
-export const panelSets = {
-  list: async (): Promise<PanelSetDTO[]> => {
-    const res = await api.get<{ items: PanelSetDTO[]; next_cursor?: string | null }>(
-      "/panel-sets",
+// ── Projects + System Groups + Cabinets ──────────────────────────────────────
+export const projects = {
+  list: async (): Promise<ProjectDTO[]> => {
+    const res = await api.get<{ items: ProjectDTO[]; next_cursor?: string | null }>(
+      "/projects",
       { query: { limit: 200 } },
     );
     return res.items;
   },
-  tree: () => api.get<TreeDTO>("/panel-sets/tree"),
-  get: (id: string) => api.get<PanelSetDTO>(`/panel-sets/${id}`),
-  create: (body: Schemas["PanelSetCreateIn"]) => api.post<PanelSetDTO>("/panel-sets", body),
-  update: (id: string, body: Schemas["PanelSetUpdateIn"]) =>
-    api.put<PanelSetDTO>(`/panel-sets/${id}`, body),
-  archive: (id: string) => api.delete<void>(`/panel-sets/${id}`),
+  tree: () => api.get<TreeDTO>("/projects/tree"),
+  get: (id: string) => api.get<ProjectDTO>(`/projects/${id}`),
+  create: (body: Schemas["ProjectCreateIn"]) => api.post<ProjectDTO>("/projects", body),
+  update: (id: string, body: Schemas["ProjectUpdateIn"]) =>
+    api.put<ProjectDTO>(`/projects/${id}`, body),
+  archive: (id: string) => api.delete<void>(`/projects/${id}`),
+  statusHistory: (id: string) =>
+    api.get<ProjectStatusHistoryDTO[]>(`/projects/${id}/status-history`),
+  createGroup: (projectId: string, body: Schemas["SystemGroupCreateIn"]) =>
+    api.post<SystemGroupDTO>(`/projects/${projectId}/groups`, body),
 };
 
-export const sections = {
-  list: (panelId: string) => api.get<SectionDTO[]>(`/panels/${panelId}/sections`),
-  create: (panelId: string, body: Schemas["SectionCreateIn"]) =>
-    api.post<SectionDTO>(`/panels/${panelId}/sections`, body),
-  update: (id: string, body: Schemas["SectionUpdateIn"]) =>
-    api.put<SectionDTO>(`/sections/${id}`, body),
-  remove: (id: string) => api.delete<void>(`/sections/${id}`),
-  move: (id: string, body: Schemas["SectionMoveIn"]) =>
-    api.post<SectionDTO>(`/sections/${id}/move`, body),
+export const systemGroups = {
+  get: (id: string) => api.get<SystemGroupDTO>(`/system-groups/${id}`),
+  update: (id: string, body: Schemas["SystemGroupUpdateIn"]) =>
+    api.put<SystemGroupDTO>(`/system-groups/${id}`, body),
+  remove: (id: string) => api.delete<void>(`/system-groups/${id}`),
+  panels: (id: string) => api.get<PanelDTO[]>(`/system-groups/${id}/panels`),
+  statusHistory: (id: string) =>
+    api.get<SystemGroupStatusHistoryDTO[]>(`/system-groups/${id}/status-history`),
+};
+
+export const cabinets = {
+  list: (panelId: string) => api.get<CabinetDTO[]>(`/panels/${panelId}/cabinets`),
+  create: (panelId: string, body: Schemas["CabinetCreateIn"]) =>
+    api.post<CabinetDTO>(`/panels/${panelId}/cabinets`, body),
+  update: (id: string, body: Schemas["CabinetUpdateIn"]) =>
+    api.put<CabinetDTO>(`/cabinets/${id}`, body),
+  remove: (id: string) => api.delete<void>(`/cabinets/${id}`),
+  move: (id: string, body: Schemas["CabinetMoveIn"]) =>
+    api.post<CabinetDTO>(`/cabinets/${id}/move`, body),
 };
 
 // ── Revisions ─────────────────────────────────────────────────────────────────

@@ -8,14 +8,19 @@ export const queryKeys = {
     components: (id: string) => ["panels", id, "components"] as const,
     activity: (id: string) => ["panels", id, "activity"] as const,
   },
-  panelSets: {
-    all: () => ["panel-sets"] as const,
-    list: () => ["panel-sets", "list"] as const,
-    tree: () => ["panel-sets", "tree"] as const,
-    detail: (id: string) => ["panel-sets", "detail", id] as const,
+  projects: {
+    all: () => ["projects"] as const,
+    list: () => ["projects", "list"] as const,
+    tree: () => ["projects", "tree"] as const,
+    detail: (id: string) => ["projects", "detail", id] as const,
+    statusHistory: (id: string) => ["projects", id, "status-history"] as const,
   },
-  sections: {
-    forPanel: (panelId: string) => ["panels", panelId, "sections"] as const,
+  systemGroups: {
+    detail: (id: string) => ["system-groups", "detail", id] as const,
+    statusHistory: (id: string) => ["system-groups", id, "status-history"] as const,
+  },
+  cabinets: {
+    forPanel: (panelId: string) => ["panels", panelId, "cabinets"] as const,
   },
   revisions: {
     queue: (filter?: string) => ["revisions", "queue", filter ?? "all"] as const,

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 /** Tree node kinds (drives the right detail-panel renderer + drag rules). */
-export type NodeKind = "set" | "panel" | "section";
+export type NodeKind = "project" | "group" | "panel" | "cabinet";
 
 export interface NodeRef {
   kind: NodeKind;
