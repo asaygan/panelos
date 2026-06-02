@@ -13,7 +13,9 @@ import { Menu } from "@/components/primitives/menu";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { useToast } from "@/components/primitives/toast";
 import { Icon } from "@/components/icons/icon";
-import { PanelTree } from "@/components/panels/panel-tree";
+import { PanelTreeEditor } from "@/components/panels/tree/panel-tree-editor";
+import { NodeDetailPanel } from "@/components/panels/tree/node-detail-panel";
+import { useSelection } from "@/components/panels/tree/selection";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import { demoLocations, demoPanels, demoTree } from "@/lib/demo/data";
 import type { Panel } from "@/lib/api/types";
@@ -214,11 +216,7 @@ export default function DemoPanelsPage() {
       </Toolbar>
 
       {view === "tree" ? (
-        <Card style={{ overflow: "hidden" }}>
-          <div style={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
-            <PanelTree sets={demoTree} unassigned={[]} basePath="/demo" />
-          </div>
-        </Card>
+        <DemoTreeView toast={toast} />
       ) : (
       <Card style={{ overflow: "hidden" }}>
         <div style={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
@@ -308,5 +306,40 @@ export default function DemoPanelsPage() {
       </Card>
       )}
     </Page>
+  );
+}
+
+/** Demo split-pane tree editor. Mutations are stubbed (toast + no persistence). */
+function DemoTreeView({ toast }: { toast: ReturnType<typeof useToast> }) {
+  const selection = useSelection();
+  const stub = async () => {
+    toast.success("Demo mode — changes aren't saved.");
+  };
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 380px)",
+        gap: 12,
+        height: "calc(100vh - 200px)",
+      }}
+    >
+      <Card style={{ overflow: "hidden" }}>
+        <div style={{ height: "100%", overflow: "auto" }}>
+          <PanelTreeEditor
+            sets={demoTree}
+            unassigned={[]}
+            selection={selection}
+            onCreatePanel={stub}
+            onCreateSection={stub}
+          />
+        </div>
+      </Card>
+      <Card style={{ overflow: "hidden" }}>
+        <div style={{ height: "100%", overflow: "auto" }}>
+          <NodeDetailPanel selected={selection.selected} sets={demoTree} unassigned={[]} />
+        </div>
+      </Card>
+    </div>
   );
 }
