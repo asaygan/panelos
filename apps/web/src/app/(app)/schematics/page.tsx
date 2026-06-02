@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Badge } from "@/components/primitives/badge";
 import { Btn } from "@/components/primitives/button";
-import { Select } from "@/components/primitives/select";
 import { Icon } from "@/components/icons/icon";
 import { Empty } from "@/components/primitives/empty";
 import { SchematicViewer } from "@/components/pdf/schematic-viewer";
 import { UploadSchematicModal } from "@/components/pdf/upload-schematic-modal";
+import { PanelTreePicker } from "@/components/panels/panel-tree-picker";
 import { usePanels, usePanel, usePanelSheets } from "@/lib/query/hooks";
 
 export default function SchematicsPage() {
@@ -38,13 +38,7 @@ export default function SchematicsPage() {
         }}
       >
         <Icon name="file-text" size={16} style={{ color: "var(--c-accent)" }} />
-        <Select style={{ width: "auto" }} value={panelId} onChange={(e) => setPanelId(e.target.value)}>
-          {panels.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.tag} — {p.name}
-            </option>
-          ))}
-        </Select>
+        <PanelTreePicker value={panelId} onChange={setPanelId} />
         {panel && <Badge tone="accent">Rev {panel.rev}</Badge>}
         <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }} className="mono">
           <span style={{ fontSize: 11, color: "var(--c-ink-3)" }}>{sheets.length} sheets</span>
