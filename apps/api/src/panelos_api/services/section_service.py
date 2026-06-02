@@ -121,6 +121,46 @@ async def update_section(
     return section
 
 
+async def move_section(
+    session: AsyncSession,
+    *,
+    company_id: uuid.UUID,
+    actor_id: uuid.UUID,
+    section_id: uuid.UUID,
+    target_panel_id: uuid.UUID,
+) -> Section:
+    """Reparent a section to another panel in the same company (drag-to-move)."""
+    section = await _get(session, company_id=company_id, section_id=section_id)
+    target = (
+        await session.execute(
+            select(Panel).where(Panel.id == target_panel_id, Panel.company_id == company_id)
+        )
+    ).scalar_one_or_none()
+    if target is None:
+        raise NotFound("target panel not found")
+
+    from_panel_id = section.panel_id
+    if target_panel_id != from_panel_id:
+        max_pos = (
+            await session.execute(
+                select(func.max(Section.position)).where(Section.panel_id == target_panel_id)
+            )
+        ).scalar_one_or_none()
+        section.panel_id = target_panel_id
+        section.position = 0 if max_pos is None else max_pos + 1
+        await session.flush()
+    await append_audit(
+        session,
+        company_id=company_id,
+        actor_id=actor_id,
+        action=AuditAction.SECTION_UPDATED,
+        target_type="section",
+        target_id=str(section.id),
+        meta={"moved_from": str(from_panel_id), "moved_to": str(target_panel_id)},
+    )
+    return section
+
+
 async def delete_section(
     session: AsyncSession,
     *,

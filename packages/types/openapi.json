@@ -1540,12 +1540,26 @@
             "title": "Phase"
           },
           "serial": {
-            "title": "Serial",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serial"
           },
           "tag": {
-            "title": "Tag",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
           },
           "voltage": {
             "anyOf": [
@@ -1560,8 +1574,6 @@
           }
         },
         "required": [
-          "tag",
-          "serial",
           "name"
         ],
         "title": "PanelCreateIn",
@@ -2716,14 +2728,29 @@
             "title": "Position"
           },
           "section_type": {
-            "$ref": "#/components/schemas/SectionType"
+            "$ref": "#/components/schemas/SectionType",
+            "default": "custom"
           }
         },
         "required": [
-          "section_type",
           "name"
         ],
         "title": "SectionCreateIn",
+        "type": "object"
+      },
+      "SectionMoveIn": {
+        "description": "Reparent a section to a different panel (same company).",
+        "properties": {
+          "panel_id": {
+            "format": "uuid",
+            "title": "Panel Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "panel_id"
+        ],
+        "title": "SectionMoveIn",
         "type": "object"
       },
       "SectionOut": {
@@ -7426,6 +7453,80 @@
           }
         ],
         "summary": "Update Section",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
+    "/api/v1/sections/{section_id}/move": {
+      "post": {
+        "operationId": "move_section_api_v1_sections__section_id__move_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Section Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionMoveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Move Section",
         "tags": [
           "sections"
         ]

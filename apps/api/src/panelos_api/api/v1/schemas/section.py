@@ -6,7 +6,13 @@ from datetime import datetime
 from panelos_api.api.v1.schemas.common import ORMModel
 from panelos_api.db.models.section import SectionType
 
-__all__ = ["SectionCreateIn", "SectionOut", "SectionType", "SectionUpdateIn"]
+__all__ = [
+    "SectionCreateIn",
+    "SectionMoveIn",
+    "SectionOut",
+    "SectionType",
+    "SectionUpdateIn",
+]
 
 
 class SectionOut(ORMModel):
@@ -21,8 +27,9 @@ class SectionOut(ORMModel):
 
 
 class SectionCreateIn(ORMModel):
-    section_type: SectionType
     name: str
+    # Optional for quick-create: defaults to CUSTOM when omitted.
+    section_type: SectionType = SectionType.CUSTOM
     description: str | None = None
     position: int | None = None
 
@@ -32,3 +39,9 @@ class SectionUpdateIn(ORMModel):
     name: str | None = None
     description: str | None = None
     position: int | None = None
+
+
+class SectionMoveIn(ORMModel):
+    """Reparent a section to a different panel (same company)."""
+
+    panel_id: uuid.UUID

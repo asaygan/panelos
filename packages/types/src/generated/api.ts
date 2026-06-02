@@ -946,6 +946,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sections/{section_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Section */
+        post: operations["move_section_api_v1_sections__section_id__move_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -1645,9 +1662,9 @@ export interface components {
             /** Phase */
             phase?: string | null;
             /** Serial */
-            serial: string;
+            serial?: string | null;
             /** Tag */
-            tag: string;
+            tag?: string | null;
             /** Voltage */
             voltage?: string | null;
         };
@@ -2003,7 +2020,19 @@ export interface components {
             name: string;
             /** Position */
             position?: number | null;
+            /** @default custom */
             section_type: components["schemas"]["SectionType"];
+        };
+        /**
+         * SectionMoveIn
+         * @description Reparent a section to a different panel (same company).
+         */
+        SectionMoveIn: {
+            /**
+             * Panel Id
+             * Format: uuid
+             */
+            panel_id: string;
         };
         /** SectionOut */
         SectionOut: {
@@ -4448,6 +4477,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    move_section_api_v1_sections__section_id__move_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionMoveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SectionOut"];
+                };
             };
             /** @description Validation Error */
             422: {

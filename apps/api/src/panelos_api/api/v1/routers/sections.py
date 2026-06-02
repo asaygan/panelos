@@ -7,7 +7,12 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, status
 
-from panelos_api.api.v1.schemas.section import SectionCreateIn, SectionOut, SectionUpdateIn
+from panelos_api.api.v1.schemas.section import (
+    SectionCreateIn,
+    SectionMoveIn,
+    SectionOut,
+    SectionUpdateIn,
+)
 from panelos_api.core.rbac import Permission
 from panelos_api.deps import CurrentMembership, get_current_membership, get_db, require_permission
 from panelos_api.services import section_service
@@ -62,6 +67,23 @@ async def update_section(
         actor_id=m.user.id,
         section_id=section_id,
         changes=payload.model_dump(exclude_unset=True),
+    )
+    return SectionOut.model_validate(section)
+
+
+@router.post("/sections/{section_id}/move", response_model=SectionOut)
+async def move_section(
+    section_id: uuid.UUID,
+    payload: SectionMoveIn,
+    m: CurrentMembership = Depends(require_permission(Permission.CRUD_PANELS)),
+    db: AsyncSession = Depends(get_db),
+) -> SectionOut:
+    section = await section_service.move_section(
+        db,
+        company_id=m.company_id,
+        actor_id=m.user.id,
+        section_id=section_id,
+        target_panel_id=payload.panel_id,
     )
     return SectionOut.model_validate(section)
 

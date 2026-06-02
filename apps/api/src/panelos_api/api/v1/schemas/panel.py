@@ -30,9 +30,11 @@ class PanelOut(ORMModel):
 
 
 class PanelCreateIn(ORMModel):
-    tag: str
-    serial: str
     name: str
+    # Optional for ClickUp-style quick-create: when omitted the server derives a
+    # unique tag (slug of name) and a unique serial. Provided values win.
+    tag: str | None = None
+    serial: str | None = None
     panel_set_id: uuid.UUID | None = None
     location_id: uuid.UUID | None = None
     voltage: str | None = None

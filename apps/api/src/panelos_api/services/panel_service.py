@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import re
+import secrets
+import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
+
+from sqlalchemy import select
 
 from panelos_api.core.audit import append_audit
 from panelos_api.core.exceptions import NotFound
@@ -13,9 +18,32 @@ from panelos_api.db.models.panel import Panel, PanelStatus
 from panelos_api.repositories.panel_repo import PanelRepo
 
 if TYPE_CHECKING:
-    import uuid
-
     from sqlalchemy.ext.asyncio import AsyncSession
+
+
+def _slug_tag(name: str) -> str:
+    """Derive an uppercase hyphenated tag base from a free-text name."""
+    base = re.sub(r"[^A-Za-z0-9]+", "-", name).strip("-").upper()[:32]
+    return base or "PANEL"
+
+
+async def _unique_tag(session: AsyncSession, *, company_id: uuid.UUID, base: str) -> str:
+    """Return ``base`` (or ``base-2``, ``base-3``…) not yet used in the company."""
+    existing = set(
+        (
+            await session.execute(
+                select(Panel.tag).where(
+                    Panel.company_id == company_id, Panel.tag.like(f"{base}%")
+                )
+            )
+        ).scalars().all()
+    )
+    if base not in existing:
+        return base
+    i = 2
+    while f"{base}-{i}" in existing:
+        i += 1
+    return f"{base}-{i}"
 
 
 async def create_panel(
@@ -23,12 +51,17 @@ async def create_panel(
     *,
     company_id: uuid.UUID,
     actor_id: uuid.UUID,
-    tag: str,
-    serial: str,
     name: str,
+    tag: str | None = None,
+    serial: str | None = None,
     location_id: uuid.UUID | None = None,
     **metadata: Any,
 ) -> Panel:
+    # Quick-create: derive a unique tag from the name and a unique serial when omitted.
+    if not tag:
+        tag = await _unique_tag(session, company_id=company_id, base=_slug_tag(name))
+    if not serial:
+        serial = f"{tag}-{secrets.token_hex(3).upper()}"
     panel = Panel(
         company_id=company_id,
         tag=tag,
@@ -71,7 +104,13 @@ async def update_metadata(
         if k in forbidden or not hasattr(panel, k):
             continue
         setattr(panel, k, v)
-        applied[k] = v
+        # Coerce non-JSON-serializable values (UUID, Enum) for the audit meta.
+        if hasattr(v, "value"):
+            applied[k] = v.value
+        elif isinstance(v, uuid.UUID):
+            applied[k] = str(v)
+        else:
+            applied[k] = v
     await session.flush()
     await append_audit(
         session,
