@@ -123,6 +123,29 @@ def create_app() -> FastAPI:
         expose_headers=["X-Request-Id"],
     )
     app.add_exception_handler(DomainError, domain_error_handler)
+
+    # TEMP: capture unhandled exceptions w/ traceback for prod debugging
+    # of the schematics upload 500. REMOVE after root-causing.
+    @app.exception_handler(Exception)
+    async def _unhandled_exc(request: Request, exc: Exception):  # type: ignore[unused-variable]
+        import traceback as _tb
+        from starlette.responses import JSONResponse as _JR
+        get_logger("panelos_api").error(
+            "unhandled_exception",
+            path=str(request.url.path),
+            error=str(exc),
+            type=type(exc).__name__,
+        )
+        return _JR(
+            {
+                "detail": "internal_error",
+                "type": type(exc).__name__,
+                "message": str(exc),
+                "trace": _tb.format_exc().splitlines()[-12:],
+            },
+            status_code=500,
+        )
+
     app.include_router(api_v1_router)
     return app
 
