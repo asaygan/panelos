@@ -14,7 +14,9 @@ import { StatusBadge } from "@/components/primitives/status-badge";
 import { Icon } from "@/components/icons/icon";
 import { AddPanelModal } from "@/components/panels/add-panel-modal";
 import { AddPanelSetModal } from "@/components/panels/add-panel-set-modal";
-import { PanelTree } from "@/components/panels/panel-tree";
+import { PanelTreeEditor } from "@/components/panels/tree/panel-tree-editor";
+import { NodeDetailPanel } from "@/components/panels/tree/node-detail-panel";
+import { useSelection } from "@/components/panels/tree/selection";
 import { usePanels, useLocations, useArchivePanel, useTree } from "@/lib/query/hooks";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
 import type { Panel } from "@/lib/api/types";
@@ -91,6 +93,7 @@ export default function PanelsPage() {
   const { data: locationList = [] } = useLocations();
   const { data: tree, isLoading: treeLoading, isError: treeError } = useTree();
   const archivePanel = useArchivePanel();
+  const selection = useSelection();
 
   const rows = useMemo(() => {
     let r = allPanels.filter(
@@ -329,19 +332,45 @@ export default function PanelsPage() {
       </Toolbar>
 
       {view === "tree" ? (
-        <Card style={{ overflow: "hidden" }}>
-          <div style={{ maxHeight: "calc(100vh - 170px)", overflow: "auto" }}>
-            {treeLoading && (
-              <Empty icon="server" title="Loading asset tree…" sub="Fetching your facilities." />
-            )}
-            {treeError && !treeLoading && (
-              <Empty icon="alert-triangle" title="Couldn't load the tree" sub="Check your connection and retry." />
-            )}
-            {!treeLoading && !treeError && tree && (
-              <PanelTree sets={tree.sets} unassigned={tree.unassigned} />
-            )}
-          </div>
-        </Card>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 380px)",
+            gap: 12,
+            height: "calc(100vh - 170px)",
+          }}
+        >
+          <Card style={{ overflow: "hidden" }}>
+            <div style={{ height: "100%", overflow: "auto" }}>
+              {treeLoading && (
+                <Empty icon="server" title="Loading asset tree…" sub="Fetching your facilities." />
+              )}
+              {treeError && !treeLoading && (
+                <Empty
+                  icon="alert-triangle"
+                  title="Couldn't load the tree"
+                  sub="Check your connection and retry."
+                />
+              )}
+              {!treeLoading && !treeError && tree && (
+                <PanelTreeEditor
+                  sets={tree.sets}
+                  unassigned={tree.unassigned}
+                  selection={selection}
+                />
+              )}
+            </div>
+          </Card>
+          <Card style={{ overflow: "hidden" }}>
+            <div style={{ height: "100%", overflow: "auto" }}>
+              <NodeDetailPanel
+                selected={selection.selected}
+                sets={tree?.sets ?? []}
+                unassigned={tree?.unassigned ?? []}
+              />
+            </div>
+          </Card>
+        </div>
       ) : (
       <Card style={{ overflow: "hidden" }}>
         <div style={{ maxHeight: "calc(100vh - 170px)", overflow: "auto" }}>
