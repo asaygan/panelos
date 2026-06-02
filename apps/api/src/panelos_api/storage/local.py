@@ -17,6 +17,12 @@ class LocalStorage:
     def __init__(self, base_path: str, public_base_url: str) -> None:
         self.base_path = Path(base_path).resolve()
         self.public_base_url = public_base_url.rstrip("/")
+        # Don't mkdir at init: this provider is constructed per-request via DI,
+        # and an unwritable cwd (e.g. Railway's read-only /app) would crash every
+        # endpoint that touches storage, including ones that never write. Defer
+        # to put().
+
+    def _ensure_base(self) -> None:
         self.base_path.mkdir(parents=True, exist_ok=True)
 
     def _path(self, key: str) -> Path:
@@ -25,6 +31,7 @@ class LocalStorage:
         return self.base_path / clean
 
     async def put(self, key: str, data: BinaryIO, content_type: str) -> StorageObject:
+        self._ensure_base()
         target = self._path(key)
         target.parent.mkdir(parents=True, exist_ok=True)
         h = hashlib.sha256()
