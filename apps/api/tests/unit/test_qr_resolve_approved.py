@@ -31,7 +31,7 @@ async def _seed_panel(session) -> tuple[uuid.UUID, Panel]:  # type: ignore[no-un
         serial=f"SN-{uuid.uuid4().hex[:8]}",
         name="Main Panel",
         qr_token=uuid.uuid4().hex[:24],
-        status=PanelStatus.OK,
+        status=PanelStatus.INSTALLED,
     )
     session.add(panel)
     await session.flush()

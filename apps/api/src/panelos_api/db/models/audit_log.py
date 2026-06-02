@@ -17,6 +17,7 @@ class AuditAction(StrEnum):
     PANEL_CREATED = "panel.created"
     PANEL_UPDATED = "panel.updated"
     PANEL_ARCHIVED = "panel.archived"
+    PANEL_STATUS_CHANGED = "panel.status_changed"
     PANEL_SET_CREATED = "panel_set.created"
     PANEL_SET_UPDATED = "panel_set.updated"
     PANEL_SET_ARCHIVED = "panel_set.archived"

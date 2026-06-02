@@ -719,6 +719,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/panels/{panel_id}/status-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Panel Status History
+         * @description Lifecycle timeline for a panel — every status transition, newest first.
+         */
+        get: operations["panel_status_history_api_v1_panels__panel_id__status_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/qr/{token}": {
         parameters: {
             query?: never;
@@ -1850,9 +1870,41 @@ export interface components {
         };
         /**
          * PanelStatus
+         * @description Panel **lifecycle** status (not operational/SCADA).
+         *
+         *     Tracks where a panel is in its asset lifecycle from design through retirement.
+         *     Free transitions between values are allowed; every change is audited and
+         *     recorded in ``panel_status_history`` so the timeline can be replayed later.
          * @enum {string}
          */
-        PanelStatus: "ok" | "warn" | "fault" | "idle";
+        PanelStatus: "draft" | "engineering" | "released" | "installed" | "commissioned" | "in_service" | "archived";
+        /**
+         * PanelStatusHistoryOut
+         * @description One lifecycle transition. ``from_status`` is None for the initial entry.
+         */
+        PanelStatusHistoryOut: {
+            /** Changed By */
+            changed_by?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            from_status?: components["schemas"]["PanelStatus"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note?: string | null;
+            /**
+             * Panel Id
+             * Format: uuid
+             */
+            panel_id: string;
+            to_status: components["schemas"]["PanelStatus"];
+        };
         /** PanelUpdateIn */
         PanelUpdateIn: {
             /** Area */
@@ -3973,6 +4025,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SheetOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    panel_status_history_api_v1_panels__panel_id__status_history_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Company-Id"?: string | null;
+            };
+            path: {
+                panel_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PanelStatusHistoryOut"][];
                 };
             };
             /** @description Validation Error */

@@ -195,6 +195,47 @@ async def test_panel_move_preserves_qr(app_client, owner_auth) -> None:  # type:
 
 
 @pytest.mark.asyncio
+async def test_panel_lifecycle_status_history(app_client, owner_auth) -> None:  # type: ignore[no-untyped-def]
+    """Quick-create lands a panel in `draft`; each status change appends to history."""
+    headers = owner_auth["headers"]
+    r = await app_client.post(f"{API}/panels", json={"name": "Mover"}, headers=headers)
+    assert r.status_code == 201, r.text
+    p = r.json()
+    assert p["status"] == "draft"
+
+    # Initial history row is seeded by create_panel.
+    r = await app_client.get(f"{API}/panels/{p['id']}/status-history", headers=headers)
+    assert r.status_code == 200, r.text
+    history = r.json()
+    assert len(history) == 1
+    assert history[0]["from_status"] is None
+    assert history[0]["to_status"] == "draft"
+
+    # Advance through engineering → released → installed.
+    for new_status in ("engineering", "released", "installed"):
+        r = await app_client.put(
+            f"{API}/panels/{p['id']}", json={"status": new_status}, headers=headers
+        )
+        assert r.status_code == 200, r.text
+        assert r.json()["status"] == new_status
+
+    r = await app_client.get(f"{API}/panels/{p['id']}/status-history", headers=headers)
+    history = r.json()
+    # 1 initial + 3 transitions; newest-first ordering.
+    assert len(history) == 4
+    assert [h["to_status"] for h in history] == ["installed", "released", "engineering", "draft"]
+    assert history[0]["from_status"] == "released"
+
+    # A non-status update does NOT push a new history row.
+    r = await app_client.put(
+        f"{API}/panels/{p['id']}", json={"voltage": "400V"}, headers=headers
+    )
+    assert r.status_code == 200
+    r = await app_client.get(f"{API}/panels/{p['id']}/status-history", headers=headers)
+    assert len(r.json()) == 4
+
+
+@pytest.mark.asyncio
 async def test_panel_set_tenant_isolation(app_client, owner_auth) -> None:  # type: ignore[no-untyped-def]
     headers = owner_auth["headers"]
     r = await app_client.post(

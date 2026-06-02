@@ -63,3 +63,15 @@ class PanelUpdateIn(ORMModel):
     ip_class: str | None = None
     notes: str | None = None
     status: PanelStatus | None = None
+
+
+class PanelStatusHistoryOut(ORMModel):
+    """One lifecycle transition. ``from_status`` is None for the initial entry."""
+
+    id: uuid.UUID
+    panel_id: uuid.UUID
+    from_status: PanelStatus | None = None
+    to_status: PanelStatus
+    changed_by: uuid.UUID | None = None
+    note: str | None = None
+    created_at: datetime

@@ -2198,14 +2198,82 @@
         "type": "object"
       },
       "PanelStatus": {
+        "description": "Panel **lifecycle** status (not operational/SCADA).\n\nTracks where a panel is in its asset lifecycle from design through retirement.\nFree transitions between values are allowed; every change is audited and\nrecorded in ``panel_status_history`` so the timeline can be replayed later.",
         "enum": [
-          "ok",
-          "warn",
-          "fault",
-          "idle"
+          "draft",
+          "engineering",
+          "released",
+          "installed",
+          "commissioned",
+          "in_service",
+          "archived"
         ],
         "title": "PanelStatus",
         "type": "string"
+      },
+      "PanelStatusHistoryOut": {
+        "description": "One lifecycle transition. ``from_status`` is None for the initial entry.",
+        "properties": {
+          "changed_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changed By"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PanelStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "panel_id": {
+            "format": "uuid",
+            "title": "Panel Id",
+            "type": "string"
+          },
+          "to_status": {
+            "$ref": "#/components/schemas/PanelStatus"
+          }
+        },
+        "required": [
+          "id",
+          "panel_id",
+          "to_status",
+          "created_at"
+        ],
+        "title": "PanelStatusHistoryOut",
+        "type": "object"
       },
       "PanelUpdateIn": {
         "properties": {
@@ -6506,6 +6574,75 @@
           }
         ],
         "summary": "Panel Sheets",
+        "tags": [
+          "panels"
+        ]
+      }
+    },
+    "/api/v1/panels/{panel_id}/status-history": {
+      "get": {
+        "description": "Lifecycle timeline for a panel \u2014 every status transition, newest first.",
+        "operationId": "panel_status_history_api_v1_panels__panel_id__status_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "panel_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Panel Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PanelStatusHistoryOut"
+                  },
+                  "title": "Response Panel Status History Api V1 Panels  Panel Id  Status History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Panel Status History",
         "tags": [
           "panels"
         ]

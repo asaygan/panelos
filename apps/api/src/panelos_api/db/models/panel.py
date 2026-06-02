@@ -13,10 +13,20 @@ from panelos_api.db.base import Base, TenantMixin, TimestampMixin, UUIDPKMixin
 
 
 class PanelStatus(StrEnum):
-    OK = "ok"
-    WARN = "warn"
-    FAULT = "fault"
-    IDLE = "idle"
+    """Panel **lifecycle** status (not operational/SCADA).
+
+    Tracks where a panel is in its asset lifecycle from design through retirement.
+    Free transitions between values are allowed; every change is audited and
+    recorded in ``panel_status_history`` so the timeline can be replayed later.
+    """
+
+    DRAFT = "draft"
+    ENGINEERING = "engineering"
+    RELEASED = "released"
+    INSTALLED = "installed"
+    COMMISSIONED = "commissioned"
+    IN_SERVICE = "in_service"
+    ARCHIVED = "archived"
 
 
 class Panel(UUIDPKMixin, TimestampMixin, TenantMixin, Base):
@@ -56,11 +66,13 @@ class Panel(UUIDPKMixin, TimestampMixin, TenantMixin, Base):
     status: Mapped[PanelStatus] = mapped_column(
         Enum(
             PanelStatus,
-            name="panel_status",
+            # New enum name to replace the old operational `panel_status`
+            # (ok/warn/fault/idle). Migration 0008 swaps the column over.
+            name="panel_lifecycle_status",
             values_callable=lambda x: [e.value for e in x],
         ),
         nullable=False,
-        default=PanelStatus.OK,
+        default=PanelStatus.DRAFT,
     )
 
     installed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
