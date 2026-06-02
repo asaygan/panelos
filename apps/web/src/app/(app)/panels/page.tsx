@@ -14,19 +14,23 @@ import { StatusBadge } from "@/components/primitives/status-badge";
 import { Icon } from "@/components/icons/icon";
 import { AddPanelModal } from "@/components/panels/add-panel-modal";
 import { AddPanelSetModal } from "@/components/panels/add-panel-set-modal";
+import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { PanelTreeEditor } from "@/components/panels/tree/panel-tree-editor";
 import { NodeDetailPanel } from "@/components/panels/tree/node-detail-panel";
-import { useSelection } from "@/components/panels/tree/selection";
+import { useSelection, type NodeRef } from "@/components/panels/tree/selection";
+import { MoveConfirmBar, type PendingMove } from "@/components/panels/tree/move-confirm-bar";
+import type { Panel } from "@/lib/api/types";
 import {
   usePanels,
   useLocations,
   useArchivePanel,
   useCreatePanel,
   useCreateSectionAny,
+  useMoveSection,
   useTree,
+  useUpdatePanel,
 } from "@/lib/query/hooks";
 import { STATUS_META, type PanelStatus } from "@/lib/utils/status";
-import type { Panel } from "@/lib/api/types";
 
 type ViewMode = "tree" | "table";
 const VIEW_KEY = "panelos.panels.view";
@@ -103,6 +107,55 @@ export default function PanelsPage() {
   const selection = useSelection();
   const createPanel = useCreatePanel();
   const createSection = useCreateSectionAny();
+  const updatePanel = useUpdatePanel();
+  const moveSection = useMoveSection();
+
+  // Pending drop → confirm bar.
+  const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
+  const onDragEnd = (e: DragEndEvent) => {
+    const dragged = e.active?.data?.current as NodeRef | undefined;
+    const target = e.over?.data?.current as NodeRef | undefined;
+    if (!dragged || !target || !tree) return;
+    // Validate kind-to-kind:
+    // panel can drop on a Set; section can drop on a Panel. Anything else: ignore.
+    const allPanels: Panel[] = [
+      ...tree.sets.flatMap((s) => s.panels),
+      ...tree.unassigned,
+    ];
+    if (dragged.kind === "panel" && target.kind === "set") {
+      const p = allPanels.find((x) => x.id === dragged.id);
+      const s = tree.sets.find((x) => x.id === target.id);
+      if (!p || !s || p.panel_set_id === s.id) return;
+      setPendingMove({
+        kind: "panel",
+        label: `${p.tag} — ${p.name}`,
+        to: s.name,
+        apply: () => {
+          updatePanel.mutate({ id: p.id, body: { panel_set_id: s.id } });
+          setPendingMove(null);
+        },
+        cancel: () => setPendingMove(null),
+      });
+    } else if (dragged.kind === "section" && target.kind === "panel") {
+      const sec = allPanels.flatMap((x) => x.sections ?? []).find((x) => x.id === dragged.id);
+      const p = allPanels.find((x) => x.id === target.id);
+      if (!sec || !p || sec.panel_id === p.id) return;
+      setPendingMove({
+        kind: "section",
+        label: sec.name,
+        to: `${p.tag} — ${p.name}`,
+        apply: () => {
+          moveSection.mutate({ section_id: sec.id, panel_id: p.id });
+          setPendingMove(null);
+        },
+        cancel: () => setPendingMove(null),
+      });
+    }
+  };
 
   const rows = useMemo(() => {
     let r = allPanels.filter(
@@ -341,6 +394,7 @@ export default function PanelsPage() {
       </Toolbar>
 
       {view === "tree" ? (
+        <DndContext sensors={dndSensors} onDragEnd={onDragEnd}>
         <div
           style={{
             display: "grid",
@@ -391,6 +445,7 @@ export default function PanelsPage() {
             </div>
           </Card>
         </div>
+        </DndContext>
       ) : (
       <Card style={{ overflow: "hidden" }}>
         <div style={{ maxHeight: "calc(100vh - 170px)", overflow: "auto" }}>
@@ -544,6 +599,7 @@ export default function PanelsPage() {
         onCreated={(id) => router.push(`/panels/${id}`)}
       />
       <AddPanelSetModal open={addSetOpen} onOpenChange={setAddSetOpen} locations={locationList} />
+      <MoveConfirmBar pending={pendingMove} />
     </Page>
   );
 }

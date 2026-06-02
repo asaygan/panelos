@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { Icon } from "@/components/icons/icon";
 import { StatusBadge } from "@/components/primitives/status-badge";
 import { Empty } from "@/components/primitives/empty";
@@ -9,6 +10,47 @@ import type { Panel, PanelSetNode } from "@/lib/api/types";
 import type { PanelStatus } from "@/lib/utils/status";
 import { InlineAddRow } from "./inline-add-row";
 import type { NodeRef, SelectionApi } from "./selection";
+
+/** dnd-kit id format: `<kind>:<id>`. The `data` payload carries the kind+id too. */
+function dragId(ref: NodeRef): string {
+  return `${ref.kind}:${ref.id}`;
+}
+
+function DraggableRow({
+  refNode,
+  children,
+}: {
+  refNode: NodeRef;
+  children: (args: {
+    setRef: (el: HTMLElement | null) => void;
+    listeners: ReturnType<typeof useDraggable>["listeners"];
+    attributes: ReturnType<typeof useDraggable>["attributes"];
+    isDragging: boolean;
+  }) => React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: dragId(refNode),
+    data: refNode,
+  });
+  return <>{children({ setRef: setNodeRef, listeners, attributes, isDragging })}</>;
+}
+
+function DroppableWrap({
+  refNode,
+  children,
+}: {
+  refNode: NodeRef;
+  children: (args: {
+    setRef: (el: HTMLElement | null) => void;
+    isOver: boolean;
+  }) => React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `drop:${dragId(refNode)}`,
+    data: refNode,
+  });
+  return <>{children({ setRef: setNodeRef, isOver })}</>;
+}
 
 const STATUS_ORDER: PanelStatus[] = ["fault", "warn", "ok", "idle"];
 
@@ -74,8 +116,11 @@ export function PanelTreeEditor({
         const setSelected = g.ref ? selection.isSelected(g.ref) : false;
         return (
           <Fragment key={g.key}>
-            {/* Panel Set row */}
+            {/* Panel Set row (droppable for panels) */}
+            <DroppableWrap refNode={g.ref ?? { kind: "set", id: "unassigned" }}>
+              {({ setRef, isOver }) => (
             <div
+              ref={setRef}
               onClick={() => {
                 if (g.ref) selection.select(g.ref);
                 toggle(g.key);
@@ -85,8 +130,16 @@ export function PanelTreeEditor({
                 alignItems: "center",
                 gap: 9,
                 padding: "9px 12px",
-                background: setSelected ? "var(--c-accent-soft, var(--c-surface-2))" : "var(--c-surface-2)",
-                borderLeft: setSelected ? "3px solid var(--c-accent)" : "3px solid transparent",
+                background: isOver
+                  ? "var(--c-accent-soft, var(--c-surface-3))"
+                  : setSelected
+                  ? "var(--c-accent-soft, var(--c-surface-2))"
+                  : "var(--c-surface-2)",
+                borderLeft: setSelected
+                  ? "3px solid var(--c-accent)"
+                  : isOver
+                  ? "3px solid var(--c-accent)"
+                  : "3px solid transparent",
                 borderBottom: "1px solid var(--c-line-strong)",
                 cursor: "pointer",
               }}
@@ -134,6 +187,8 @@ export function PanelTreeEditor({
                 )}
               </div>
             </div>
+              )}
+            </DroppableWrap>
 
             {setOpen &&
               g.panels.map((p) => {
@@ -144,16 +199,35 @@ export function PanelTreeEditor({
                 const panelSelected = selection.isSelected(panelRef);
                 return (
                   <Fragment key={p.id}>
+                    <DroppableWrap refNode={panelRef}>
+                      {({ setRef: setDropRef, isOver }) => (
+                    <DraggableRow refNode={panelRef}>
+                      {({ setRef: setDragRef, listeners, attributes, isDragging }) => (
                     <div
+                      ref={(el) => {
+                        setDropRef(el);
+                        setDragRef(el);
+                      }}
+                      {...attributes}
+                      {...listeners}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: 9,
                         padding: "8px 12px 8px 30px",
                         borderBottom: "1px solid var(--c-line)",
-                        cursor: "pointer",
-                        background: panelSelected ? "var(--c-accent-soft, var(--c-surface-2))" : "transparent",
-                        borderLeft: panelSelected ? "3px solid var(--c-accent)" : "3px solid transparent",
+                        cursor: "grab",
+                        opacity: isDragging ? 0.4 : 1,
+                        background: isOver
+                          ? "var(--c-accent-soft, var(--c-surface-3))"
+                          : panelSelected
+                          ? "var(--c-accent-soft, var(--c-surface-2))"
+                          : "transparent",
+                        borderLeft: panelSelected
+                          ? "3px solid var(--c-accent)"
+                          : isOver
+                          ? "3px solid var(--c-accent)"
+                          : "3px solid transparent",
                       }}
                       onClick={() => selection.select(panelRef)}
                     >
@@ -200,6 +274,10 @@ export function PanelTreeEditor({
                       )}
                       <StatusBadge status={p.status} />
                     </div>
+                      )}
+                    </DraggableRow>
+                      )}
+                    </DroppableWrap>
 
                     {panelOpen && (
                       <>
@@ -208,8 +286,12 @@ export function PanelTreeEditor({
                           const sRef: NodeRef = { kind: "section", id: s.id };
                           const sSelected = selection.isSelected(sRef);
                           return (
+                            <DraggableRow refNode={sRef} key={s.id}>
+                              {({ setRef, listeners, attributes, isDragging }) => (
                             <div
-                              key={s.id}
+                              ref={setRef}
+                              {...attributes}
+                              {...listeners}
                               onClick={() => selection.select(sRef)}
                               style={{
                                 display: "flex",
@@ -217,7 +299,8 @@ export function PanelTreeEditor({
                                 gap: 8,
                                 padding: "6px 12px 6px 58px",
                                 borderBottom: "1px solid var(--c-line)",
-                                cursor: "pointer",
+                                cursor: "grab",
+                                opacity: isDragging ? 0.4 : 1,
                                 background: sSelected
                                   ? "var(--c-accent-soft, var(--c-surface-2))"
                                   : "transparent",
@@ -245,6 +328,8 @@ export function PanelTreeEditor({
                                 {meta.label}
                               </span>
                             </div>
+                              )}
+                            </DraggableRow>
                           );
                         })}
                         {onCreateSection && (
