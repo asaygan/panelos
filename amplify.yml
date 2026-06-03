@@ -23,7 +23,11 @@ applications:
             - corepack prepare pnpm@9 --activate
             # Install workspace deps from the monorepo root, then build the web app.
             - cd ../..
-            - pnpm install --frozen-lockfile
+            # --ignore-scripts skips native postinstall builds (pdfjs-dist pulls
+            # in `canvas`, which needs Cairo + Pango system libs that aren't in
+            # the default Amplify build image — and the web bundle never uses
+            # the canvas backend at runtime, only the browser DOM).
+            - pnpm install --frozen-lockfile --ignore-scripts
             - pnpm -F @panelos/types codegen || true
         build:
           commands:
