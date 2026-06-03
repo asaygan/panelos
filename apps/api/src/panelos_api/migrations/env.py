@@ -22,7 +22,10 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Escape '%' for configparser (alembic uses configparser under the hood, which
+# treats '%' as the start of an interpolation token). When DATABASE_URL contains
+# a URL-encoded password (e.g. '%21' for '!'), the raw '%' must be doubled.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 target_metadata = Base.metadata
 
