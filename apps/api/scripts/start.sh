@@ -3,10 +3,8 @@
 # Migrations are idempotent (alembic tracks applied revisions), so this is safe
 # on every boot.
 #
-# NOTE: bind a FIXED port 8000. The Railway HTTP domain
-# (panelos-production.up.railway.app) targets port 8000, so the app MUST listen
-# there. Do not switch to Railway's injected $PORT — it resolves to a different
-# port (e.g. 8080) than the domain target and the proxy returns 502.
+# Bind a FIXED port 8000 — App Runner is configured to forward traffic to this
+# port (see docs/deployment/aws.md). The Dockerfile EXPOSE matches.
 set -e
 
 echo "[start] alembic upgrade head…"

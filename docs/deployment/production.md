@@ -1,10 +1,17 @@
 # Production
 
+> **DEPRECATED**: this file documents the original Railway + Vercel + Supabase
+> MVP stack. The live production deployment moved to AWS in June 2026 — see
+> [`aws.md`](./aws.md) for the current topology, env vars, and runbooks.
+>
+> Sections below are kept for historical context (provider names, migration
+> notes) but should not be used when configuring a new environment.
+
 Recommended platform topology for the PanelOS managed offering. Self-host instructions are derived from the same Docker images.
 
-## Current production (live MVP)
+## Original production stack (pre-AWS, June 2026)
 
-The MVP runs on this concrete stack today. The `STORAGE_PROVIDER` / `DATABASE_URL` / `REDIS_URL` settings keep every provider a config-only swap, so the "recommended" topology below remains the target without blocking launch.
+The MVP ran on this concrete stack until the AWS migration. The `STORAGE_PROVIDER` / `DATABASE_URL` / `REDIS_URL` settings keep every provider a config-only swap, so any of these vendors remains reachable as a fallback.
 
 | Concern | Provider | Notes |
 |---|---|---|
