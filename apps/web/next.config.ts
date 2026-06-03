@@ -27,6 +27,14 @@ const SERVER_ACTION_ALLOWED_ORIGINS = [
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // Server-only env vars baked into the build. Amplify Hosting exposes app-level
+  // env vars at build time only; without this `env` field, `process.env.X`
+  // returns undefined inside the Lambda that runs Server Actions / route
+  // handlers, and the login form's fetch silently fails ("Network error").
+  // NEXT_PUBLIC_* vars already get embedded automatically.
+  env: {
+    API_INTERNAL_URL: process.env.API_INTERNAL_URL ?? "",
+  },
   experimental: {
     typedRoutes: true,
     serverActions: {
