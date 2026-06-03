@@ -65,6 +65,44 @@ def _set_auth_cookies(response: Response, tokens: TokenPair) -> None:
     )
 
 
+@router.post("/bootstrap", response_model=TokenOut)
+async def bootstrap(
+    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_db)
+) -> TokenOut:
+    """One-time tenant bootstrap.
+
+    Creates the initial company + Owner user when the database has no users.
+    Subsequent calls fail with 409, so it is safe to leave deployed. Reuses
+    LoginIn (email + password) — the company name is derived from the email
+    domain.
+    """
+    from sqlalchemy import select
+
+    from panelos_api.db.models.user import User
+
+    has_user = (await db.execute(select(User.id).limit(1))).scalar_one_or_none()
+    if has_user is not None:
+        from panelos_api.core.exceptions import Conflict
+
+        raise Conflict("bootstrap already completed: users exist")
+
+    email = str(payload.email).lower()
+    domain = email.split("@", 1)[1].split(".", 1)[0]
+    company, _user, _m = await auth_service.signup_company_owner(
+        db,
+        company_name=domain.title(),
+        company_slug=domain.lower(),
+        owner_email=email,
+        owner_name=email.split("@", 1)[0].title(),
+        password=payload.password,
+    )
+    await db.commit()
+    _, tokens = await auth_service.login(
+        db, email=email, password=payload.password, mfa_code=None, device=None
+    )
+    return TokenOut(access_token=tokens.access_token, refresh_token=tokens.refresh_token)
+
+
 @router.post("/login", response_model=TokenOut)
 @auth_limiter.limit("10/minute")
 async def login(
