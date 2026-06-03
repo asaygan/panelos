@@ -23,11 +23,17 @@ applications:
             - corepack prepare pnpm@9 --activate
             # Install workspace deps from the monorepo root, then build the web app.
             - cd ../..
-            # --ignore-scripts skips native postinstall builds (pdfjs-dist pulls
-            # in `canvas`, which needs Cairo + Pango system libs that aren't in
-            # the default Amplify build image — and the web bundle never uses
-            # the canvas backend at runtime, only the browser DOM).
-            - pnpm install --frozen-lockfile --ignore-scripts
+            # CI-only: switch pnpm to hoisted node_modules. Amplify Hosting's
+            # SSR runtime expects a flat node_modules tree with `next` directly
+            # discoverable; the default pnpm symlink layout makes it appear
+            # missing at deploy time and fails with "node_modules is missing
+            # next dependency". Hoisted layout only applies inside the Amplify
+            # build container — local dev (no NPM_CONFIG_NODE_LINKER) keeps
+            # using the standard pnpm store with symlinks.
+            #
+            # --ignore-scripts skips native postinstall (pdfjs-dist → canvas),
+            # whose Cairo + Pango libs aren't in the Amplify build image.
+            - NPM_CONFIG_NODE_LINKER=hoisted pnpm install --frozen-lockfile --ignore-scripts
             - pnpm -F @panelos/types codegen || true
         build:
           commands:
