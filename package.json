@@ -16,7 +16,7 @@
     "codegen:live": "pnpm -F @panelos/types codegen:live"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
+    "prettier": "^3.8.4",
     "turbo": "^2.3.0"
   },
   "engines": {
