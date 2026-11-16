@@ -28,4 +28,6 @@ class JobQueue:
 
     async def enqueue(self, kind: str, payload: dict[str, Any]) -> None:
         conn = await self._conn()
-        await conn.rpush(f"panelos:jobs:{self.name}", json.dumps({"kind": kind, "payload": payload}))
+        await conn.rpush(
+            f"panelos:jobs:{self.name}", json.dumps({"kind": kind, "payload": payload})
+        )

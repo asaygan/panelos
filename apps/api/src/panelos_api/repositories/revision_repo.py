@@ -20,12 +20,16 @@ class RevisionRepo(BaseRepo[PanelRevision]):
 
     async def list_for_panel(self, panel_id: uuid.UUID) -> list[PanelRevision]:
         rows = (
-            await self.session.execute(
-                select(PanelRevision)
-                .where(PanelRevision.panel_id == panel_id)
-                .order_by(PanelRevision.revision_number.desc())
+            (
+                await self.session.execute(
+                    select(PanelRevision)
+                    .where(PanelRevision.panel_id == panel_id)
+                    .order_by(PanelRevision.revision_number.desc())
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return list(rows)
 
     async def latest_number(self, panel_id: uuid.UUID) -> int:
@@ -55,12 +59,16 @@ class RevisionRepo(BaseRepo[PanelRevision]):
         self, *, company_id: uuid.UUID, statuses: list[RevisionStatus], limit: int = 100
     ) -> list[PanelRevision]:
         rows = (
-            await self.session.execute(
-                select(PanelRevision)
-                .join(Panel, Panel.id == PanelRevision.panel_id)
-                .where(Panel.company_id == company_id, PanelRevision.status.in_(statuses))
-                .order_by(PanelRevision.created_at.desc())
-                .limit(limit)
+            (
+                await self.session.execute(
+                    select(PanelRevision)
+                    .join(Panel, Panel.id == PanelRevision.panel_id)
+                    .where(Panel.company_id == company_id, PanelRevision.status.in_(statuses))
+                    .order_by(PanelRevision.created_at.desc())
+                    .limit(limit)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return list(rows)

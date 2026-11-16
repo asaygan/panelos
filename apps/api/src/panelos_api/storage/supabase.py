@@ -57,9 +57,7 @@ class SupabaseStorage:
             resp = await client.post(
                 self._object_url(key),
                 content=body,
-                headers=self._headers(
-                    {"Content-Type": content_type, "x-upsert": "true"}
-                ),
+                headers=self._headers({"Content-Type": content_type, "x-upsert": "true"}),
             )
             if resp.status_code not in (200, 201):
                 resp.raise_for_status()

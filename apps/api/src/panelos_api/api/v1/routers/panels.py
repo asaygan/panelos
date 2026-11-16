@@ -138,12 +138,16 @@ async def panel_sheets(
     if rev_id is None:
         return []
     rows = (
-        await db.execute(
-            select(RevisionFile)
-            .where(RevisionFile.revision_id == rev_id)
-            .order_by(RevisionFile.sheet_number)
+        (
+            await db.execute(
+                select(RevisionFile)
+                .where(RevisionFile.revision_id == rev_id)
+                .order_by(RevisionFile.sheet_number)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [SheetOut.model_validate(r) for r in rows]
 
 

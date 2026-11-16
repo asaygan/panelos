@@ -34,9 +34,7 @@ class Base(DeclarativeBase):
 class UUIDPKMixin:
     """UUIDv7 primary key column."""
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=new_uuid
-    )
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=new_uuid)
 
 
 def _utcnow() -> datetime:

@@ -21,7 +21,10 @@ API = "/api/v1"
 
 
 async def _add_member(
-    company_id: str, email: str, role: Role, password: str = "MemberPass123!"  # noqa: S107
+    company_id: str,
+    email: str,
+    role: Role,
+    password: str = "MemberPass123!",  # noqa: S107
 ) -> dict[str, str]:
     """Create an active user + membership in ``company_id`` with ``role``."""
     sm = get_sessionmaker()
@@ -51,9 +54,7 @@ async def _add_member(
 
 
 async def _login(app_client, email, password, company_id) -> dict[str, str]:  # type: ignore[no-untyped-def]
-    r = await app_client.post(
-        f"{API}/auth/login", json={"email": email, "password": password}
-    )
+    r = await app_client.post(f"{API}/auth/login", json={"email": email, "password": password})
     assert r.status_code == 200, r.text
     return {
         "Authorization": f"Bearer {r.json()['access_token']}",

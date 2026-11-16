@@ -7,6 +7,7 @@ Create Date: 2026-06-01
 Additive, NOT NULL with server_default true → safe on prod (existing rows keep
 the current public-scan behavior).
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

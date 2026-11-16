@@ -147,9 +147,7 @@ def get_settings() -> Settings:
 
         pw = quote_plus(s.DB_PASSWORD)
         user = quote_plus(s.DB_USER)
-        s.DATABASE_URL = (
-            f"postgresql+asyncpg://{user}:{pw}@{s.DB_HOST}:{s.DB_PORT}/{s.DB_NAME}"
-        )
+        s.DATABASE_URL = f"postgresql+asyncpg://{user}:{pw}@{s.DB_HOST}:{s.DB_PORT}/{s.DB_NAME}"
         s.DATABASE_SYNC_URL = (
             f"postgresql+psycopg://{user}:{pw}@{s.DB_HOST}:{s.DB_PORT}/{s.DB_NAME}"
         )

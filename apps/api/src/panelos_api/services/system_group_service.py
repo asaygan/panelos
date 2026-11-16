@@ -197,14 +197,18 @@ async def list_status_history(
 ) -> list[GroupStatusHistory]:
     await _get(session, company_id=company_id, system_group_id=system_group_id)
     rows = (
-        await session.execute(
-            select(GroupStatusHistory)
-            .where(
-                GroupStatusHistory.company_id == company_id,
-                GroupStatusHistory.system_group_id == system_group_id,
+        (
+            await session.execute(
+                select(GroupStatusHistory)
+                .where(
+                    GroupStatusHistory.company_id == company_id,
+                    GroupStatusHistory.system_group_id == system_group_id,
+                )
+                .order_by(GroupStatusHistory.created_at.desc())
+                .limit(limit)
             )
-            .order_by(GroupStatusHistory.created_at.desc())
-            .limit(limit)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return list(rows)

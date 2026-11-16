@@ -19,11 +19,15 @@ class ScanRepo(BaseRepo[ScanEvent]):
 
     async def for_panel(self, panel_id: uuid.UUID, limit: int = 50) -> list[ScanEvent]:
         rows = (
-            await self.session.execute(
-                select(ScanEvent)
-                .where(ScanEvent.panel_id == panel_id)
-                .order_by(ScanEvent.at.desc())
-                .limit(limit)
+            (
+                await self.session.execute(
+                    select(ScanEvent)
+                    .where(ScanEvent.panel_id == panel_id)
+                    .order_by(ScanEvent.at.desc())
+                    .limit(limit)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return list(rows)

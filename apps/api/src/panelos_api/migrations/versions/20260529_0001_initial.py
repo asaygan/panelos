@@ -4,6 +4,7 @@ Revision ID: 20260529_0001
 Revises:
 Create Date: 2026-05-29
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -81,8 +82,12 @@ def upgrade() -> None:
         sa.Column("short_name", sa.String(40)),
         sa.Column("standards_profile", sa.String(80)),
         sa.Column("logo_key", sa.String(500)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
 
     op.create_table(
@@ -94,20 +99,38 @@ def upgrade() -> None:
         sa.Column("mfa_secret", sa.String(64)),
         sa.Column("last_login_at", sa.DateTime(timezone=True)),
         sa.Column("is_active", sa.Boolean, nullable=False, server_default=sa.true()),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
 
     op.create_table(
         "memberships",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("role", ROLE_ENUM, nullable=False),
         sa.Column("invited_at", sa.DateTime(timezone=True)),
         sa.Column("accepted_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("company_id", "user_id", name="uq_membership_company_user"),
     )
     op.create_index("ix_memberships_company_id", "memberships", ["company_id"])
@@ -116,14 +139,23 @@ def upgrade() -> None:
     op.create_table(
         "invitations",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("email", sa.String(320), nullable=False),
         sa.Column("role", ROLE_ENUM, nullable=False),
         sa.Column("token", sa.String(64), nullable=False, unique=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("accepted_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_invitations_company_id", "invitations", ["company_id"])
     op.create_index("ix_invitations_email", "invitations", ["email"])
@@ -131,24 +163,42 @@ def upgrade() -> None:
     op.create_table(
         "sessions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "user_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("token_hash", sa.String(128), nullable=False, unique=True),
         sa.Column("device", sa.String(200)),
         sa.Column("revoked_at", sa.DateTime(timezone=True)),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
 
     op.create_table(
         "locations",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("code", sa.String(20), nullable=False),
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("region", sa.String(120)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("company_id", "code", name="uq_location_company_code"),
     )
     op.create_index("ix_locations_company_id", "locations", ["company_id"])
@@ -156,9 +206,20 @@ def upgrade() -> None:
     op.create_table(
         "panels",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("location_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("locations.id", ondelete="SET NULL")),
-        sa.Column("active_revision_id", postgresql.UUID(as_uuid=True)),  # FK added after panel_revisions
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("locations.id", ondelete="SET NULL"),
+        ),
+        sa.Column(
+            "active_revision_id", postgresql.UUID(as_uuid=True)
+        ),  # FK added after panel_revisions
         sa.Column("tag", sa.String(40), nullable=False),
         sa.Column("serial", sa.String(80), nullable=False),
         sa.Column("qr_token", sa.String(32), nullable=False),
@@ -174,8 +235,12 @@ def upgrade() -> None:
         sa.Column("status", PANEL_STATUS_ENUM, nullable=False, server_default="ok"),
         sa.Column("installed_at", sa.DateTime(timezone=True)),
         sa.Column("archived_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("company_id", "serial", name="uq_panel_company_serial"),
         sa.UniqueConstraint("qr_token", name="uq_panel_qr_token"),
     )
@@ -187,20 +252,41 @@ def upgrade() -> None:
     op.create_table(
         "panel_revisions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("panel_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panels.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "panel_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panels.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("revision_letter", sa.String(4), nullable=False),
         sa.Column("revision_number", sa.Integer, nullable=False),
         sa.Column("status", REVISION_STATUS_ENUM, nullable=False, server_default="draft"),
         sa.Column("change_summary", sa.String(2000)),
-        sa.Column("created_by", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.Column("submitted_by", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.Column("approved_by", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
+        sa.Column(
+            "created_by",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+        ),
+        sa.Column(
+            "submitted_by",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+        ),
+        sa.Column(
+            "approved_by",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+        ),
         sa.Column("submitted_at", sa.DateTime(timezone=True)),
         sa.Column("approved_at", sa.DateTime(timezone=True)),
         sa.Column("superseded_at", sa.DateTime(timezone=True)),
         sa.Column("rejected_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("panel_id", "revision_number", name="uq_revision_panel_number"),
     )
     op.create_index("ix_panel_revisions_panel_id", "panel_revisions", ["panel_id"])
@@ -222,15 +308,24 @@ def upgrade() -> None:
     op.create_table(
         "pdf_files",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("storage_provider", sa.String(20), nullable=False),
         sa.Column("storage_key", sa.String(500), nullable=False),
         sa.Column("sha256", sa.String(64), nullable=False),
         sa.Column("byte_size", sa.Integer, nullable=False),
         sa.Column("mime", sa.String(120), nullable=False),
         sa.Column("original_filename", sa.String(300), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_pdf_files_company_id", "pdf_files", ["company_id"])
     op.create_index("ix_pdf_files_storage_key", "pdf_files", ["storage_key"])
@@ -239,20 +334,39 @@ def upgrade() -> None:
     op.create_table(
         "revision_files",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("revision_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panel_revisions.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("file_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("pdf_files.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "revision_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panel_revisions.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "file_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("pdf_files.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("sheet_number", sa.String(20), nullable=False),
         sa.Column("sheet_title", sa.String(200), nullable=False),
         sa.Column("page_index", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_revision_files_revision_id", "revision_files", ["revision_id"])
 
     op.create_table(
         "components",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("revision_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panel_revisions.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "revision_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panel_revisions.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("slot", sa.String(20), nullable=False),
         sa.Column("ref", sa.String(40), nullable=False),
         sa.Column("description", sa.String(300), nullable=False),
@@ -260,24 +374,46 @@ def upgrade() -> None:
         sa.Column("rating", sa.String(60)),
         sa.Column("type", sa.String(40)),
         sa.Column("status", sa.String(16), nullable=False, server_default="ok"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_components_revision_id", "components", ["revision_id"])
 
     op.create_table(
         "labels",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("panel_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panels.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("revision_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panel_revisions.id", ondelete="SET NULL")),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "panel_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panels.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "revision_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panel_revisions.id", ondelete="SET NULL"),
+        ),
         sa.Column("template", sa.String(40), nullable=False),
         sa.Column("size", sa.String(20), nullable=False),
         sa.Column("fields_json", postgresql.JSONB, nullable=False, server_default="{}"),
         sa.Column("output_storage_key", sa.String(500)),
         sa.Column("format", sa.String(10), nullable=False, server_default="png"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_labels_company_id", "labels", ["company_id"])
     op.create_index("ix_labels_panel_id", "labels", ["panel_id"])
@@ -285,22 +421,46 @@ def upgrade() -> None:
     op.create_table(
         "label_batches",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("created_by", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "created_by",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+        ),
         sa.Column("items_json", postgresql.JSONB, nullable=False, server_default="[]"),
         sa.Column("status", sa.String(20), nullable=False, server_default="queued"),
         sa.Column("output_storage_key", sa.String(500)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_label_batches_company_id", "label_batches", ["company_id"])
 
     op.create_table(
         "scan_events",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("panel_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panels.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
-        sa.Column("revision_id_served", postgresql.UUID(as_uuid=True), sa.ForeignKey("panel_revisions.id", ondelete="SET NULL")),
+        sa.Column(
+            "panel_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panels.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "user_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")
+        ),
+        sa.Column(
+            "revision_id_served",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panel_revisions.id", ondelete="SET NULL"),
+        ),
         sa.Column("ip", sa.String(64)),
         sa.Column("geo", sa.String(120)),
         sa.Column("device", sa.String(200)),
@@ -312,16 +472,29 @@ def upgrade() -> None:
     op.create_table(
         "audit_logs",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("actor_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="SET NULL")),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "actor_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("users.id", ondelete="SET NULL"),
+        ),
         sa.Column("action", AUDIT_ACTION_ENUM, nullable=False),
         sa.Column("target_type", sa.String(60), nullable=False),
         sa.Column("target_id", sa.String(64), nullable=False),
         sa.Column("meta", postgresql.JSONB, nullable=False, server_default="{}"),
         sa.Column("prev_hash", sa.LargeBinary(32), nullable=False),
         sa.Column("hash", sa.LargeBinary(32), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_audit_logs_company_id", "audit_logs", ["company_id"])
     op.create_index(
@@ -331,14 +504,23 @@ def upgrade() -> None:
     op.create_table(
         "api_keys",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("name", sa.String(120), nullable=False),
         sa.Column("prefix", sa.String(16), nullable=False),
         sa.Column("secret_hash", sa.String(128), nullable=False),
         sa.Column("scopes", postgresql.JSONB, nullable=False, server_default="[]"),
         sa.Column("last_used_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_index("ix_api_keys_company_id", "api_keys", ["company_id"])
     op.create_index("ix_api_keys_prefix", "api_keys", ["prefix"])
@@ -399,9 +581,7 @@ def downgrade() -> None:
         "pdf_files",
     ]:
         op.drop_table(t)
-    op.drop_constraint(
-        "fk_panels_active_revision_id_panel_revisions", "panels", type_="foreignkey"
-    )
+    op.drop_constraint("fk_panels_active_revision_id_panel_revisions", "panels", type_="foreignkey")
     op.drop_table("panel_revisions")
     op.drop_table("panels")
     op.drop_table("locations")

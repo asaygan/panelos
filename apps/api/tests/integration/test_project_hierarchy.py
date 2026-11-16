@@ -119,9 +119,7 @@ async def test_lifecycle_history_on_project_and_group(app_client, owner_auth) ->
         f"{API}/projects/{pid}", json={"lifecycle_status": "engineering"}, headers=headers
     )
     assert r.json()["lifecycle_status"] == "engineering"
-    history = (
-        await app_client.get(f"{API}/projects/{pid}/status-history", headers=headers)
-    ).json()
+    history = (await app_client.get(f"{API}/projects/{pid}/status-history", headers=headers)).json()
     assert [h["to_status"] for h in history] == ["engineering", "draft"]
     assert history[0]["from_status"] == "draft"
 
@@ -197,8 +195,12 @@ async def test_cabinet_move_between_panels(app_client, owner_auth) -> None:  # t
     )
     assert r.status_code == 200, r.text
     assert r.json()["panel_id"] == b["id"]
-    assert len((await app_client.get(f"{API}/panels/{a['id']}/cabinets", headers=headers)).json()) == 0
-    assert len((await app_client.get(f"{API}/panels/{b['id']}/cabinets", headers=headers)).json()) == 1
+    assert (
+        len((await app_client.get(f"{API}/panels/{a['id']}/cabinets", headers=headers)).json()) == 0
+    )
+    assert (
+        len((await app_client.get(f"{API}/panels/{b['id']}/cabinets", headers=headers)).json()) == 1
+    )
 
 
 @pytest.mark.asyncio

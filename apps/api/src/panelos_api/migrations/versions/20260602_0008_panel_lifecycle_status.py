@@ -17,6 +17,7 @@ A new ``panel_status_history`` table records every transition so the UI can
 render a per-panel timeline. The first row per existing panel is seeded from
 the backfill so the timeline isn't empty.
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -151,7 +152,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute("DROP POLICY IF EXISTS tenant_isolation_panel_status_history ON panel_status_history;")
+    op.execute(
+        "DROP POLICY IF EXISTS tenant_isolation_panel_status_history ON panel_status_history;"
+    )
     op.drop_index("ix_panel_status_history_panel_created", table_name="panel_status_history")
     op.drop_index("ix_panel_status_history_panel_id", table_name="panel_status_history")
     op.drop_index("ix_panel_status_history_company_id", table_name="panel_status_history")

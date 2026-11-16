@@ -111,9 +111,7 @@ def _qr_element(el: dict[str, Any], spec: LabelSpec) -> str:
                         f'width="{_num(u(module_mm))}" height="{_num(u(module_mm))}" />'
                     )
         parts.append(
-            f'<g fill="{_attr(fg)}" shape-rendering="crispEdges">'
-            + "".join(cells)
-            + "</g>"
+            f'<g fill="{_attr(fg)}" shape-rendering="crispEdges">' + "".join(cells) + "</g>"
         )
     g = "".join(parts)
     return f"<g{_rotation_transform(el)}>{g}</g>"

@@ -14,18 +14,24 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-async def search(session: AsyncSession, *, company_id: uuid.UUID, q: str, limit: int = 20) -> list[dict[str, Any]]:
+async def search(
+    session: AsyncSession, *, company_id: uuid.UUID, q: str, limit: int = 20
+) -> list[dict[str, Any]]:
     if not q:
         return []
     like = f"%{q}%"
     rows = (
-        await session.execute(
-            select(Panel)
-            .where(Panel.company_id == company_id)
-            .where(or_(Panel.tag.ilike(like), Panel.name.ilike(like), Panel.serial.ilike(like)))
-            .limit(limit)
+        (
+            await session.execute(
+                select(Panel)
+                .where(Panel.company_id == company_id)
+                .where(or_(Panel.tag.ilike(like), Panel.name.ilike(like), Panel.serial.ilike(like)))
+                .limit(limit)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [
         {"type": "panel", "id": str(p.id), "tag": p.tag, "name": p.name, "serial": p.serial}
         for p in rows

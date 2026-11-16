@@ -94,7 +94,11 @@ async def login(
     user = (
         await session.execute(select(User).where(User.email == email.lower()))
     ).scalar_one_or_none()
-    if user is None or user.password_hash is None or not verify_password(password, user.password_hash):
+    if (
+        user is None
+        or user.password_hash is None
+        or not verify_password(password, user.password_hash)
+    ):
         raise Unauthorized("invalid credentials")
     if not user.is_active:
         raise Unauthorized("user disabled")
@@ -103,8 +107,10 @@ async def login(
 
     settings = get_settings()
     memberships = (
-        await session.execute(select(Membership).where(Membership.user_id == user.id))
-    ).scalars().all()
+        (await session.execute(select(Membership).where(Membership.user_id == user.id)))
+        .scalars()
+        .all()
+    )
     company_ids = [str(m.company_id) for m in memberships]
 
     access = issue_token(
@@ -274,9 +280,7 @@ async def accept_invite(
         raise NotFound("invitation invalid or expired")
 
     now = datetime.now(UTC)
-    user = (
-        await session.execute(select(User).where(User.email == inv.email))
-    ).scalar_one_or_none()
+    user = (await session.execute(select(User).where(User.email == inv.email))).scalar_one_or_none()
     if user is None:
         user = User(
             email=inv.email,

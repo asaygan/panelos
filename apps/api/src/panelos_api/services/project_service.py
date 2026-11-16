@@ -44,9 +44,7 @@ async def create_project(
     location_id: uuid.UUID | None = None,
     lifecycle_status: LifecycleStatus = LifecycleStatus.DRAFT,
 ) -> Project:
-    await ensure_owned_refs(
-        session, company_id=company_id, values={"location_id": location_id}
-    )
+    await ensure_owned_refs(session, company_id=company_id, values={"location_id": location_id})
     project = Project(
         company_id=company_id,
         name=name,
@@ -181,14 +179,18 @@ async def list_status_history(
 ) -> list[ProjectStatusHistory]:
     await _get(session, company_id=company_id, project_id=project_id)
     rows = (
-        await session.execute(
-            select(ProjectStatusHistory)
-            .where(
-                ProjectStatusHistory.company_id == company_id,
-                ProjectStatusHistory.project_id == project_id,
+        (
+            await session.execute(
+                select(ProjectStatusHistory)
+                .where(
+                    ProjectStatusHistory.company_id == company_id,
+                    ProjectStatusHistory.project_id == project_id,
+                )
+                .order_by(ProjectStatusHistory.created_at.desc())
+                .limit(limit)
             )
-            .order_by(ProjectStatusHistory.created_at.desc())
-            .limit(limit)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return list(rows)

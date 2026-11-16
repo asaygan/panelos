@@ -65,10 +65,14 @@ async def list_locations(
     db: AsyncSession = Depends(get_db),
 ) -> list[LocationOut]:
     rows = (
-        await db.execute(
-            select(Location).where(Location.company_id == m.company_id).order_by(Location.code)
+        (
+            await db.execute(
+                select(Location).where(Location.company_id == m.company_id).order_by(Location.code)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [LocationOut.model_validate(r) for r in rows]
 
 

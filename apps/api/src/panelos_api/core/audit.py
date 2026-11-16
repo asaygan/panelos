@@ -81,12 +81,16 @@ async def verify_chain(session: AsyncSession, company_id: uuid.UUID) -> bool:
     """Walk the chain and verify each hash."""
 
     rows = (
-        await session.execute(
-            select(AuditLog)
-            .where(AuditLog.company_id == company_id)
-            .order_by(AuditLog.created_at.asc())
+        (
+            await session.execute(
+                select(AuditLog)
+                .where(AuditLog.company_id == company_id)
+                .order_by(AuditLog.created_at.asc())
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     prev = b""
     for r in rows:

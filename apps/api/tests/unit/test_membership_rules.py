@@ -49,7 +49,9 @@ class _FakeSession:
         return _FakeResult(self._owner_count)
 
 
-def _membership(role: Role, *, status: str = "active", user_id: uuid.UUID | None = None) -> Membership:
+def _membership(
+    role: Role, *, status: str = "active", user_id: uuid.UUID | None = None
+) -> Membership:
     return Membership(
         id=uuid.uuid4(),
         company_id=uuid.uuid4(),

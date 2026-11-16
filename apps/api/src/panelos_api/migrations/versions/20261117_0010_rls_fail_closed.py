@@ -21,6 +21,7 @@ This migration
 
 The owner role (migrations, scripts, seeding) is unaffected.
 """
+
 # ruff: noqa: S608  (static identifiers only, no user input)
 from __future__ import annotations
 

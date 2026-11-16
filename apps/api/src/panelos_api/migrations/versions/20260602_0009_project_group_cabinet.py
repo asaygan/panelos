@@ -22,6 +22,7 @@ Backfill is idempotent. Existing prod data:
   every project   → 1 'General' (CUSTOM) system group, lifecycle 'installed'
   every panel     → re-pointed to its project's 'General' group
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -94,16 +95,22 @@ def upgrade() -> None:
     op.execute("ALTER TYPE panel_lifecycle_status RENAME TO lifecycle_status;")
 
     # 3. Drop the panel lifecycle artifacts (history table + the panels.status column).
-    op.execute("DROP POLICY IF EXISTS tenant_isolation_panel_status_history ON panel_status_history;")
+    op.execute(
+        "DROP POLICY IF EXISTS tenant_isolation_panel_status_history ON panel_status_history;"
+    )
     op.execute("DROP TABLE IF EXISTS panel_status_history;")
     op.execute("ALTER TABLE panels DROP COLUMN IF EXISTS status;")
 
     # 4. Rename panel_sets → projects + extend it.
-    op.execute("ALTER POLICY tenant_isolation_panel_sets ON panel_sets RENAME TO tenant_isolation_projects;")
+    op.execute(
+        "ALTER POLICY tenant_isolation_panel_sets ON panel_sets RENAME TO tenant_isolation_projects;"
+    )
     op.execute("ALTER TABLE panel_sets RENAME TO projects;")
     op.execute("ALTER INDEX ix_panel_sets_company_id RENAME TO ix_projects_company_id;")
     op.execute("ALTER INDEX ix_panel_sets_location_id RENAME TO ix_projects_location_id;")
-    op.execute("ALTER TABLE projects RENAME CONSTRAINT uq_panel_set_company_code TO uq_project_company_code;")
+    op.execute(
+        "ALTER TABLE projects RENAME CONSTRAINT uq_panel_set_company_code TO uq_project_company_code;"
+    )
 
     op.add_column("projects", sa.Column("customer", sa.String(200), nullable=True))
     op.add_column("projects", sa.Column("site", sa.String(200), nullable=True))
@@ -156,8 +163,12 @@ def upgrade() -> None:
             server_default="draft",
         ),
         sa.Column("description", sa.String(2000), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("project_id", "code", name="uq_system_group_project_code"),
     )
     op.create_index("ix_system_groups_company_id", "system_groups", ["company_id"])
@@ -264,12 +275,24 @@ def upgrade() -> None:
                 nullable=True,
             ),
             sa.Column("note", sa.String(1000), nullable=True),
-            sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-            sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+            sa.Column(
+                "created_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.func.now(),
+                nullable=False,
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(timezone=True),
+                server_default=sa.func.now(),
+                nullable=False,
+            ),
         )
-        op.create_index(f"ix_{idx_col_suffix}_status_history_company_id", table_name, ["company_id"])
         op.create_index(
-            f"ix_{idx_col_suffix}_status_history_{idx_col_suffix.replace('group','group')}_created",
+            f"ix_{idx_col_suffix}_status_history_company_id", table_name, ["company_id"]
+        )
+        op.create_index(
+            f"ix_{idx_col_suffix}_status_history_{idx_col_suffix.replace('group', 'group')}_created",
             table_name,
             [parent_col, "created_at"],
         )
@@ -305,9 +328,13 @@ def upgrade() -> None:
 def downgrade() -> None:
     # Lossy reverse — recreates the panel_set/section world but loses
     # system_groups (panels collapse back onto their project as 'General').
-    op.execute("DROP POLICY IF EXISTS tenant_isolation_group_status_history ON group_status_history;")
+    op.execute(
+        "DROP POLICY IF EXISTS tenant_isolation_group_status_history ON group_status_history;"
+    )
     op.execute("DROP TABLE IF EXISTS group_status_history;")
-    op.execute("DROP POLICY IF EXISTS tenant_isolation_project_status_history ON project_status_history;")
+    op.execute(
+        "DROP POLICY IF EXISTS tenant_isolation_project_status_history ON project_status_history;"
+    )
     op.execute("DROP TABLE IF EXISTS project_status_history;")
 
     op.execute("DROP POLICY IF EXISTS tenant_isolation_cabinets ON cabinets;")
@@ -348,12 +375,18 @@ def downgrade() -> None:
     op.execute("ALTER TABLE projects RENAME TO panel_sets;")
     op.execute("ALTER INDEX ix_projects_company_id RENAME TO ix_panel_sets_company_id;")
     op.execute("ALTER INDEX ix_projects_location_id RENAME TO ix_panel_sets_location_id;")
-    op.execute("ALTER TABLE panel_sets RENAME CONSTRAINT uq_project_company_code TO uq_panel_set_company_code;")
-    op.execute("ALTER POLICY tenant_isolation_projects ON panel_sets RENAME TO tenant_isolation_panel_sets;")
+    op.execute(
+        "ALTER TABLE panel_sets RENAME CONSTRAINT uq_project_company_code TO uq_panel_set_company_code;"
+    )
+    op.execute(
+        "ALTER POLICY tenant_isolation_projects ON panel_sets RENAME TO tenant_isolation_panel_sets;"
+    )
 
     op.add_column(
         "panels",
-        sa.Column("status", postgresql.ENUM(name="lifecycle_status", create_type=False), nullable=True),
+        sa.Column(
+            "status", postgresql.ENUM(name="lifecycle_status", create_type=False), nullable=True
+        ),
     )
     op.execute("UPDATE panels SET status = 'installed'::lifecycle_status;")
     op.execute("ALTER TABLE panels ALTER COLUMN status SET NOT NULL;")

@@ -19,12 +19,16 @@ class ComponentRepo(BaseRepo[Component]):
 
     async def for_revision(self, revision_id: uuid.UUID) -> list[Component]:
         rows = (
-            await self.session.execute(
-                select(Component)
-                .where(Component.revision_id == revision_id)
-                .order_by(Component.slot.asc())
+            (
+                await self.session.execute(
+                    select(Component)
+                    .where(Component.revision_id == revision_id)
+                    .order_by(Component.slot.asc())
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return list(rows)
 
     async def create(self, **kwargs: object) -> Component:

@@ -38,11 +38,11 @@ async def _unique_tag(session: AsyncSession, *, company_id: uuid.UUID, base: str
     existing = set(
         (
             await session.execute(
-                select(Panel.tag).where(
-                    Panel.company_id == company_id, Panel.tag.like(f"{base}%")
-                )
+                select(Panel.tag).where(Panel.company_id == company_id, Panel.tag.like(f"{base}%"))
             )
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     )
     if base not in existing:
         return base

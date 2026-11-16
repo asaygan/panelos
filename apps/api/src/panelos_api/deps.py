@@ -83,7 +83,9 @@ async def get_current_user(
 ) -> CurrentUser:
     """Resolve the bearer token to a ``User``."""
 
-    token = creds.credentials if creds and creds.credentials else request.cookies.get("panelos_session")
+    token = (
+        creds.credentials if creds and creds.credentials else request.cookies.get("panelos_session")
+    )
     if not token:
         raise Unauthorized("missing bearer token or session cookie")
     claims = verify_token(token, expected_type="access", settings=settings)
@@ -107,7 +109,9 @@ async def get_optional_user(
     authenticated same-company member vs an anonymous scanner.
     """
 
-    token = creds.credentials if creds and creds.credentials else request.cookies.get("panelos_session")
+    token = (
+        creds.credentials if creds and creds.credentials else request.cookies.get("panelos_session")
+    )
     if not token:
         return None
     try:

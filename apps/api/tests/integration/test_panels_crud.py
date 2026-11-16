@@ -117,9 +117,7 @@ async def test_cross_tenant_isolation(app_client, owner_auth) -> None:  # type: 
     r = await app_client.get(f"{API}/panels/{a_pid}", headers=headers_b)
     assert r.status_code == 404, "B could read A's panel"
 
-    r = await app_client.put(
-        f"{API}/panels/{a_pid}", json={"name": "hijack"}, headers=headers_b
-    )
+    r = await app_client.put(f"{API}/panels/{a_pid}", json={"name": "hijack"}, headers=headers_b)
     assert r.status_code == 404, "B could update A's panel"
 
     # A still sees it.

@@ -23,8 +23,10 @@ class MembershipRepo(BaseRepo[Membership]):
 
     async def for_user(self, user_id: uuid.UUID) -> list[Membership]:
         rows = (
-            await self.session.execute(select(Membership).where(Membership.user_id == user_id))
-        ).scalars().all()
+            (await self.session.execute(select(Membership).where(Membership.user_id == user_id)))
+            .scalars()
+            .all()
+        )
         return list(rows)
 
     async def for_user_in_company(
@@ -89,9 +91,7 @@ class MembershipRepo(BaseRepo[Membership]):
         rows = (await self.session.execute(stmt)).all()
         return list(rows)
 
-    async def locations_for(
-        self, membership_id: uuid.UUID
-    ) -> list[Location]:
+    async def locations_for(self, membership_id: uuid.UUID) -> list[Location]:
         """Return Location rows assigned to a membership."""
 
         stmt = (

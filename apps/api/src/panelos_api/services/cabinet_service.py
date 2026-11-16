@@ -32,12 +32,16 @@ async def list_for_panel(
     session: AsyncSession, *, company_id: uuid.UUID, panel_id: uuid.UUID
 ) -> list[Cabinet]:
     rows = (
-        await session.execute(
-            select(Cabinet)
-            .where(Cabinet.company_id == company_id, Cabinet.panel_id == panel_id)
-            .order_by(Cabinet.position, Cabinet.created_at)
+        (
+            await session.execute(
+                select(Cabinet)
+                .where(Cabinet.company_id == company_id, Cabinet.panel_id == panel_id)
+                .order_by(Cabinet.position, Cabinet.created_at)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return list(rows)
 
 

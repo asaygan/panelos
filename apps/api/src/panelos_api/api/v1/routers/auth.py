@@ -148,7 +148,9 @@ async def refresh(
 
 
 @router.get("/invitations/{token}", response_model=InvitationInfoOut)
-async def get_invitation(token: str, db: AsyncSession = Depends(get_system_db)) -> InvitationInfoOut:
+async def get_invitation(
+    token: str, db: AsyncSession = Depends(get_system_db)
+) -> InvitationInfoOut:
     """Public: resolve an invitation token for the accept page."""
     info = await auth_service.get_invitation(db, token=token)
     return InvitationInfoOut(

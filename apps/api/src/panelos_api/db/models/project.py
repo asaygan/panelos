@@ -26,9 +26,7 @@ from panelos_api.db.models.lifecycle import LifecycleStatus
 
 class Project(UUIDPKMixin, TimestampMixin, TenantMixin, Base):
     __tablename__ = "projects"
-    __table_args__ = (
-        UniqueConstraint("company_id", "code", name="uq_project_company_code"),
-    )
+    __table_args__ = (UniqueConstraint("company_id", "code", name="uq_project_company_code"),)
 
     location_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True

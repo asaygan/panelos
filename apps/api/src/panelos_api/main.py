@@ -98,9 +98,7 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if public_docs else None,
     )
     app.add_middleware(RequestIdMiddleware)
-    app.add_middleware(
-        SecurityHeadersMiddleware, hsts=settings.APP_ENV == "production"
-    )
+    app.add_middleware(SecurityHeadersMiddleware, hsts=settings.APP_ENV == "production")
     # Auth rate limiting (in-memory, IP-keyed) via slowapi. Re-read the toggle at
     # app-construction time so it reflects the current settings (the limiter is a
     # module-level singleton whose `enabled` was baked at import — tests flip the
@@ -112,9 +110,7 @@ def create_app() -> FastAPI:
     # De-duplicate CORS origins while preserving order.
     origins = list(
         dict.fromkeys(
-            o
-            for o in (settings.NEXT_PUBLIC_APP_URL, settings.APP_URL, *settings.CORS_ORIGINS)
-            if o
+            o for o in (settings.NEXT_PUBLIC_APP_URL, settings.APP_URL, *settings.CORS_ORIGINS) if o
         )
     )
     app.add_middleware(

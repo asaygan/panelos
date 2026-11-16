@@ -81,8 +81,16 @@ def has_permission(role: Role, perm: Permission) -> bool:
 # Ordered list of (key, label, description) for the spec's 21 permission keys.
 PERMISSION_CATALOG: list[tuple[str, str, str]] = [
     ("full_access", "Full Access", "Unrestricted access to every feature and setting."),
-    ("manage_billing", "Manage Billing", "View invoices and manage the subscription and payment methods."),
-    ("manage_organization", "Manage Organization", "Edit company profile, standards, locations and branding."),
+    (
+        "manage_billing",
+        "Manage Billing",
+        "View invoices and manage the subscription and payment methods.",
+    ),
+    (
+        "manage_organization",
+        "Manage Organization",
+        "Edit company profile, standards, locations and branding.",
+    ),
     ("manage_users", "Manage Users", "Invite, change roles, suspend, and remove members."),
     ("manage_roles", "Manage Roles", "Define and assign roles and permission sets."),
     ("manage_panels", "Manage Panels", "Create, edit, and archive panels."),

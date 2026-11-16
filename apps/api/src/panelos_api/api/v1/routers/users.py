@@ -78,9 +78,7 @@ async def list_members(
     return out
 
 
-@router.post(
-    "/invitations", response_model=InvitationOut, status_code=status.HTTP_201_CREATED
-)
+@router.post("/invitations", response_model=InvitationOut, status_code=status.HTTP_201_CREATED)
 async def invite(
     payload: InvitationIn,
     m: CurrentMembership = Depends(require_permission(Permission.MANAGE_USERS)),

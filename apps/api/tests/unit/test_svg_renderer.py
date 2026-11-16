@@ -64,8 +64,17 @@ def test_invisible_element_skipped() -> None:
         "size_mm": {"w": 90, "h": 50},
         "background": {"kind": "plain", "fill": "#ffffff", "radius_mm": 1},
         "elements": [
-            {"id": "hidden", "type": "text", "text": "SECRET", "x": 1, "y": 1,
-             "w": 10, "h": 5, "z": 1, "visible": False},
+            {
+                "id": "hidden",
+                "type": "text",
+                "text": "SECRET",
+                "x": 1,
+                "y": 1,
+                "w": 10,
+                "h": 5,
+                "z": 1,
+                "visible": False,
+            },
         ],
     }
     svg = render_svg(spec, layout)

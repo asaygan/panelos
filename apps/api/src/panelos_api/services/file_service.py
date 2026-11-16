@@ -59,9 +59,7 @@ async def upload_blob(
     return record
 
 
-async def get_download_url(
-    storage: StorageProvider, file: PdfFile, expires_in: int = 3600
-) -> str:
+async def get_download_url(storage: StorageProvider, file: PdfFile, expires_in: int = 3600) -> str:
     return await storage.presign_get(file.storage_key, expires_in)
 
 

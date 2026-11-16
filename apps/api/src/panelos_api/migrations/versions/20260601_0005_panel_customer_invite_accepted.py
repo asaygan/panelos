@@ -6,6 +6,7 @@ Create Date: 2026-06-01
 
 Additive + nullable only (safe on prod).
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

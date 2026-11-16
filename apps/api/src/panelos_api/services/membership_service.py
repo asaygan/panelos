@@ -122,9 +122,7 @@ async def invite(
         raise Conflict("a pending invitation already exists for this email")
 
     # Materialize a placeholder user (no password) so the membership can exist.
-    user = (
-        await session.execute(select(User).where(User.email == email))
-    ).scalar_one_or_none()
+    user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user is None:
         user = User(email=email, name=email.split("@")[0], is_active=False)
         session.add(user)
@@ -158,9 +156,7 @@ async def invite(
     session.add(inv)
     await session.flush()
 
-    await _send_invite(
-        session, company_id=company_id, email=email, role=role, token=inv.token
-    )
+    await _send_invite(session, company_id=company_id, email=email, role=role, token=inv.token)
 
     await append_audit(
         session,
@@ -203,9 +199,7 @@ async def change_role(
 
     # Downgrading the last owner away from OWNER is forbidden.
     if old_role == Role.OWNER and new_role != Role.OWNER:
-        await _assert_not_last_owner(
-            session, company_id=company_id, target=mem, action="downgrade"
-        )
+        await _assert_not_last_owner(session, company_id=company_id, target=mem, action="downgrade")
 
     mem.role = new_role
     await session.flush()
@@ -239,9 +233,7 @@ async def change_status(
     if new_status == "suspended":
         if mem.user_id == actor_id:
             raise Forbidden("you cannot suspend yourself")
-        await _assert_not_last_owner(
-            session, company_id=company_id, target=mem, action="suspend"
-        )
+        await _assert_not_last_owner(session, company_id=company_id, target=mem, action="suspend")
         mem.status = "suspended"
         mem.suspended_at = datetime.now(UTC)
         action = AuditAction.USER_SUSPENDED
@@ -280,9 +272,7 @@ async def remove(
 
     target_email = (await session.get(User, mem.user_id)).email if mem.user_id else None
     await session.execute(
-        delete(MembershipLocationAccess).where(
-            MembershipLocationAccess.membership_id == mem.id
-        )
+        delete(MembershipLocationAccess).where(MembershipLocationAccess.membership_id == mem.id)
     )
     await session.delete(mem)
     await session.flush()
@@ -333,9 +323,7 @@ async def resend_invite(
         inv.accepted_at = None
     mem.invited_at = datetime.now(UTC)
     await session.flush()
-    await _send_invite(
-        session, company_id=company_id, email=email, role=mem.role, token=inv.token
-    )
+    await _send_invite(session, company_id=company_id, email=email, role=mem.role, token=inv.token)
     await append_audit(
         session,
         company_id=company_id,
@@ -361,9 +349,7 @@ async def assign_locations(
     _assert_admin_can_target(actor_role, mem.role)
 
     await session.execute(
-        delete(MembershipLocationAccess).where(
-            MembershipLocationAccess.membership_id == mem.id
-        )
+        delete(MembershipLocationAccess).where(MembershipLocationAccess.membership_id == mem.id)
     )
     for loc_id in location_ids:
         session.add(

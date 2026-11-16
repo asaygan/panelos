@@ -24,6 +24,7 @@ class RasterUnavailable(RuntimeError):
 
 def _tiny_png() -> bytes:
     """A valid 1x1 transparent PNG (fallback when cairosvg is absent)."""
+
     def chunk(tag: bytes, data: bytes) -> bytes:
         return (
             struct.pack(">I", len(data))

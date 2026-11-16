@@ -37,9 +37,7 @@ class S3Storage:
         body = data.read()
         digest = hashlib.sha256(body).hexdigest()
         self._client.put_object(Bucket=self.bucket, Key=key, Body=body, ContentType=content_type)
-        return StorageObject(
-            key=key, content_type=content_type, byte_size=len(body), sha256=digest
-        )
+        return StorageObject(key=key, content_type=content_type, byte_size=len(body), sha256=digest)
 
     async def get(self, key: str) -> StorageObject:
         head = self._client.head_object(Bucket=self.bucket, Key=key)

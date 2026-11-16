@@ -13,6 +13,7 @@ Additive + prod-safe:
   assign every existing panel to it. Guarded so a re-run is idempotent.
 Panel-Set revisions / QR set-fallback are intentionally NOT part of this migration.
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -85,14 +86,27 @@ def upgrade() -> None:
     op.create_table(
         "panel_sets",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("location_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("locations.id", ondelete="SET NULL")),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "location_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("locations.id", ondelete="SET NULL"),
+        ),
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("code", sa.String(40)),
         sa.Column("description", sa.String(2000)),
         sa.Column("archived_at", sa.DateTime(timezone=True)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("company_id", "code", name="uq_panel_set_company_code"),
     )
     op.create_index("ix_panel_sets_company_id", "panel_sets", ["company_id"])
@@ -102,14 +116,28 @@ def upgrade() -> None:
     op.create_table(
         "sections",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("company_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("companies.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("panel_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("panels.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "company_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("companies.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "panel_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("panels.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("section_type", SECTION_TYPE_ENUM, nullable=False),
         sa.Column("name", sa.String(200), nullable=False),
         sa.Column("position", sa.Integer, nullable=False, server_default="0"),
         sa.Column("description", sa.String(2000)),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.UniqueConstraint("panel_id", "position", name="uq_section_panel_position"),
     )
     op.create_index("ix_sections_company_id", "sections", ["company_id"])

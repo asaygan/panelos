@@ -72,33 +72,49 @@ async def project_tree(
 ) -> TreeOut:
     """Assemble the Project → System Group → Panel → Cabinet tree (4 scoped queries)."""
     projects = (
-        await db.execute(
-            select(Project)
-            .where(Project.company_id == m.company_id, Project.archived_at.is_(None))
-            .order_by(Project.name)
+        (
+            await db.execute(
+                select(Project)
+                .where(Project.company_id == m.company_id, Project.archived_at.is_(None))
+                .order_by(Project.name)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     groups = (
-        await db.execute(
-            select(SystemGroup)
-            .where(SystemGroup.company_id == m.company_id)
-            .order_by(SystemGroup.name)
+        (
+            await db.execute(
+                select(SystemGroup)
+                .where(SystemGroup.company_id == m.company_id)
+                .order_by(SystemGroup.name)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     panels = (
-        await db.execute(
-            select(Panel)
-            .where(Panel.company_id == m.company_id, Panel.archived_at.is_(None))
-            .order_by(Panel.tag)
+        (
+            await db.execute(
+                select(Panel)
+                .where(Panel.company_id == m.company_id, Panel.archived_at.is_(None))
+                .order_by(Panel.tag)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     cabinets = (
-        await db.execute(
-            select(Cabinet)
-            .where(Cabinet.company_id == m.company_id)
-            .order_by(Cabinet.panel_id, Cabinet.position)
+        (
+            await db.execute(
+                select(Cabinet)
+                .where(Cabinet.company_id == m.company_id)
+                .order_by(Cabinet.panel_id, Cabinet.position)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     from panelos_api.api.v1.schemas.project import CabinetOut
 
@@ -170,12 +186,16 @@ async def project_groups(
     db: AsyncSession = Depends(get_db),
 ) -> list[SystemGroupOut]:
     rows = (
-        await db.execute(
-            select(SystemGroup)
-            .where(SystemGroup.company_id == m.company_id, SystemGroup.project_id == project_id)
-            .order_by(SystemGroup.name)
+        (
+            await db.execute(
+                select(SystemGroup)
+                .where(SystemGroup.company_id == m.company_id, SystemGroup.project_id == project_id)
+                .order_by(SystemGroup.name)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [SystemGroupOut.model_validate(g) for g in rows]
 
 
@@ -187,17 +207,21 @@ async def project_panels(
 ) -> list[PanelOut]:
     # Panels whose system_group is owned by this project.
     rows = (
-        await db.execute(
-            select(Panel)
-            .join(SystemGroup, SystemGroup.id == Panel.system_group_id)
-            .where(
-                Panel.company_id == m.company_id,
-                SystemGroup.project_id == project_id,
-                Panel.archived_at.is_(None),
+        (
+            await db.execute(
+                select(Panel)
+                .join(SystemGroup, SystemGroup.id == Panel.system_group_id)
+                .where(
+                    Panel.company_id == m.company_id,
+                    SystemGroup.project_id == project_id,
+                    Panel.archived_at.is_(None),
+                )
+                .order_by(Panel.tag)
             )
-            .order_by(Panel.tag)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [PanelOut.model_validate(p) for p in rows]
 
 
@@ -318,16 +342,20 @@ async def group_panels(
     db: AsyncSession = Depends(get_db),
 ) -> list[PanelOut]:
     rows = (
-        await db.execute(
-            select(Panel)
-            .where(
-                Panel.company_id == m.company_id,
-                Panel.system_group_id == group_id,
-                Panel.archived_at.is_(None),
+        (
+            await db.execute(
+                select(Panel)
+                .where(
+                    Panel.company_id == m.company_id,
+                    Panel.system_group_id == group_id,
+                    Panel.archived_at.is_(None),
+                )
+                .order_by(Panel.tag)
             )
-            .order_by(Panel.tag)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [PanelOut.model_validate(p) for p in rows]
 
 
