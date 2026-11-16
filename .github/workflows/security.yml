@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-packages
       - run: uvx pip-audit --strict --desc -r <(uv export --frozen --no-dev --no-hashes --package panelos-api)
         shell: bash
 

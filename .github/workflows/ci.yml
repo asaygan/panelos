@@ -53,7 +53,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-packages
       - run: uv run ruff check apps/api/src apps/api/tests
       - run: uv run ruff format --check apps/api/src apps/api/tests
       - run: uv run mypy apps/api/src/panelos_api/core
@@ -80,7 +80,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: uv sync --frozen
+      - run: uv sync --frozen --all-packages
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Regenerate schema + client
         run: pnpm codegen
