@@ -21,6 +21,7 @@ from panelos_api.core.ids import new_qr_token
 from panelos_api.db.models.audit_log import AuditAction
 from panelos_api.db.models.panel import Panel
 from panelos_api.repositories.panel_repo import PanelRepo
+from panelos_api.services.tenant_refs import ensure_owned_refs
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,6 +63,9 @@ async def create_panel(
     location_id: uuid.UUID | None = None,
     **metadata: Any,
 ) -> Panel:
+    await ensure_owned_refs(
+        session, company_id=company_id, values={"location_id": location_id, **metadata}
+    )
     # Quick-create: derive a unique tag from the name and a unique serial when omitted.
     if not tag:
         tag = await _unique_tag(session, company_id=company_id, base=_slug_tag(name))
@@ -102,7 +106,8 @@ async def update_metadata(
     panel = await repo.get(panel_id)
     if panel is None:
         raise NotFound("panel not found")
-    forbidden = {"id", "company_id", "qr_token", "created_at"}
+    forbidden = {"id", "company_id", "qr_token", "created_at", "active_revision_id"}
+    await ensure_owned_refs(session, company_id=company_id, values=changes)
 
     applied: dict[str, Any] = {}
     for k, v in changes.items():

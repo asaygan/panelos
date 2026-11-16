@@ -14,7 +14,12 @@ from panelos_api.core.exceptions import Forbidden, Unauthorized
 from panelos_api.core.rbac import Permission, Role, has_permission
 from panelos_api.core.security import verify_token
 from panelos_api.db.models.user import User
-from panelos_api.db.session import get_sessionmaker, set_tenant_guc
+from panelos_api.db.session import (
+    enter_system_scope,
+    get_sessionmaker,
+    mark_request_session,
+    set_tenant_guc,
+)
 from panelos_api.repositories.membership_repo import MembershipRepo
 from panelos_api.storage.factory import get_storage as _build_storage
 
@@ -48,12 +53,26 @@ async def get_db() -> AsyncIterator[AsyncSession]:
 
     sm = get_sessionmaker()
     async with sm() as session:
+        # Deny-by-default RLS context; narrowed to a tenant by
+        # get_current_membership or widened by get_system_db.
+        mark_request_session(session, role=get_settings().DB_APP_ROLE)
         try:
             yield session
             await session.commit()
         except Exception:
             await session.rollback()
             raise
+
+
+async def get_system_db(db: AsyncSession = Depends(get_db)) -> AsyncSession:
+    """Request session allowed to look across tenants.
+
+    For the few endpoints that must find a row before any tenant is known:
+    auth (login / refresh / invite accept / bootstrap) and public QR resolve.
+    """
+
+    await enter_system_scope(db)
+    return db
 
 
 async def get_current_user(
@@ -110,28 +129,28 @@ async def get_current_membership(
 ) -> CurrentMembership:
     """Resolve the active membership (company) from ``X-Company-Id`` or sole membership."""
 
+    # Which companies the user belongs to is itself a cross-tenant question.
+    await enter_system_scope(db)
     repo = MembershipRepo(db)
-    memberships: list[Membership] = await repo.for_user(user.id)
+    # Only ACTIVE memberships grant access. "invited" (not yet accepted) and
+    # "suspended" rows exist in the table but must never authorize a request.
+    memberships: list[Membership] = [
+        mm for mm in await repo.for_user(user.id) if mm.status == "active"
+    ]
     if not memberships:
-        raise Forbidden("no company membership")
+        raise Forbidden("no active company membership")
 
     if x_company_id:
-        cid = uuid.UUID(x_company_id)
+        try:
+            cid = uuid.UUID(x_company_id)
+        except ValueError as exc:
+            raise Forbidden("invalid X-Company-Id") from exc
         m = next((m for m in memberships if m.company_id == cid), None)
         if m is None:
             raise Forbidden("not a member of this company")
-    elif len(memberships) == 1:
-        m = memberships[0]
     else:
-        # Multi-membership user without an explicit X-Company-Id: fall back to a
-        # deterministic default (first *active* membership ordered by created_at)
-        # instead of hard-403ing the request.
-        active = sorted(
-            (mm for mm in memberships if mm.status == "active"),
-            key=lambda mm: mm.created_at,
-        )
-        candidates = active or sorted(memberships, key=lambda mm: mm.created_at)
-        m = candidates[0]
+        # No explicit company: deterministic default = oldest active membership.
+        m = sorted(memberships, key=lambda mm: mm.created_at)[0]
 
     await set_tenant_guc(db, m.company_id)
     return CurrentMembership(user=user, company_id=m.company_id, role=m.role)

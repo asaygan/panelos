@@ -115,7 +115,7 @@ async def queue(
         "review": [RevisionStatus.REVIEW],
         "all": [RevisionStatus.DRAFT, RevisionStatus.REVIEW],
     }.get(filter_, [RevisionStatus.DRAFT, RevisionStatus.REVIEW])
-    rows = await RevisionRepo(db).queue(statuses=statuses)
+    rows = await RevisionRepo(db).queue(company_id=m.company_id, statuses=statuses)
     return [RevisionOut.model_validate(r) for r in rows]
 
 
@@ -125,7 +125,7 @@ async def get_revision(
     m: CurrentMembership = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> RevisionOut:
-    rev = await RevisionRepo(db).get(revision_id)
+    rev = await RevisionRepo(db).get_in_company(revision_id, m.company_id)
     if rev is None:
         raise NotFound("revision not found")
     return RevisionOut.model_validate(rev)

@@ -28,6 +28,21 @@ ALLOWED: dict[Action, set[RevisionStatus]] = {
 }
 
 
+EDITABLE: frozenset[RevisionStatus] = frozenset({RevisionStatus.DRAFT})
+
+
+def ensure_editable(rev: PanelRevision) -> None:
+    """Sheets and BOM rows may only change while the revision is a draft.
+
+    Once a revision is in review, approved, rejected or superseded it is a
+    controlled record: mutating it would silently change what field staff see
+    behind an already-approved QR code.
+    """
+
+    if rev.status not in EDITABLE:
+        raise Conflict(f"revision is {rev.status.value}; only draft revisions can be edited")
+
+
 def _next_letter(prev: str | None) -> str:
     if not prev:
         return "A"

@@ -49,6 +49,14 @@ class S3Storage:
             byte_size=int(head.get("ContentLength", 0)),
         )
 
+    async def get_bytes(self, key: str, limit: int | None = None) -> bytes:
+        """Return the object's bytes (or just the first ``limit`` bytes)."""
+        params: dict[str, Any] = {"Bucket": self.bucket, "Key": key}
+        if limit is not None:
+            params["Range"] = f"bytes=0-{max(limit, 1) - 1}"
+        body: bytes = self._client.get_object(**params)["Body"].read()
+        return body
+
     async def delete(self, key: str) -> None:
         self._client.delete_object(Bucket=self.bucket, Key=key)
 

@@ -21,6 +21,7 @@ from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision
 from panelos_api.deps import CurrentMembership, get_current_membership, get_db, require_permission
 from panelos_api.repositories.component_repo import ComponentRepo
+from panelos_api.services import revision_service
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,13 +43,23 @@ async def _revision_in_company(
     return rev
 
 
+async def _editable_revision(
+    db: AsyncSession, revision_id: uuid.UUID, company_id: uuid.UUID
+) -> PanelRevision:
+    """Owned revision that is still a draft (BOM rows are frozen after that)."""
+    rev = await _revision_in_company(db, revision_id, company_id)
+    revision_service.ensure_editable(rev)
+    return rev
+
+
 async def _component_in_company(
     db: AsyncSession, component_id: uuid.UUID, company_id: uuid.UUID
 ) -> Component:
+    """Owned component whose revision is still editable (used by writes only)."""
     comp = await db.get(Component, component_id)
     if comp is None:
         raise NotFound("component not found")
-    await _revision_in_company(db, comp.revision_id, company_id)
+    await _editable_revision(db, comp.revision_id, company_id)
     return comp
 
 
@@ -89,7 +100,7 @@ async def add_component(
     m: CurrentMembership = Depends(require_permission(Permission.CREATE_REVISION)),
     db: AsyncSession = Depends(get_db),
 ) -> ComponentOut:
-    await _revision_in_company(db, revision_id, m.company_id)
+    await _editable_revision(db, revision_id, m.company_id)
     comp = await ComponentRepo(db).create(revision_id=revision_id, **payload.model_dump())
     return ComponentOut.model_validate(comp)
 
@@ -130,7 +141,7 @@ async def import_components(
     """Bulk-import BOM rows from a CSV with columns:
     ``slot,ref,description,part_number,rating,type,status`` (status optional → "ok").
     """
-    await _revision_in_company(db, revision_id, m.company_id)
+    await _editable_revision(db, revision_id, m.company_id)
     raw = await file.read()
     rows = parse_components_csv(raw, revision_id)
     if not rows:

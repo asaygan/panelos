@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
 from panelos_api.repositories.base import BaseRepo
 
@@ -38,13 +39,26 @@ class RevisionRepo(BaseRepo[PanelRevision]):
         ).scalar_one_or_none()
         return int(row or 0)
 
+    async def get_in_company(
+        self, revision_id: uuid.UUID, company_id: uuid.UUID
+    ) -> PanelRevision | None:
+        """Load a revision only if its parent panel belongs to ``company_id``."""
+        return (
+            await self.session.execute(
+                select(PanelRevision)
+                .join(Panel, Panel.id == PanelRevision.panel_id)
+                .where(PanelRevision.id == revision_id, Panel.company_id == company_id)
+            )
+        ).scalar_one_or_none()
+
     async def queue(
-        self, *, statuses: list[RevisionStatus], limit: int = 100
+        self, *, company_id: uuid.UUID, statuses: list[RevisionStatus], limit: int = 100
     ) -> list[PanelRevision]:
         rows = (
             await self.session.execute(
                 select(PanelRevision)
-                .where(PanelRevision.status.in_(statuses))
+                .join(Panel, Panel.id == PanelRevision.panel_id)
+                .where(Panel.company_id == company_id, PanelRevision.status.in_(statuses))
                 .order_by(PanelRevision.created_at.desc())
                 .limit(limit)
             )

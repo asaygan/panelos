@@ -9,6 +9,8 @@ from typing import Literal
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_DEFAULT_JWT_SECRET = "change-me-in-prod"
+
 
 class Settings(BaseSettings):
     """Runtime configuration sourced from env."""
@@ -37,6 +39,9 @@ class Settings(BaseSettings):
     DB_NAME: str = "postgres"
     DB_USER: str = "postgres"
     DB_PASSWORD: str | None = None
+    # Non-owner role the API assumes per transaction so Postgres RLS is
+    # enforced (see migration 0010). Unset = run as the connecting role.
+    DB_APP_ROLE: str | None = None
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
@@ -45,10 +50,17 @@ class Settings(BaseSettings):
     RATE_LIMIT_ENABLED: bool = True
 
     # Auth
-    JWT_SECRET: str = "change-me-in-prod"
+    JWT_SECRET: str = _DEFAULT_JWT_SECRET
     JWT_ALGORITHM: Literal["HS256", "RS256"] = "HS256"
     ACCESS_TOKEN_TTL_MINUTES: int = 15
     REFRESH_TOKEN_TTL_DAYS: int = 7
+
+    # One-time tenant bootstrap (POST /auth/bootstrap). OFF by default: enable
+    # only for the first deploy of an empty database, then turn it back off.
+    BOOTSTRAP_ENABLED: bool = False
+
+    # Uploads
+    MAX_UPLOAD_BYTES: int = 100 * 1024 * 1024  # 100 MB per schematic PDF
 
     # Storage
     STORAGE_PROVIDER: Literal["local", "s3", "supabase", "azure"] = "local"
@@ -126,6 +138,10 @@ def get_settings() -> Settings:
     """
 
     s = Settings()
+    if s.APP_ENV in ("production", "staging") and s.JWT_SECRET == _DEFAULT_JWT_SECRET:
+        # Booting prod with the public default secret would let anyone forge
+        # tokens for any user. Refuse to start instead.
+        raise RuntimeError(f"JWT_SECRET must be set when APP_ENV={s.APP_ENV}")
     if s.DB_HOST and s.DB_PASSWORD:
         from urllib.parse import quote_plus
 

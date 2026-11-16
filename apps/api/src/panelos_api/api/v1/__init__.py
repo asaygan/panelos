@@ -18,7 +18,6 @@ from panelos_api.api.v1.routers import (
     revisions,
     search,
     users,
-    webhooks,
 )
 
 api_v1_router = APIRouter(prefix="/api/v1")
@@ -39,6 +38,5 @@ api_v1_router.include_router(qr.router)
 api_v1_router.include_router(labels.router)
 api_v1_router.include_router(label_templates.router)
 api_v1_router.include_router(search.router)
-api_v1_router.include_router(webhooks.router)
 
 __all__ = ["api_v1_router"]

@@ -86,13 +86,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    # Interactive docs + schema are a free map of the API for an attacker; keep
+    # them for dev/test/staging only.
+    public_docs = settings.APP_ENV != "production"
     app = FastAPI(
         title="PanelOS API",
         version=__version__,
         lifespan=lifespan,
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json",
+        docs_url="/docs" if public_docs else None,
+        redoc_url="/redoc" if public_docs else None,
+        openapi_url="/openapi.json" if public_docs else None,
     )
     app.add_middleware(RequestIdMiddleware)
     app.add_middleware(

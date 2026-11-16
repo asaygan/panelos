@@ -37,6 +37,13 @@ python_version = "3.12"
 strict = true
 plugins = ["pydantic.mypy"]
 exclude = ["migrations/"]
+# Third-party libs without stubs return Any; don't fail the build on that.
+warn_return_any = false
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = ["nanoid.*", "uuid7.*", "jose.*", "passlib.*", "slowapi.*", "limits.*", "boto3.*", "botocore.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

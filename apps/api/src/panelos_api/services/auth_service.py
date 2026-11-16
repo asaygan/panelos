@@ -151,8 +151,8 @@ async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenP
 
     user_id = uuid.UUID(str(claims["sub"]))
     user = await session.get(User, user_id)
-    if user is None:
-        raise Unauthorized("user no longer exists")
+    if user is None or not user.is_active:
+        raise Unauthorized("user no longer exists or is disabled")
 
     new_access = issue_token(subject=str(user.id), token_type="access")
     new_refresh = issue_token(subject=str(user.id), token_type="refresh")

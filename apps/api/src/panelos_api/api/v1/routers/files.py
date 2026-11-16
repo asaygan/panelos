@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import re
 import uuid
 from typing import TYPE_CHECKING
 
@@ -18,7 +19,7 @@ from panelos_api.api.v1.schemas.file import (
     UpdateSheetIn,
 )
 from panelos_api.config import Settings, get_settings
-from panelos_api.core.exceptions import NotFound
+from panelos_api.core.exceptions import NotFound, ValidationFailed
 from panelos_api.core.rbac import Permission
 from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision
@@ -31,7 +32,7 @@ from panelos_api.deps import (
     get_storage,
     require_permission,
 )
-from panelos_api.services import file_service
+from panelos_api.services import file_service, revision_service
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +41,27 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/files", tags=["files"])
 
+# Content types a tenant may upload: schematic PDFs and logo images.
+ALLOWED_UPLOAD_TYPES: dict[str, tuple[bytes, ...]] = {
+    "application/pdf": (b"%PDF-",),
+    "image/png": (b"\x89PNG\r\n\x1a\n",),
+    "image/jpeg": (b"\xff\xd8\xff",),
+    "image/svg+xml": (b"<svg", b"<?xml"),
+    "image/webp": (b"RIFF",),
+}
+_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def _safe_filename(name: str) -> str:
+    """Reduce a client-supplied filename to a safe storage key segment."""
+    base = name.replace("\\", "/").rsplit("/", 1)[-1]
+    base = re.sub(r"[^A-Za-z0-9._-]+", "_", base).strip("._")
+    return (base or "upload")[:120]
+
+
+def _company_prefix(company_id: uuid.UUID) -> str:
+    return f"uploads/{company_id}/"
+
 
 @router.post("/presign", response_model=PresignResponse)
 async def presign(
@@ -47,7 +69,9 @@ async def presign(
     m: CurrentMembership = Depends(require_permission(Permission.UPLOAD_PDF)),
     storage: StorageProvider = Depends(get_storage),
 ) -> PresignResponse:
-    key = f"uploads/{m.company_id}/{uuid.uuid4()}/{payload.filename}"
+    if payload.content_type not in ALLOWED_UPLOAD_TYPES:
+        raise ValidationFailed(f"unsupported content type: {payload.content_type}")
+    key = f"{_company_prefix(m.company_id)}{uuid.uuid4()}/{_safe_filename(payload.filename)}"
     up = await storage.presign_put(key, payload.content_type)
     return PresignResponse(
         url=up.url, key=up.key, method=up.method, headers=up.headers, expires_in=up.expires_in
@@ -62,15 +86,44 @@ async def finalize(
     storage: StorageProvider = Depends(get_storage),
     settings: Settings = Depends(get_settings),
 ) -> FileOut:
+    # The key must be one this company was handed by /presign: otherwise a
+    # caller could register (and then download) another tenant's object.
+    if not payload.key.startswith(_company_prefix(m.company_id)) or ".." in payload.key:
+        raise NotFound("upload not found")
     obj = await storage.get(payload.key)
+    if obj.byte_size <= 0:
+        raise ValidationFailed("uploaded file is empty")
+    if obj.byte_size > settings.MAX_UPLOAD_BYTES:
+        await storage.delete(payload.key)
+        raise ValidationFailed(
+            f"file too large (max {settings.MAX_UPLOAD_BYTES // (1024 * 1024)} MB)"
+        )
+    # Never trust the declared type: sniff the first bytes of what actually
+    # landed in storage and record the detected type.
+    mime = payload.content_type
+    get_bytes = getattr(storage, "get_bytes", None)
+    if get_bytes is not None:
+        head = (await get_bytes(payload.key, 16)).lstrip()
+        detected = next(
+            (ct for ct, sigs in ALLOWED_UPLOAD_TYPES.items() if head.startswith(sigs)), None
+        )
+        if detected is None:
+            await storage.delete(payload.key)
+            raise ValidationFailed("unsupported file: only PDF and PNG/JPEG/SVG/WebP are allowed")
+        mime = detected
+    elif mime not in ALLOWED_UPLOAD_TYPES:
+        raise ValidationFailed(f"unsupported content type: {mime}")
+    client_sha = (payload.sha256 or "").lower()
+    if client_sha and not _SHA256_RE.match(client_sha):
+        raise ValidationFailed("sha256 must be 64 hex characters")
     record = PdfFile(
         company_id=m.company_id,
         storage_provider=settings.STORAGE_PROVIDER,
         storage_key=payload.key,
-        sha256=payload.sha256 or obj.sha256 or "",
+        sha256=obj.sha256 or client_sha,
         byte_size=obj.byte_size,
-        mime=payload.content_type,
-        original_filename=payload.original_filename,
+        mime=mime,
+        original_filename=_safe_filename(payload.original_filename),
     )
     db.add(record)
     await db.flush()
@@ -164,6 +217,18 @@ async def attach_sheet(
     m: CurrentMembership = Depends(require_permission(Permission.UPLOAD_PDF)),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
+    # Every id in this call must belong to the caller's company AND to each
+    # other: revision -> panel in the path -> company; file -> company.
+    panel = await db.get(Panel, panel_id)
+    if panel is None or panel.company_id != m.company_id:
+        raise NotFound("panel not found")
+    rev = await db.get(PanelRevision, revision_id)
+    if rev is None or rev.panel_id != panel.id:
+        raise NotFound("revision not found")
+    pdf = await db.get(PdfFile, payload.file_id)
+    if pdf is None or pdf.company_id != m.company_id:
+        raise NotFound("file not found")
+    revision_service.ensure_editable(rev)
     rf = await file_service.attach_to_revision(
         db,
         revision_id=revision_id,
@@ -178,14 +243,19 @@ async def attach_sheet(
 async def _load_owned_sheet(
     db: AsyncSession, company_id: uuid.UUID, sheet_id: uuid.UUID
 ) -> RevisionFile:
-    """Load a sheet (revision_file) and verify it belongs to the caller's company."""
+    """Load an editable sheet (revision_file) owned by the caller's company.
+
+    Raises 404 for another tenant's sheet and 409 when the parent revision is
+    no longer a draft.
+    """
     rf = await db.get(RevisionFile, sheet_id)
     if rf is None:
         raise NotFound("sheet not found")
     rev = await db.get(PanelRevision, rf.revision_id)
     panel = await db.get(Panel, rev.panel_id) if rev else None
-    if panel is None or panel.company_id != company_id:
+    if rev is None or panel is None or panel.company_id != company_id:
         raise NotFound("sheet not found")
+    revision_service.ensure_editable(rev)
     return rf
 
 

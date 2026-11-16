@@ -20,8 +20,8 @@ from panelos_api.api.v1.schemas.auth import (
 )
 from panelos_api.config import get_settings
 from panelos_api.core.exceptions import Unauthorized
-from panelos_api.core.rate_limit import auth_limiter
-from panelos_api.deps import CurrentUser, get_current_user, get_db
+from panelos_api.core.rate_limit import auth_limiter, enforce
+from panelos_api.deps import CurrentUser, get_current_user, get_system_db
 from panelos_api.repositories.membership_repo import MembershipRepo
 from panelos_api.services import auth_service
 
@@ -66,20 +66,29 @@ def _set_auth_cookies(response: Response, tokens: TokenPair) -> None:
 
 
 @router.post("/bootstrap", response_model=TokenOut)
+@auth_limiter.limit("5/minute")
 async def bootstrap(
-    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_db)
+    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_system_db)
 ) -> TokenOut:
     """One-time tenant bootstrap.
 
     Creates the initial company + Owner user when the database has no users.
-    Subsequent calls fail with 409, so it is safe to leave deployed. Reuses
+    Gated behind ``BOOTSTRAP_ENABLED`` (off by default) and rate limited; once a
+    user exists every call fails with 409. Reuses
     LoginIn (email + password) — the company name is derived from the email
     domain.
     """
-    from sqlalchemy import select
+    from sqlalchemy import select, text
 
+    from panelos_api.core.exceptions import NotFound
     from panelos_api.db.models.user import User
 
+    if not get_settings().BOOTSTRAP_ENABLED:
+        # Indistinguishable from an unknown route unless explicitly enabled.
+        raise NotFound("not found")
+
+    # Serialize concurrent bootstraps so two callers can't both see "no users".
+    await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('panelos.bootstrap'))"))
     has_user = (await db.execute(select(User.id).limit(1))).scalar_one_or_none()
     if has_user is not None:
         from panelos_api.core.exceptions import Conflict
@@ -88,7 +97,7 @@ async def bootstrap(
 
     email = str(payload.email).lower()
     domain = email.split("@", 1)[1].split(".", 1)[0]
-    company, _user, _m = await auth_service.signup_company_owner(
+    _company, _user, _m = await auth_service.signup_company_owner(
         db,
         company_name=domain.title(),
         company_slug=domain.lower(),
@@ -104,10 +113,12 @@ async def bootstrap(
 
 
 @router.post("/login", response_model=TokenOut)
-@auth_limiter.limit("10/minute")
+@auth_limiter.limit("120/minute")
 async def login(
-    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_db)
+    request: Request, payload: LoginIn, db: AsyncSession = Depends(get_system_db)
 ) -> TokenOut:
+    # Brute-force guard keyed by the account under attack (see core/rate_limit).
+    enforce("login", str(payload.email).lower(), "10/minute")
     _, tokens = await auth_service.login(
         db,
         email=str(payload.email),
@@ -125,7 +136,7 @@ async def refresh(
     response: Response,
     payload: RefreshIn | None = None,
     panelos_refresh: str | None = Cookie(default=None),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_system_db),
 ) -> TokenOut:
     # Body token (mobile/explicit) takes precedence; browsers rely on the cookie.
     token = (payload.refresh_token if payload else None) or panelos_refresh
@@ -137,7 +148,7 @@ async def refresh(
 
 
 @router.get("/invitations/{token}", response_model=InvitationInfoOut)
-async def get_invitation(token: str, db: AsyncSession = Depends(get_db)) -> InvitationInfoOut:
+async def get_invitation(token: str, db: AsyncSession = Depends(get_system_db)) -> InvitationInfoOut:
     """Public: resolve an invitation token for the accept page."""
     info = await auth_service.get_invitation(db, token=token)
     return InvitationInfoOut(
@@ -152,7 +163,7 @@ async def get_invitation(token: str, db: AsyncSession = Depends(get_db)) -> Invi
 @router.post("/accept-invite", response_model=TokenOut)
 @auth_limiter.limit("10/minute")
 async def accept_invite(
-    request: Request, payload: AcceptInviteIn, db: AsyncSession = Depends(get_db)
+    request: Request, payload: AcceptInviteIn, db: AsyncSession = Depends(get_system_db)
 ) -> TokenOut:
     """Public: set password + activate membership from an invite token (auto-login)."""
     _, _, tokens = await auth_service.accept_invite(
@@ -166,7 +177,7 @@ async def logout(
     response: Response,
     payload: LogoutIn | None = None,
     panelos_refresh: str | None = Cookie(default=None),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_system_db),
 ) -> dict[str, bool]:
     token = (payload.refresh_token if payload else None) or panelos_refresh
     if token:
@@ -180,7 +191,7 @@ async def logout(
 @router.get("/me", response_model=MeOut)
 async def me(
     user: CurrentUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_system_db),
 ) -> MeOut:
     memberships = await MembershipRepo(db).for_user(user.id)
     return MeOut(
@@ -194,7 +205,7 @@ async def me(
 @router.post("/mfa/setup", response_model=MfaSetupOut)
 async def mfa_setup(
     user: CurrentUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_system_db),
 ) -> MfaSetupOut:
     from panelos_api.db.models.user import User
 
@@ -212,7 +223,7 @@ async def mfa_setup(
 async def mfa_verify(
     payload: MfaVerifyIn,
     user: CurrentUser = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_system_db),
 ) -> dict[str, bool]:
     from panelos_api.db.models.user import User
 

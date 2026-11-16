@@ -26,31 +26,37 @@ class DomainError(Exception):
 class NotFound(DomainError):
     status_code = 404
     title = "Not Found"
-    type_uri = "https://panelos.app/errors/not-found"
+    type_uri = "https://panelos.io/errors/not-found"
 
 
 class Forbidden(DomainError):
     status_code = 403
     title = "Forbidden"
-    type_uri = "https://panelos.app/errors/forbidden"
+    type_uri = "https://panelos.io/errors/forbidden"
 
 
 class Unauthorized(DomainError):
     status_code = 401
     title = "Unauthorized"
-    type_uri = "https://panelos.app/errors/unauthorized"
+    type_uri = "https://panelos.io/errors/unauthorized"
 
 
 class Conflict(DomainError):
     status_code = 409
     title = "Conflict"
-    type_uri = "https://panelos.app/errors/conflict"
+    type_uri = "https://panelos.io/errors/conflict"
+
+
+class TooManyRequests(DomainError):
+    status_code = 429
+    title = "Too Many Requests"
+    type_uri = "https://panelos.io/errors/rate-limited"
 
 
 class ValidationFailed(DomainError):
     status_code = 422
     title = "Validation Failed"
-    type_uri = "https://panelos.app/errors/validation"
+    type_uri = "https://panelos.io/errors/validation"
 
 
 async def domain_error_handler(_: Request, exc: Exception) -> JSONResponse:

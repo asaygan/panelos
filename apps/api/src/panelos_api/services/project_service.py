@@ -14,6 +14,7 @@ from panelos_api.db.models.audit_log import AuditAction
 from panelos_api.db.models.lifecycle import LifecycleStatus
 from panelos_api.db.models.project import Project
 from panelos_api.db.models.project_status_history import ProjectStatusHistory
+from panelos_api.services.tenant_refs import ensure_owned_refs
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,6 +44,9 @@ async def create_project(
     location_id: uuid.UUID | None = None,
     lifecycle_status: LifecycleStatus = LifecycleStatus.DRAFT,
 ) -> Project:
+    await ensure_owned_refs(
+        session, company_id=company_id, values={"location_id": location_id}
+    )
     project = Project(
         company_id=company_id,
         name=name,
@@ -88,6 +92,7 @@ async def update_project(
 ) -> Project:
     project = await _get(session, company_id=company_id, project_id=project_id)
     forbidden = {"id", "company_id", "created_at"}
+    await ensure_owned_refs(session, company_id=company_id, values=changes)
 
     prev_status: LifecycleStatus = project.lifecycle_status
     status_change: tuple[LifecycleStatus, LifecycleStatus] | None = None

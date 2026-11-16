@@ -30,7 +30,7 @@ def configure_logging(level: str = "info", json_output: bool = True) -> None:
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
         structlog.processors.TimeStamper(fmt="iso"),
-        _add_request_id,
+        _add_request_id,  # type: ignore[list-item]
     ]
     if json_output:
         processors.append(structlog.processors.JSONRenderer())

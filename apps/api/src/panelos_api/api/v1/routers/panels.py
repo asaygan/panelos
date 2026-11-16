@@ -115,6 +115,15 @@ async def panel_sheets(
     if panel is None:
         raise NotFound("panel not found")
     if revision_id is not None:
+        owned = (
+            await db.execute(
+                select(PanelRevision.id).where(
+                    PanelRevision.id == revision_id, PanelRevision.panel_id == panel.id
+                )
+            )
+        ).scalar_one_or_none()
+        if owned is None:
+            raise NotFound("revision not found")
         rev_id: uuid.UUID | None = revision_id
     else:
         latest_rev_id = (

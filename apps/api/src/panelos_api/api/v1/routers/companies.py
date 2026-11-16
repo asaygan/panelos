@@ -15,7 +15,7 @@ from panelos_api.api.v1.schemas.company import (
     LocationOut,
     LocationUpdateIn,
 )
-from panelos_api.core.exceptions import NotFound
+from panelos_api.core.exceptions import NotFound, ValidationFailed
 from panelos_api.core.rbac import Permission
 from panelos_api.db.models.company import Company
 from panelos_api.db.models.location import Location
@@ -47,7 +47,13 @@ async def update_company(
     company = await db.get(Company, m.company_id)
     if company is None:
         raise NotFound("company not found")
-    for k, v in payload.model_dump(exclude_unset=True).items():
+    changes = payload.model_dump(exclude_unset=True)
+    logo_key = changes.get("logo_key")
+    # The label renderer reads this key straight from storage, so it must be an
+    # object this company uploaded — never an arbitrary (other tenant's) key.
+    if logo_key and (not logo_key.startswith(f"uploads/{m.company_id}/") or ".." in logo_key):
+        raise ValidationFailed("logo_key must reference a file uploaded by this company")
+    for k, v in changes.items():
         setattr(company, k, v)
     await db.flush()
     return CompanyOut.model_validate(company)

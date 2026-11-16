@@ -63,14 +63,17 @@ class LocalStorage:
             url=f"{self.public_base_url}/serve/{key}",
         )
 
-    async def get_bytes(self, key: str) -> bytes:
-        """Return the raw stored bytes (local-only helper for the serve route)."""
+    async def get_bytes(self, key: str, limit: int | None = None) -> bytes:
+        """Return the raw stored bytes (or just the first ``limit`` bytes)."""
         p = self._path(key)
         if not p.exists():
             from panelos_api.core.exceptions import NotFound
 
             raise NotFound(f"object {key} not found")
-        return p.read_bytes()
+        if limit is None:
+            return p.read_bytes()
+        with p.open("rb") as f:
+            return f.read(limit)
 
     async def delete(self, key: str) -> None:
         p = self._path(key)
