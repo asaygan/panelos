@@ -11,6 +11,7 @@ from sqlalchemy import select
 from panelos_api.config import get_settings
 from panelos_api.core.exceptions import NotFound
 from panelos_api.db.models.company import Company
+from panelos_api.db.models.location import Location
 from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision, RevisionStatus
 from panelos_api.db.models.scan_event import ScanEvent
@@ -92,6 +93,11 @@ async def resolve_token(
     session.add(scan)
     await session.flush()
 
+    location_name: str | None = None
+    if panel.location_id is not None:
+        loc = await session.get(Location, panel.location_id)
+        location_name = loc.name if loc else None
+
     if restricted:
         return {
             "panel_id": str(panel.id),
@@ -99,6 +105,8 @@ async def resolve_token(
             "name": "",
             "serial": "",
             "company_id": str(panel.company_id),
+            "company_name": company.name if company else "",
+            "is_member": False,
             "active_revision": None,
             "restricted": True,
             "message": "Sign in with your organization to view this panel.",
@@ -110,6 +118,9 @@ async def resolve_token(
         "name": panel.name,
         "serial": panel.serial,
         "company_id": str(panel.company_id),
+        "company_name": company.name if company else "",
+        "is_member": is_member,
+        "location": location_name,
         "active_revision": {
             "id": str(active_rev.id),
             "letter": active_rev.revision_letter,

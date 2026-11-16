@@ -2137,6 +2137,18 @@ export interface components {
             } | null;
             /** Company Id */
             company_id: string;
+            /**
+             * Company Name
+             * @default
+             */
+            company_name: string;
+            /**
+             * Is Member
+             * @default false
+             */
+            is_member: boolean;
+            /** Location */
+            location?: string | null;
             /** Name */
             name: string;
             /** Panel Id */
@@ -3736,6 +3748,7 @@ export interface operations {
             query?: {
                 location_id?: string | null;
                 q?: string | null;
+                include_archived?: boolean;
                 cursor?: string | null;
                 limit?: number;
             };

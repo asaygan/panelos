@@ -9,7 +9,7 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import pyotp
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 
 from panelos_api.config import get_settings
 from panelos_api.core.audit import append_audit
@@ -143,6 +143,19 @@ async def login(
     return user, TokenPair(access_token=access, refresh_token=refresh)
 
 
+REFRESH_REUSE_GRACE = timedelta(seconds=20)
+
+
+async def _revoke_family(session: AsyncSession, family_id: uuid.UUID, now: datetime) -> None:
+    """Hard-revoke every refresh token of a login chain (no rotation grace)."""
+
+    await session.execute(
+        update(UserSession)
+        .where(UserSession.family_id == family_id)
+        .values(revoked_at=func.coalesce(UserSession.revoked_at, now), rotated_at=None)
+    )
+
+
 async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenPair:
     """Rotate a refresh token (one-time-use)."""
 
@@ -151,9 +164,27 @@ async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenP
     sess = (
         await session.execute(select(UserSession).where(UserSession.token_hash == th))
     ).scalar_one_or_none()
-    if sess is None or sess.revoked_at is not None:
+    now = datetime.now(UTC)
+    if sess is None:
         raise Unauthorized("refresh token revoked or unknown")
-    sess.revoked_at = datetime.now(UTC)
+    if sess.revoked_at is not None:
+        # Rotation is one-time-use, but a browser routinely fires several
+        # requests at once when its access token has just expired, and all of
+        # them present the same refresh token. Accept a token that was just
+        # *rotated* (never one that was logged out) for a few seconds so the
+        # losers of that race aren't signed out.
+        in_grace = sess.rotated_at is not None and now - sess.rotated_at <= REFRESH_REUSE_GRACE
+        if not in_grace:
+            if sess.rotated_at is not None:
+                # A rotated token replayed later means it leaked: kill the family.
+                await _revoke_family(session, sess.family_id, now)
+                # Persist before raising: the request's transaction is rolled
+                # back on error, which would silently undo the revocation.
+                await session.commit()
+            raise Unauthorized("refresh token revoked or unknown")
+    else:
+        sess.revoked_at = now
+        sess.rotated_at = now
 
     user_id = uuid.UUID(str(claims["sub"]))
     user = await session.get(User, user_id)
@@ -168,6 +199,7 @@ async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenP
             user_id=user.id,
             token_hash=_hash_refresh(new_refresh),
             device=sess.device,
+            family_id=sess.family_id,
             expires_at=datetime.now(UTC) + timedelta(days=settings.REFRESH_TOKEN_TTL_DAYS),
         )
     )
@@ -176,15 +208,18 @@ async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenP
 
 
 async def logout(session: AsyncSession, *, refresh_token: str) -> None:
-    """Revoke the refresh token."""
+    """Sign out: revoke the refresh token and every token of the same login."""
 
     th = _hash_refresh(refresh_token)
     sess = (
         await session.execute(select(UserSession).where(UserSession.token_hash == th))
     ).scalar_one_or_none()
-    if sess is not None and sess.revoked_at is None:
-        sess.revoked_at = datetime.now(UTC)
+    if sess is not None:
+        was_active = sess.revoked_at is None
+        await _revoke_family(session, sess.family_id, datetime.now(UTC))
         await session.flush()
+        if not was_active:
+            return
         membership = (
             await session.execute(
                 select(Membership).where(Membership.user_id == sess.user_id).limit(1)

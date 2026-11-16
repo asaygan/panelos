@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import or_, select
 
 from panelos_api.db.models.panel import Panel
+from panelos_api.db.models.project import Project
+from panelos_api.db.models.system_group import SystemGroup
 from panelos_api.repositories.base import BaseRepo
 
 if TYPE_CHECKING:
@@ -25,13 +27,24 @@ class PanelRepo(BaseRepo[Panel]):
         self,
         *,
         location_id: uuid.UUID | None = None,
-        status: str | None = None,  # ignored after migration 0009 (kept for sig stability)
         q: str | None = None,
+        include_archived: bool = False,
         limit: int = 100,
         cursor: uuid.UUID | None = None,
     ) -> list[Panel]:
-        del status  # Panel no longer carries lifecycle status (lives on Project/Group).
         stmt = self._scope(select(Panel))
+        if not include_archived:
+            # Same visibility as the tree: hide archived panels and everything
+            # that lives under an archived project.
+            archived_groups = (
+                select(SystemGroup.id)
+                .join(Project, Project.id == SystemGroup.project_id)
+                .where(Project.archived_at.is_not(None))
+            )
+            stmt = stmt.where(
+                Panel.archived_at.is_(None),
+                or_(Panel.system_group_id.is_(None), Panel.system_group_id.not_in(archived_groups)),
+            )
         if location_id is not None:
             stmt = stmt.where(Panel.location_id == location_id)
         if q:

@@ -30,6 +30,7 @@ router = APIRouter(prefix="/panels", tags=["panels"])
 async def list_panels(
     location_id: uuid.UUID | None = Query(default=None),
     q: str | None = Query(default=None),
+    include_archived: bool = Query(default=False),
     cursor: uuid.UUID | None = Query(default=None),
     limit: int = Query(default=50, le=200),
     m: CurrentMembership = Depends(get_current_membership),
@@ -37,7 +38,11 @@ async def list_panels(
 ) -> Page[PanelOut]:
     repo = PanelRepo(db, m.company_id)
     rows = await repo.list_filtered(
-        location_id=location_id, status=None, q=q, cursor=cursor, limit=limit
+        location_id=location_id,
+        q=q,
+        include_archived=include_archived,
+        cursor=cursor,
+        limit=limit,
     )
     next_cursor = str(rows[-1].id) if len(rows) == limit else None
     return Page[PanelOut](items=[PanelOut.model_validate(p) for p in rows], next_cursor=next_cursor)

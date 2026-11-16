@@ -10,6 +10,64 @@ import pytest
 API = "/api/v1"
 
 
+async def _expire_rotation_grace() -> None:
+    from sqlalchemy import text
+
+    from panelos_api.db.session import get_sessionmaker
+
+    sm = get_sessionmaker()
+    async with sm() as session:
+        await session.execute(
+            text(
+                "UPDATE sessions SET rotated_at = rotated_at - interval '5 minutes' "
+                "WHERE rotated_at IS NOT NULL"
+            )
+        )
+        await session.commit()
+
+
+@pytest.mark.asyncio
+async def test_refresh_rotation_grace_and_reuse_detection(app_client, seed_owner) -> None:  # type: ignore[no-untyped-def]
+    r = await app_client.post(
+        f"{API}/auth/login",
+        json={"email": seed_owner["email"], "password": seed_owner["password"]},
+    )
+    first = r.json()["refresh_token"]
+
+    # Two parallel requests presenting the same just-expired session both succeed.
+    a = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": first})
+    b = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": first})
+    assert a.status_code == 200 and b.status_code == 200, (a.text, b.text)
+    second = a.json()["refresh_token"]
+
+    # Replaying the rotated token after the grace window = stolen token:
+    # rejected, and the whole login chain is revoked with it.
+    await _expire_rotation_grace()
+    r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": first})
+    assert r.status_code == 401, r.text
+    for token in (second, b.json()["refresh_token"]):
+        r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": token})
+        assert r.status_code == 401, r.text
+
+
+@pytest.mark.asyncio
+async def test_logout_is_a_hard_revoke(app_client, seed_owner) -> None:  # type: ignore[no-untyped-def]
+    r = await app_client.post(
+        f"{API}/auth/login",
+        json={"email": seed_owner["email"], "password": seed_owner["password"]},
+    )
+    first = r.json()["refresh_token"]
+    r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": first})
+    second = r.json()["refresh_token"]
+
+    r = await app_client.post(f"{API}/auth/logout", json={"refresh_token": second})
+    assert r.status_code == 200, r.text
+    # No grace after logout — neither the current token nor its just-rotated parent.
+    for token in (second, first):
+        r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": token})
+        assert r.status_code == 401, r.text
+
+
 @pytest.mark.asyncio
 async def test_login_me_refresh_logout(app_client, seed_owner) -> None:  # type: ignore[no-untyped-def]
     email = seed_owner["email"]
@@ -44,7 +102,9 @@ async def test_login_me_refresh_logout(app_client, seed_owner) -> None:  # type:
     new_tokens = r.json()
     assert new_tokens["refresh_token"] != refresh
 
-    # Old refresh token is now revoked (one-time use).
+    # The old token only works again inside the short rotation grace window
+    # (parallel requests); once that has passed it is dead (one-time use).
+    await _expire_rotation_grace()
     r = await app_client.post(f"{API}/auth/refresh", json={"refresh_token": refresh})
     assert r.status_code == 401, r.text
 

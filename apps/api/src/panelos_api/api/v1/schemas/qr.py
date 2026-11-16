@@ -18,3 +18,7 @@ class QrResolveOut(ORMModel):
     # an authenticated same-company member: identity fields are blanked and no
     # revision is served. The client shows a "sign in to view" state.
     restricted: bool = False
+    # True when the scanner is signed in and belongs to the panel's company.
+    is_member: bool = False
+    company_name: str = ""
+    location: str | None = None
