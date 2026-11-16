@@ -61,6 +61,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/bootstrap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bootstrap
+         * @description One-time tenant bootstrap.
+         *
+         *     Creates the initial company + Owner user when the database has no users.
+         *     Gated behind ``BOOTSTRAP_ENABLED`` (off by default) and rate limited; once a
+         *     user exists every call fails with 409. Reuses
+         *     LoginIn (email + password) — the company name is derived from the email
+         *     domain.
+         */
+        post: operations["bootstrap_api_v1_auth_bootstrap_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/invitations/{token}": {
         parameters: {
             query?: never;
@@ -1168,23 +1194,6 @@ export interface paths {
         head?: never;
         /** Change Status */
         patch: operations["change_status_api_v1_users__membership_id__status_patch"];
-        trace?: never;
-    };
-    "/api/v1/webhooks/{hook_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Inbound */
-        post: operations["inbound_api_v1_webhooks__hook_id__post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
 }
@@ -2480,6 +2489,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AcceptInviteIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bootstrap_api_v1_auth_bootstrap_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginIn"];
             };
         };
         responses: {
@@ -5274,41 +5316,6 @@ export interface operations {
                 "application/json": components["schemas"]["StatusChangeIn"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    inbound_api_v1_webhooks__hook_id__post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Signature"?: string | null;
-            };
-            path: {
-                hook_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

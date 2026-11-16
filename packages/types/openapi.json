@@ -3737,6 +3737,48 @@
         ]
       }
     },
+    "/api/v1/auth/bootstrap": {
+      "post": {
+        "description": "One-time tenant bootstrap.\n\nCreates the initial company + Owner user when the database has no users.\nGated behind ``BOOTSTRAP_ENABLED`` (off by default) and rate limited; once a\nuser exists every call fails with 409. Reuses\nLoginIn (email + password) \u2014 the company name is derived from the email\ndomain.",
+        "operationId": "bootstrap_api_v1_auth_bootstrap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bootstrap",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/invitations/{token}": {
       "get": {
         "description": "Public: resolve an invitation token for the accept page.",
@@ -9078,68 +9120,6 @@
         "summary": "Change Status",
         "tags": [
           "users"
-        ]
-      }
-    },
-    "/api/v1/webhooks/{hook_id}": {
-      "post": {
-        "operationId": "inbound_api_v1_webhooks__hook_id__post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "hook_id",
-            "required": true,
-            "schema": {
-              "title": "Hook Id",
-              "type": "string"
-            }
-          },
-          {
-            "in": "header",
-            "name": "X-Signature",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "X-Signature"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "title": "Response Inbound Api V1 Webhooks  Hook Id  Post",
-                  "type": "object"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Inbound",
-        "tags": [
-          "webhooks"
         ]
       }
     }

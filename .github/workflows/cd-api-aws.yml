@@ -1,8 +1,9 @@
 name: CD (api → AWS ECR + App Runner)
 
-# Build the API Docker image and push it to ECR on every push to main.
-# App Runner is configured to auto-deploy when the :latest tag is updated in
+# Run the full CI suite, then build the API Docker image and push it to ECR on
+# every push to main. App Runner auto-deploys when the :latest tag is updated in
 # the watched ECR repository, so no explicit redeploy step is needed here.
+# The image is only pushed when CI is green.
 #
 # Required GitHub Actions secrets:
 #   AWS_ROLE_ARN     — IAM role assumable via GitHub OIDC. Trust policy must
@@ -11,8 +12,7 @@ name: CD (api → AWS ECR + App Runner)
 #   AWS_REGION       — eu-central-1
 #   ECR_REPOSITORY   — e.g. 707578706524.dkr.ecr.eu-central-1.amazonaws.com/panelos-api
 #
-# The companion workflow .github/workflows/cd-api.yml still publishes versioned
-# GHCR artifacts on `api-v*` tags for rollbacks. They run on disjoint triggers.
+# Rollback: every push is also tagged with its commit SHA in ECR.
 
 on:
   push:
@@ -31,8 +31,13 @@ permissions:
   contents: read
 
 jobs:
+  ci:
+    name: CI gate
+    uses: ./.github/workflows/ci.yml
+
   build-and-push:
     name: Build & push api image (ECR)
+    needs: ci
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4

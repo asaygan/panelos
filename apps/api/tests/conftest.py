@@ -118,7 +118,10 @@ async def migrated_db(postgres_container: str | None) -> AsyncIterator[str]:
     """
 
     if postgres_container is None:
-        pytest.skip("Postgres testcontainer unavailable (Docker/testcontainers missing)")
+        msg = "Postgres testcontainer unavailable (Docker/testcontainers missing)"
+        if os.getenv("REQUIRE_INTEGRATION"):
+            pytest.fail(msg)  # CI: never let the integration suite silently skip
+        pytest.skip(msg)
 
     from panelos_api.config import get_settings
     from panelos_api.db import session as db_session

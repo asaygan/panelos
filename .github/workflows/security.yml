@@ -24,7 +24,8 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv sync --frozen
-      - run: uv run pip-audit --strict || true
+      - run: uvx pip-audit --strict --desc -r <(uv export --frozen --no-dev --no-hashes --package panelos-api)
+        shell: bash
 
   pnpm-audit:
     name: pnpm audit (web)
@@ -32,14 +33,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: "9"
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm audit --audit-level=high || true
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: pnpm audit --prod --audit-level=high
 
   gitleaks:
     name: Gitleaks
@@ -76,13 +75,13 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v6
         with:
-          context: .
+          context: apps/api
           file: apps/api/Dockerfile
           push: false
           load: true
           tags: panelos-api:scan
           cache-from: type=gha,scope=api
-      - uses: aquasecurity/trivy-action@0.28.0
+      - uses: aquasecurity/trivy-action@master
         with:
           image-ref: panelos-api:scan
           format: sarif
@@ -94,30 +93,3 @@ jobs:
         with:
           sarif_file: trivy-api.sarif
           category: trivy-api
-
-  trivy-web:
-    name: Trivy (web image)
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile
-          push: false
-          load: true
-          tags: panelos-web:scan
-          cache-from: type=gha,scope=web
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: panelos-web:scan
-          format: sarif
-          output: trivy-web.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "0"
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-web.sarif
-          category: trivy-web
