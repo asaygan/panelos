@@ -3,6 +3,7 @@
 import type { Panel } from "@/lib/api/types";
 import { QRGlyph } from "./qr-glyph";
 import type { LabelFields } from "./engraved-tag";
+import { scanUrl } from "@/lib/api/origin";
 
 export interface PrintTagProps {
   panel: Panel;
@@ -58,7 +59,7 @@ export function PrintTag({ panel, fields, scale = 1 }: PrintTagProps) {
       </div>
       <div style={{ flex: 1, display: "flex", padding: 12 * scale, gap: 12 * scale }}>
         <div style={{ flex: "none", border: "2px solid #000", padding: 4 * scale }}>
-          <QRGlyph value={panel.serial} size={92 * scale} />
+          <QRGlyph value={scanUrl(panel.qr_token)} size={92 * scale} />
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <div

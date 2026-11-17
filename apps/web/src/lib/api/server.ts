@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { ApiError, type ProblemDetail } from "./errors";
-
-const BASE = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_ORIGIN as BASE } from "./origin";
 
 /**
  * Server-side fetch helper — forwards the user's cookies to the API so RSC

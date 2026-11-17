@@ -2,6 +2,7 @@
 
 import type { Panel } from "@/lib/api/types";
 import { QRGlyph } from "./qr-glyph";
+import { scanUrl } from "@/lib/api/origin";
 
 export interface LabelFields {
   name?: boolean;
@@ -139,7 +140,7 @@ export function EngravedTag({ panel, fields, scale = 1 }: EngravedTagProps) {
           }}
         >
           <div style={{ background: "#fff", padding: 4 * scale, borderRadius: 3 }}>
-            <QRGlyph value={panel.serial} size={84 * scale} />
+            <QRGlyph value={scanUrl(panel.qr_token)} size={84 * scale} />
           </div>
           <div
             style={{

@@ -3,98 +3,90 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { serverFetch } from "@/lib/api/server";
-import { ApiError } from "@/lib/api/errors";
+import { API_ORIGIN } from "@/lib/api/origin";
+import {
+  COMPANY_COOKIE,
+  REFRESH_COOKIE,
+  SESSION_COOKIE,
+  authCookieOptions,
+  safeNextPath,
+  type TokenPair,
+} from "@/lib/auth/cookies";
 
 export interface LoginState {
-  error?: string;
+  /** Stable error code; the page translates it. */
+  error?: "required" | "invalid" | "rate_limited" | "failed" | "network";
   ok?: boolean;
 }
 
-export async function loginAction(_prev: LoginState | undefined, formData: FormData): Promise<LoginState> {
+/** Persist the session cookies + the active company for a fresh token pair. */
+async function establishSession(tokens: TokenPair): Promise<void> {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, tokens.access_token, authCookieOptions());
+  if (tokens.refresh_token) store.set(REFRESH_COOKIE, tokens.refresh_token, authCookieOptions());
+
+  // Remember the active company in a readable cookie so the browser client can
+  // send X-Company-Id for users who belong to several organizations.
+  try {
+    const meRes = await fetch(`${API_ORIGIN}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+      cache: "no-store",
+    });
+    if (meRes.ok) {
+      const me = (await meRes.json()) as { companies?: { id: string }[] };
+      const current = store.get(COMPANY_COOKIE)?.value;
+      const ids = (me.companies ?? []).map((c) => c.id);
+      const companyId = current && ids.includes(current) ? current : ids[0];
+      if (companyId) store.set(COMPANY_COOKIE, companyId, authCookieOptions(false));
+      else store.delete(COMPANY_COOKIE);
+    }
+  } catch {
+    // Non-fatal: single-company accounts work without the header.
+  }
+}
+
+export async function loginAction(
+  _prev: LoginState | undefined,
+  formData: FormData,
+): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  if (!email || !password) return { error: "Email and password are required." };
+  const mfaCode = String(formData.get("mfa_code") ?? "").trim();
+  const next = safeNextPath(String(formData.get("next") ?? ""));
+  if (!email || !password) return { error: "required" };
 
   try {
-    // The API responds with Set-Cookie for `panelos_session`; serverFetch forwards
-    // the response cookies via the underlying fetch (Next 15 wires this through
-    // the response to the client when the action is invoked from a form).
-    const res = await fetch(
-      `${process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/login`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        cache: "no-store",
-      },
-    );
-    if (!res.ok) {
-      return { error: res.status === 401 ? "Invalid credentials." : `Sign-in failed (${res.status}).` };
-    }
-    const body = (await res.json()) as { access_token?: string; refresh_token?: string };
-    if (!body.access_token) {
-      return { error: "Sign-in failed: no token in response." };
-    }
-    const store = await cookies();
-    store.set("panelos_session", body.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 15,
+    const res = await fetch(`${API_ORIGIN}/api/v1/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, ...(mfaCode ? { mfa_code: mfaCode } : {}) }),
+      cache: "no-store",
     });
-    if (body.refresh_token) {
-      store.set("panelos_refresh", body.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
-      });
+    if (!res.ok) {
+      if (res.status === 401) return { error: "invalid" };
+      if (res.status === 429) return { error: "rate_limited" };
+      return { error: "failed" };
     }
-
-    // Resolve the active company id and persist it in a non-httpOnly cookie so the
-    // browser client can attach X-Company-Id on multi-company accounts.
-    try {
-      const apiBase =
-        process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const meRes = await fetch(`${apiBase}/api/v1/auth/me`, {
-        headers: { Authorization: `Bearer ${body.access_token}` },
-        cache: "no-store",
-      });
-      if (meRes.ok) {
-        const me = (await meRes.json()) as { companies?: { id: string }[] };
-        const companyId = me.companies?.[0]?.id;
-        if (companyId) {
-          store.set("panelos_company", companyId, {
-            httpOnly: false,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-          });
-        }
-      }
-    } catch {
-      // non-fatal — single-company accounts work without the header.
-    }
-  } catch (err) {
-    if (err instanceof ApiError) return { error: err.message };
-    return { error: "Network error — try again." };
+    const body = (await res.json()) as Partial<TokenPair>;
+    if (!body.access_token) return { error: "failed" };
+    await establishSession(body as TokenPair);
+  } catch {
+    return { error: "network" };
   }
 
-  redirect("/dashboard");
+  // `next` is validated by safeNextPath; typedRoutes can't know that statically.
+  redirect(next as Parameters<typeof redirect>[0]);
 }
 
 export interface AcceptInviteState {
-  error?: string;
+  error?: "missing_token" | "weak_password" | "mismatch" | "invalid" | "expired" | "used" | "failed" | "network";
   ok?: boolean;
 }
 
 /**
  * Public onboarding: exchange an invite token + new password for login tokens,
- * set the session cookies (mirroring loginAction), then the page redirects to
- * the dashboard. Kept as a server action so the httpOnly cookies are set server-side.
+ * set the session cookies, then land on the dashboard. A server action so the
+ * httpOnly cookies are set server-side.
  */
 export async function acceptInviteAction(
   _prev: AcceptInviteState | undefined,
@@ -104,73 +96,37 @@ export async function acceptInviteAction(
   const name = String(formData.get("name") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
-  if (!token) return { error: "Missing invitation token." };
-  if (password.length < 8) return { error: "Password must be at least 8 characters." };
-  if (password !== confirm) return { error: "Passwords do not match." };
-
-  const apiBase =
-    process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const secure = process.env.NODE_ENV === "production";
+  if (!token) return { error: "missing_token" };
+  if (password.length < 8) return { error: "weak_password" };
+  if (password !== confirm) return { error: "mismatch" };
 
   try {
-    const res = await fetch(`${apiBase}/api/v1/auth/accept-invite`, {
+    const res = await fetch(`${API_ORIGIN}/api/v1/auth/accept-invite`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, name: name || null, password }),
       cache: "no-store",
     });
     if (!res.ok) {
-      if (res.status === 404) return { error: "This invitation is invalid or no longer exists." };
-      if (res.status === 410) return { error: "This invitation has expired." };
-      if (res.status === 409) return { error: "This invitation has already been accepted." };
-      return { error: `Could not accept invitation (${res.status}).` };
+      if (res.status === 404) return { error: "invalid" };
+      if (res.status === 410) return { error: "expired" };
+      if (res.status === 409) return { error: "used" };
+      return { error: "failed" };
     }
-    const body = (await res.json()) as { access_token?: string; refresh_token?: string };
-    if (!body.access_token) return { error: "Activation failed: no token returned." };
-
-    const store = await cookies();
-    store.set("panelos_session", body.access_token, {
-      httpOnly: true,
-      secure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 15,
-    });
-    if (body.refresh_token) {
-      store.set("panelos_refresh", body.refresh_token, {
-        httpOnly: true,
-        secure,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
-    try {
-      const meRes = await fetch(`${apiBase}/api/v1/auth/me`, {
-        headers: { Authorization: `Bearer ${body.access_token}` },
-        cache: "no-store",
-      });
-      if (meRes.ok) {
-        const me = (await meRes.json()) as { companies?: { id: string }[] };
-        const companyId = me.companies?.[0]?.id;
-        if (companyId) {
-          store.set("panelos_company", companyId, {
-            httpOnly: false,
-            secure,
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-          });
-        }
-      }
-    } catch {
-      // non-fatal
-    }
-  } catch (err) {
-    if (err instanceof ApiError) return { error: err.message };
-    return { error: "Network error — try again." };
+    const body = (await res.json()) as Partial<TokenPair>;
+    if (!body.access_token) return { error: "failed" };
+    await establishSession(body as TokenPair);
+  } catch {
+    return { error: "network" };
   }
 
+  redirect("/dashboard");
+}
+
+/** Switch the active organization (multi-company accounts). */
+export async function switchCompanyAction(companyId: string): Promise<void> {
+  const store = await cookies();
+  store.set(COMPANY_COOKIE, companyId, authCookieOptions(false));
   redirect("/dashboard");
 }
 
@@ -178,11 +134,11 @@ export async function logoutAction(): Promise<void> {
   try {
     await serverFetch<void>("/auth/logout", { method: "POST" });
   } catch {
-    // ignore; we clear the cookie regardless.
+    // Ignore: the cookies are cleared regardless.
   }
   const store = await cookies();
-  store.delete("panelos_session");
-  store.delete("panelos_refresh");
-  store.delete("panelos_company");
+  store.delete(SESSION_COOKIE);
+  store.delete(REFRESH_COOKIE);
+  store.delete(COMPANY_COOKIE);
   redirect("/login");
 }

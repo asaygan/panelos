@@ -1,12 +1,30 @@
 "use client";
 
-import { useActionState } from "react";
+import { Suspense, useActionState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Btn } from "@/components/primitives/button";
 import { Input } from "@/components/primitives/input";
 import { Field } from "@/components/primitives/field";
 import { loginAction, type LoginState } from "@/lib/auth/server-actions";
 
+const LOGIN_ERRORS: Record<NonNullable<LoginState["error"]>, string> = {
+  required: "Email and password are required.",
+  invalid: "Invalid credentials.",
+  rate_limited: "Too many attempts. Wait a minute and try again.",
+  failed: "Sign-in failed. Try again.",
+  network: "Network error — try again.",
+};
+
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
+  const next = useSearchParams().get("next") ?? "";
   const [state, formAction, pending] = useActionState<LoginState | undefined, FormData>(loginAction, undefined);
 
   return (
@@ -105,6 +123,7 @@ export default function LoginPage() {
         }}
       >
         <form action={formAction} style={{ width: 320 }}>
+          <input type="hidden" name="next" value={next} />
           <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.01em" }}>Sign in to PanelOS</div>
           <div
             style={{
@@ -156,7 +175,7 @@ export default function LoginPage() {
                   padding: "6px 9px",
                 }}
               >
-                {state.error}
+                {LOGIN_ERRORS[state.error]}
               </div>
             )}
             <Btn

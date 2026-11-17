@@ -6,6 +6,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 
 from panelos_api.api.v1.schemas.company import (
@@ -19,12 +20,22 @@ from panelos_api.core.exceptions import NotFound, ValidationFailed
 from panelos_api.core.rbac import Permission
 from panelos_api.db.models.company import Company
 from panelos_api.db.models.location import Location
-from panelos_api.deps import CurrentMembership, get_current_membership, get_db, require_permission
+from panelos_api.deps import (
+    CurrentMembership,
+    get_current_membership,
+    get_db,
+    get_storage,
+    require_permission,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from panelos_api.storage.base import StorageProvider
+
 router = APIRouter(prefix="/companies", tags=["companies"])
+
+_LOGO_SIGNATURES = (b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"<svg", b"<?xml", b"RIFF")
 
 
 @router.get("/me", response_model=CompanyOut)
@@ -43,6 +54,7 @@ async def update_company(
     payload: CompanyUpdateIn,
     m: CurrentMembership = Depends(require_permission(Permission.MANAGE_ORG)),
     db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage),
 ) -> CompanyOut:
     company = await db.get(Company, m.company_id)
     if company is None:
@@ -53,10 +65,29 @@ async def update_company(
     # object this company uploaded — never an arbitrary (other tenant's) key.
     if logo_key and (not logo_key.startswith(f"uploads/{m.company_id}/") or ".." in logo_key):
         raise ValidationFailed("logo_key must reference a file uploaded by this company")
+    if logo_key:
+        get_bytes = getattr(storage, "get_bytes", None)
+        head = (await get_bytes(logo_key, 16)).lstrip() if get_bytes else b""
+        if get_bytes and not head.startswith(_LOGO_SIGNATURES):
+            raise ValidationFailed("logo must be a PNG, JPEG, SVG or WebP image")
     for k, v in changes.items():
         setattr(company, k, v)
     await db.flush()
     return CompanyOut.model_validate(company)
+
+
+@router.get("/me/logo")
+async def company_logo(
+    m: CurrentMembership = Depends(get_current_membership),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage),
+) -> RedirectResponse:
+    """Redirect to a short-lived URL for the company logo (usable as ``<img src>``)."""
+    company = await db.get(Company, m.company_id)
+    if company is None or not company.logo_key:
+        raise NotFound("no logo")
+    url = await storage.presign_get(company.logo_key, 300)
+    return RedirectResponse(url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
 
 @router.get("/me/locations", response_model=list[LocationOut])

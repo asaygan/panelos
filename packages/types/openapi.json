@@ -4690,6 +4690,59 @@
         ]
       }
     },
+    "/api/v1/companies/me/logo": {
+      "get": {
+        "description": "Redirect to a short-lived URL for the company logo (usable as ``<img src>``).",
+        "operationId": "company_logo_api_v1_companies_me_logo_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Company-Id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Company-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Company Logo",
+        "tags": [
+          "companies"
+        ]
+      }
+    },
     "/api/v1/components/{component_id}": {
       "delete": {
         "operationId": "delete_component_api_v1_components__component_id__delete",

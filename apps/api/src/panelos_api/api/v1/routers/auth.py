@@ -48,7 +48,9 @@ def _set_auth_cookies(response: Response, tokens: TokenPair) -> None:
     response.set_cookie(
         SESSION_COOKIE,
         tokens.access_token,
-        max_age=settings.ACCESS_TOKEN_TTL_MINUTES * 60,
+        # Outlives the JWT on purpose: an expired-but-present cookie lets the web
+        # middleware tell "refreshable" from "signed out" (see web lib/auth/cookies).
+        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60,
         httponly=True,
         secure=secure,
         samesite="lax",

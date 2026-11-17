@@ -439,7 +439,9 @@ export function useLabelTemplates(): UseQueryResult<LabelTemplateDTO[]> {
 export function useActivity(panelIds: string[]) {
   return useQueries({
     queries: panelIds.map((id) => ({
-      queryKey: queryKeys.panels.activity(id),
+      // Raw scans — a different shape than usePanelActivity caches, so it
+      // needs its own key or the two corrupt each other.
+      queryKey: [...queryKeys.panels.activity(id), "raw"] as const,
       queryFn: async () => (await panels.activity(id)).scans ?? [],
       enabled: !!id,
     })),

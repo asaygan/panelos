@@ -27,10 +27,16 @@ async function ensureDraftRevision(panelId: string): Promise<string> {
 }
 
 /** Force the PUT through the same-origin Next proxy to dodge cross-origin/CORS. */
-function toSameOrigin(url: string): string {
+/**
+ * Where to PUT an upload. Local dev presigns to the API's own /files/upload
+ * route, which must go through the same-origin Next proxy. Cloud storage (S3)
+ * presigns to its own host and must be used untouched — rewriting it to a
+ * relative path would send the file to the web app instead of the bucket.
+ */
+function uploadTarget(url: string): string {
   try {
     const u = new URL(url, window.location.origin);
-    return u.pathname + u.search; // e.g. /api/v1/files/upload/...
+    return u.pathname.startsWith("/api/v1/files/upload/") ? u.pathname + u.search : url;
   } catch {
     return url;
   }
@@ -130,7 +136,7 @@ export function UploadSchematicModal({ panelId, open, onOpenChange }: UploadSche
       const presigned = await presign.mutateAsync({ filename: file.name, contentType });
 
       setStage("Uploading…");
-      await putWithProgress(toSameOrigin(presigned.url), file, contentType, setProgress);
+      await putWithProgress(uploadTarget(presigned.url), file, contentType, setProgress);
 
       setStage("Finalizing…");
       const finalized = await filesApi.finalize({

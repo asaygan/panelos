@@ -54,7 +54,7 @@ export default function LabelTemplatesPage() {
 
   const logoKey =
     company && "logo_key" in company ? (company as { logo_key?: string | null }).logo_key : null;
-  const logoUrl = logoKey ? files.serveUrl(logoKey) : null;
+  const logoUrl = logoKey ? files.companyLogoUrl(logoKey) : null;
   const samplePanel = panels.find((p) => p.id === samplePanelId);
   const data = useMemo(
     () =>

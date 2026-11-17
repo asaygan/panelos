@@ -5,6 +5,7 @@ import { Card } from "@/components/primitives/card";
 import { Btn } from "@/components/primitives/button";
 import { QRGlyph } from "@/components/labels/qr-glyph";
 import { Icon, type IconName } from "@/components/icons/icon";
+import { scanUrl } from "@/lib/api/origin";
 
 export interface PanelQRCardProps {
   panel: Panel;
@@ -30,7 +31,7 @@ export function PanelQRCard({ panel, onOpenLabel }: PanelQRCardProps) {
             display: "inline-block",
           }}
         >
-          <QRGlyph value={panel.serial} size={150} />
+          <QRGlyph value={scanUrl(panel.qr_token)} size={150} />
         </div>
         <div className="mono" style={{ fontWeight: 700, marginTop: 10 }}>
           {panel.serial}

@@ -175,7 +175,9 @@ export const files = {
   attachSheet: (panelId: string, revisionId: string, body: Schemas["AttachSheetIn"]) =>
     api.post<SheetDTO>(`/files/panels/${panelId}/revisions/${revisionId}/sheets`, body),
   get: (id: string) => api.get<{ url: string }>(`/files/${id}`),
-  serveUrl: (key: string) => `/api/v1/files/serve/${key}`,
+  /** `<img src>` for the active company logo (API redirects to a signed URL). */
+  companyLogoUrl: (version?: string | null) =>
+    `/api/v1/companies/me/logo${version ? `?v=${encodeURIComponent(version)}` : ""}`,
   updateSheet: (sheetId: string, body: { sheet_number?: string; sheet_title?: string }) =>
     api.patch<SheetDTO>(`/files/sheets/${sheetId}`, body),
   deleteSheet: (sheetId: string) => api.delete<void>(`/files/sheets/${sheetId}`),

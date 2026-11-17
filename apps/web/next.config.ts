@@ -49,6 +49,13 @@ const config: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      // The demo and the QR landing pages must never be indexed.
+      { source: "/demo/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+      { source: "/q/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
+    ];
+  },
   async rewrites() {
     return [
       {

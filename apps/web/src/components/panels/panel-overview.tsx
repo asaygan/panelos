@@ -7,6 +7,7 @@ import { Btn } from "@/components/primitives/button";
 import { QRGlyph } from "@/components/labels/qr-glyph";
 import { PanelComponentsTable } from "./panel-components-table";
 import { RevisionTimeline } from "./revision-timeline";
+import { scanUrl } from "@/lib/api/origin";
 
 export interface PanelOverviewProps {
   panel: Panel;
@@ -138,7 +139,7 @@ export function PanelOverview({
                 background: "#fff",
               }}
             >
-              <QRGlyph value={panel.serial} size={78} />
+              <QRGlyph value={scanUrl(panel.qr_token)} size={78} />
             </div>
             <div style={{ flex: 1 }}>
               <div className="mono" style={{ fontSize: 13, fontWeight: 700 }}>

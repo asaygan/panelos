@@ -45,7 +45,7 @@ export function LabelModal({ panel, open, onOpenChange }: LabelModalProps) {
 
   const logoKey =
     company && "logo_key" in company ? (company as { logo_key?: string | null }).logo_key : null;
-  const logoUrl = logoKey ? files.serveUrl(logoKey) : null;
+  const logoUrl = logoKey ? files.companyLogoUrl(logoKey) : null;
 
   const layout = useMemo(
     () =>

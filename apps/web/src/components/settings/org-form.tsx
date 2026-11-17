@@ -9,10 +9,16 @@ import { useCompany, useUpdateCompany, usePresignUpload } from "@/lib/query/hook
 import { files as filesApi } from "@/lib/api/endpoints";
 
 /** Force the PUT through the same-origin Next proxy to dodge cross-origin/CORS. */
-function toSameOrigin(url: string): string {
+/**
+ * Where to PUT an upload. Local dev presigns to the API's own /files/upload
+ * route, which must go through the same-origin Next proxy. Cloud storage (S3)
+ * presigns to its own host and must be used untouched — rewriting it to a
+ * relative path would send the file to the web app instead of the bucket.
+ */
+function uploadTarget(url: string): string {
   try {
     const u = new URL(url, window.location.origin);
-    return u.pathname + u.search;
+    return u.pathname.startsWith("/api/v1/files/upload/") ? u.pathname + u.search : url;
   } catch {
     return url;
   }
@@ -40,7 +46,7 @@ export function OrgForm() {
 
   const logoKey =
     company && "logo_key" in company ? (company as { logo_key?: string | null }).logo_key : null;
-  const logoUrl = logoKey ? filesApi.serveUrl(logoKey) : null;
+  const logoUrl = logoKey ? filesApi.companyLogoUrl(logoKey) : null;
 
   const onLogo = async (file: File | null) => {
     if (!file) return;
@@ -53,7 +59,7 @@ export function OrgForm() {
     try {
       const ct = file.type || "image/png";
       const pre = await presign.mutateAsync({ filename: file.name, contentType: ct });
-      const put = await fetch(toSameOrigin(pre.url), {
+      const put = await fetch(uploadTarget(pre.url), {
         method: pre.method ?? "PUT",
         headers: pre.headers ?? { "Content-Type": ct },
         body: file,

@@ -6,6 +6,17 @@ import { Input } from "@/components/primitives/input";
 import { Field } from "@/components/primitives/field";
 import { acceptInviteAction, type AcceptInviteState } from "@/lib/auth/server-actions";
 
+const ACCEPT_ERRORS: Record<NonNullable<AcceptInviteState["error"]>, string> = {
+  missing_token: "Missing invitation token.",
+  weak_password: "Password must be at least 8 characters.",
+  mismatch: "Passwords do not match.",
+  invalid: "This invitation is invalid or no longer exists.",
+  expired: "This invitation has expired.",
+  used: "This invitation has already been accepted.",
+  failed: "Could not accept the invitation. Try again.",
+  network: "Network error — try again.",
+};
+
 export function AcceptInviteForm({ token }: { token: string }) {
   const [state, formAction, pending] = useActionState<AcceptInviteState | undefined, FormData>(
     acceptInviteAction,
@@ -50,7 +61,7 @@ export function AcceptInviteForm({ token }: { token: string }) {
               padding: "6px 9px",
             }}
           >
-            {state.error}
+            {ACCEPT_ERRORS[state.error]}
           </div>
         )}
         <Btn

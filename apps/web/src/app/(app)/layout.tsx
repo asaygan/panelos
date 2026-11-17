@@ -1,22 +1,16 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { AppShell } from "./_shell";
 import { getSession } from "@/lib/auth/session";
-import type { User } from "@/lib/api/types";
-
-const FALLBACK_USER: User = {
-  id: "_anon",
-  email: "",
-  name: "PanelOS",
-  initials: "P",
-  status: "active",
-};
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getSession();
-  const user = session?.user ?? FALLBACK_USER;
-  const company = session?.company.name ?? "PanelOS";
-  const companies = session?.companies ?? [];
-  const activeCompanyId = session?.company.id ?? "";
+  // Never render the app chrome for an unknown user.
+  if (!session) redirect("/login");
+  const user = session.user;
+  const company = session.company.name;
+  const companies = session.companies;
+  const activeCompanyId = session.company.id;
   const counts = { panels: 0, rev: 0 };
 
   return (

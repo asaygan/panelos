@@ -5,6 +5,7 @@ import { Btn } from "@/components/primitives/button";
 import { Icon } from "@/components/icons/icon";
 import type { Panel } from "@/lib/api/types";
 import { QRGlyph } from "./qr-glyph";
+import { scanUrl } from "@/lib/api/origin";
 
 export interface LabelBatchListProps {
   panels: Panel[];
@@ -48,7 +49,7 @@ export function LabelBatchList({ panels, onRemove, onAdd }: LabelBatchListProps)
                 flex: "none",
               }}
             >
-              <QRGlyph value={p.serial} size={30} />
+              <QRGlyph value={scanUrl(p.qr_token)} size={30} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="mono" style={{ fontSize: 11, fontWeight: 700 }}>
