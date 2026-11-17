@@ -1,0 +1,9 @@
+{
+  "title": "Bildirimler",
+  "open": "Bildirimleri aç",
+  "unreadCount": "{count, plural, one {# okunmamış bildirim} other {# okunmamış bildirim}}",
+  "markAllRead": "Tümünü okundu say",
+  "empty": "Bildiriminiz yok",
+  "emptyHint": "Onay bekleyen revizyonlar, arızalar ve bakım hatırlatmaları burada görünür.",
+  "settings": "Bildirim tercihleri"
+}

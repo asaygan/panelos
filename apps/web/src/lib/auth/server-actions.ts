@@ -15,8 +15,9 @@ import {
 
 export interface LoginState {
   /** Stable error code; the page translates it. */
-  error?: "required" | "invalid" | "rate_limited" | "failed" | "network";
-  ok?: boolean;
+  error?: "required" | "invalid" | "invalid_mfa" | "rate_limited" | "failed" | "network";
+  /** Set when the account has two-step verification: ask for the code next. */
+  mfaRequired?: boolean;
 }
 
 /** Persist the session cookies + the active company for a fresh token pair. */
@@ -63,6 +64,9 @@ export async function loginAction(
       cache: "no-store",
     });
     if (!res.ok) {
+      const problem = (await res.json().catch(() => ({}))) as { code?: string };
+      if (problem.code === "mfa_required") return { mfaRequired: true };
+      if (problem.code === "invalid_mfa_code") return { mfaRequired: true, error: "invalid_mfa" };
       if (res.status === 401) return { error: "invalid" };
       if (res.status === 429) return { error: "rate_limited" };
       return { error: "failed" };
@@ -97,7 +101,7 @@ export async function acceptInviteAction(
   const password = String(formData.get("password") ?? "");
   const confirm = String(formData.get("confirm") ?? "");
   if (!token) return { error: "missing_token" };
-  if (password.length < 8) return { error: "weak_password" };
+  if (password.length < 10) return { error: "weak_password" };
   if (password !== confirm) return { error: "mismatch" };
 
   try {
@@ -111,6 +115,7 @@ export async function acceptInviteAction(
       if (res.status === 404) return { error: "invalid" };
       if (res.status === 410) return { error: "expired" };
       if (res.status === 409) return { error: "used" };
+      if (res.status === 422) return { error: "weak_password" };
       return { error: "failed" };
     }
     const body = (await res.json()) as Partial<TokenPair>;

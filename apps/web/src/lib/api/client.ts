@@ -42,7 +42,18 @@ async function parseBody(res: Response): Promise<unknown> {
   return text;
 }
 
+/**
+ * Optional replacement for the network (the public demo serves fixtures
+ * through this so the real pages run without ever calling the API).
+ */
+export type ApiTransport = (path: string, opts: RequestOptions) => Promise<unknown>;
+let transport: ApiTransport | null = null;
+export function setApiTransport(next: ApiTransport | null): void {
+  transport = next;
+}
+
 async function rawRequest<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  if (transport) return (await transport(path, opts)) as T;
   const { body, rawBody, query, headers, ...rest } = opts;
   const companyId = activeCompanyId();
   const init: RequestInit = {
@@ -62,7 +73,12 @@ async function rawRequest<T>(path: string, opts: RequestOptions = {}): Promise<T
           : undefined,
   };
 
-  const res = await fetch(buildUrl(path, query), init);
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path, query), init);
+  } catch {
+    throw new ApiError(0, { code: "network", detail: "Network error" });
+  }
   const parsed = await parseBody(res);
 
   if (!res.ok) {
@@ -105,6 +121,11 @@ export async function apiRequest<T>(path: string, opts: RequestOptions = {}): Pr
     }
     throw err;
   }
+}
+
+/** URL of an API path for <a href>/<img src> (downloads, redirects). */
+export function apiUrl(path: string, query?: RequestOptions["query"]): string {
+  return buildUrl(path, query);
 }
 
 export const api = {

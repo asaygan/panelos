@@ -2,13 +2,171 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "./design-tokens.css";
+/*
+ * PanelOS design tokens.
+ *
+ * Colors are stored as space-separated RGB triplets so Tailwind can apply
+ * opacity (`bg-primary/10`). Components never use raw hex values: they use the
+ * semantic Tailwind names mapped in tailwind.config.ts. Dark mode is the same
+ * names with different values (set by `data-theme="dark"` on <html>).
+ */
+:root {
+  /* Surfaces */
+  --background: 246 246 244;
+  --surface: 255 255 255;
+  --surface-2: 241 241 238;
+  --surface-3: 230 230 225;
+  --border: 226 226 220;
+  --border-strong: 200 200 192;
 
-/* Ensure Tailwind's `border-color` default doesn't fight our token-driven hairlines */
+  /* Text */
+  --foreground: 22 24 29;
+  --muted: 85 91 102;
+  --subtle: 128 134 145;
+
+  /* Brand: copper (the conductor) */
+  --primary: 194 65 12;
+  --primary-hover: 164 53 9;
+  --primary-soft: 255 240 230;
+  --primary-foreground: 255 255 255;
+  --ring: 234 88 12;
+
+  /* Status */
+  --success: 21 128 61;
+  --success-soft: 230 245 235;
+  --warning: 161 98 7;
+  --warning-soft: 253 246 216;
+  --danger: 185 28 28;
+  --danger-soft: 253 235 235;
+  --info: 29 78 216;
+  --info-soft: 232 239 254;
+
+  /* Navigation rail (always dark: reads as the "frame" of the tool) */
+  --sidebar: 16 19 24;
+  --sidebar-foreground: 229 231 235;
+  --sidebar-muted: 148 155 167;
+  --sidebar-active: 32 37 46;
+  --sidebar-border: 38 44 54;
+
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --shadow-sm: 0 1px 2px rgb(16 19 24 / 0.06);
+  --shadow: 0 1px 3px rgb(16 19 24 / 0.08), 0 1px 2px rgb(16 19 24 / 0.04);
+  --shadow-lg: 0 12px 32px rgb(16 19 24 / 0.14), 0 2px 6px rgb(16 19 24 / 0.06);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: 13 15 19;
+  --surface: 21 24 30;
+  --surface-2: 27 31 39;
+  --surface-3: 37 42 53;
+  --border: 41 47 58;
+  --border-strong: 60 68 82;
+
+  --foreground: 236 238 241;
+  --muted: 163 170 182;
+  --subtle: 118 126 139;
+
+  --primary: 249 115 22;
+  --primary-hover: 251 146 60;
+  --primary-soft: 51 29 14;
+  --primary-foreground: 20 12 6;
+  --ring: 251 146 60;
+
+  --success: 74 222 128;
+  --success-soft: 18 46 29;
+  --warning: 250 204 21;
+  --warning-soft: 54 43 10;
+  --danger: 248 113 113;
+  --danger-soft: 58 21 21;
+  --info: 96 165 250;
+  --info-soft: 20 33 61;
+
+  --sidebar: 9 11 14;
+  --sidebar-active: 27 31 39;
+  --sidebar-border: 30 35 44;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 40px rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
 @layer base {
   *,
   ::before,
   ::after {
-    border-color: var(--c-line);
+    border-color: rgb(var(--border));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: rgb(var(--background));
+    color: rgb(var(--foreground));
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One visible focus style everywhere (keyboard only). */
+  :focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgb(var(--primary) / 0.22);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Thin, unobtrusive scrollbars inside panes. */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border-strong)) transparent;
+  }
+
+  /* Blueprint grid used on auth + scan screens. */
+  .bg-blueprint {
+    background-color: rgb(var(--sidebar));
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

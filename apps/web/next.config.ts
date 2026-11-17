@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 // The rewrite target (server-side / build-time): prefer API_INTERNAL_URL, then
 // the legacy NEXT_PUBLIC_API_URL for back-compat. The browser never calls the API
@@ -27,6 +31,8 @@ const SERVER_ACTION_ALLOWED_ORIGINS = [
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // Monorepo: trace server files from the repo root (silences the lockfile warning).
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   // Server-only env vars baked into the build. Amplify Hosting exposes app-level
   // env vars at build time only; without this `env` field, `process.env.X`
   // returns undefined inside the Lambda that runs Server Actions / route
@@ -36,7 +42,6 @@ const config: NextConfig = {
     API_INTERNAL_URL: process.env.API_INTERNAL_URL ?? "",
   },
   experimental: {
-    typedRoutes: true,
     serverActions: {
       allowedOrigins: SERVER_ACTION_ALLOWED_ORIGINS,
     },
@@ -66,4 +71,4 @@ const config: NextConfig = {
   },
 };
 
-export default config;
+export default withNextIntl(config);

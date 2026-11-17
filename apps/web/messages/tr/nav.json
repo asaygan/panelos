@@ -1,0 +1,43 @@
+{
+  "dashboard": "Genel bakış",
+  "panels": "Panolar",
+  "revisions": "Revizyonlar",
+  "schematics": "Şemalar",
+  "issues": "Arızalar",
+  "maintenance": "Bakım",
+  "labels": "Etiketler",
+  "users": "Kullanıcılar",
+  "settings": "Ayarlar",
+  "account": "Hesabım",
+  "more": "Diğer",
+  "groupWork": "Çalışma alanı",
+  "groupField": "Saha",
+  "groupAdmin": "Yönetim",
+  "collapse": "Menüyü daralt",
+  "expand": "Menüyü genişlet",
+  "openMenu": "Menüyü aç",
+  "searchPlaceholder": "Pano, proje, arıza ara…",
+  "searchHint": "Aramak için en az 2 karakter yazın",
+  "searchEmpty": "“{query}” için sonuç yok",
+  "searchGoTo": "Git",
+  "searchTypes": {
+    "panel": "Pano",
+    "project": "Proje",
+    "system_group": "Sistem grubu",
+    "cabinet": "Kabin",
+    "component": "Malzeme",
+    "issue": "Arıza"
+  },
+  "scanQr": "QR okut",
+  "userMenu": {
+    "account": "Hesap ve güvenlik",
+    "language": "Dil",
+    "theme": "Görünüm",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "themeSystem": "Sistem",
+    "signOut": "Çıkış yap",
+    "switchCompany": "Şirket değiştir"
+  },
+  "skipToContent": "İçeriğe geç"
+}

@@ -1,144 +1,60 @@
-import type { components } from "@panelos/types/generated";
-import { AcceptInviteForm } from "./accept-form";
-import { AcceptShell } from "./accept-shell";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/button";
+import { API_ORIGIN } from "@/lib/api/origin";
+import { AcceptForm } from "./accept-form";
 
-type InvitationInfo = components["schemas"]["InvitationInfoOut"];
+export const metadata: Metadata = { robots: { index: false } };
 
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  engineer: "Engineer",
-  technician: "Technician",
-  viewer: "Viewer",
-};
+interface InvitationInfo {
+  email: string;
+  company_name: string;
+  role: string;
+  expired: boolean;
+  accepted: boolean;
+}
 
-async function fetchInvitation(token: string): Promise<InvitationInfo | { error: "invalid" | "network" }> {
-  const apiBase =
-    process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+async function loadInvitation(token: string): Promise<InvitationInfo | null> {
   try {
-    const res = await fetch(`${apiBase}/api/v1/auth/invitations/${encodeURIComponent(token)}`, {
+    const res = await fetch(`${API_ORIGIN}/api/v1/auth/invitations/${encodeURIComponent(token)}`, {
       cache: "no-store",
     });
-    if (!res.ok) return { error: "invalid" };
-    return (await res.json()) as InvitationInfo;
+    return res.ok ? ((await res.json()) as InvitationInfo) : null;
   } catch {
-    return { error: "network" };
+    return null;
   }
 }
 
-export default async function AcceptInvitePage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
+export default async function AcceptInvitePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const info = await fetchInvitation(token);
+  const t = await getTranslations("auth.accept");
+  const tLogin = await getTranslations("auth.login");
+  const tRoles = await getTranslations("common.roles");
+  const info = await loadInvitation(token);
 
-  if ("error" in info) {
+  const problem = !info ? "invalid" : info.accepted ? "used" : info.expired ? "expired" : null;
+  if (problem) {
     return (
-      <AcceptShell>
-        <Notice
-          title={info.error === "network" ? "Something went wrong" : "Invitation not found"}
-          body={
-            info.error === "network"
-              ? "We couldn't reach the server. Check your connection and try again."
-              : "This invitation link is invalid or no longer exists. Ask your administrator to resend it."
-          }
-        />
-      </AcceptShell>
-    );
-  }
-
-  if (info.expired) {
-    return (
-      <AcceptShell>
-        <Notice
-          title="Invitation expired"
-          body={`The invitation for ${info.email} has expired. Ask an administrator to send a new one.`}
-        />
-      </AcceptShell>
-    );
-  }
-
-  if (info.accepted) {
-    return (
-      <AcceptShell>
-        <Notice
-          title="Already accepted"
-          body={`This invitation has already been used. Sign in with ${info.email} to continue.`}
-          cta={{ href: "/login", label: "Go to sign in" }}
-        />
-      </AcceptShell>
+      <div className="flex flex-col gap-4">
+        <h1 className="text-2xl font-semibold">{t(`${problem}Title`)}</h1>
+        <p className="text-base text-muted">{t(`${problem}Body`)}</p>
+        <Button asChild variant={problem === "used" ? "primary" : "secondary"} size="lg">
+          <Link href="/login">{tLogin("submit")}</Link>
+        </Button>
+      </div>
     );
   }
 
   return (
-    <AcceptShell>
-      <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.01em" }}>
-        Join {info.company_name}
+    <div className="flex flex-col gap-4">
+      <div className="mb-2">
+        <h1 className="text-2xl font-semibold">{t("title", { company: info!.company_name })}</h1>
+        <p className="mt-1.5 text-base text-muted">
+          {t("subtitle", { email: info!.email, role: tRoles(info!.role as "owner") })}
+        </p>
       </div>
-      <div
-        style={{
-          fontSize: "var(--fz-sm)",
-          color: "var(--c-ink-3)",
-          marginTop: 4,
-          marginBottom: 18,
-        }}
-      >
-        You&apos;ve been invited as{" "}
-        <strong style={{ color: "var(--c-ink-2)" }}>
-          {ROLE_LABELS[info.role.toLowerCase()] ?? info.role}
-        </strong>
-        . Set a password to activate your account.
-      </div>
-      <div
-        style={{
-          fontSize: 12,
-          color: "var(--c-ink-2)",
-          background: "var(--c-surface-3)",
-          border: "1px solid var(--c-line)",
-          borderRadius: "var(--r-sm)",
-          padding: "7px 10px",
-          marginBottom: 16,
-        }}
-      >
-        <span className="mono">{info.email}</span>
-      </div>
-      <AcceptInviteForm token={token} />
-    </AcceptShell>
-  );
-}
-
-function Notice({
-  title,
-  body,
-  cta,
-}: {
-  title: string;
-  body: string;
-  cta?: { href: string; label: string };
-}) {
-  return (
-    <div>
-      <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-.01em" }}>{title}</div>
-      <div style={{ fontSize: "var(--fz-sm)", color: "var(--c-ink-3)", marginTop: 8, lineHeight: 1.55 }}>
-        {body}
-      </div>
-      {cta && (
-        <a
-          href={cta.href}
-          style={{
-            display: "inline-block",
-            marginTop: 18,
-            fontSize: 13,
-            color: "var(--c-accent)",
-            fontWeight: 560,
-            textDecoration: "none",
-          }}
-        >
-          {cta.label} →
-        </a>
-      )}
+      <AcceptForm token={token} />
     </div>
   );
 }

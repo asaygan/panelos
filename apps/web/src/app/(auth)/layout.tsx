@@ -1,3 +1,5 @@
+import { AuthFrame } from "@/components/auth/auth-frame";
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  return <div style={{ minHeight: "100vh", background: "var(--c-surface)" }}>{children}</div>;
+  return <AuthFrame>{children}</AuthFrame>;
 }

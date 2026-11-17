@@ -1,10 +1,19 @@
+export interface FieldError {
+  field: string;
+  message: string;
+  type: string;
+}
+
+/** RFC 7807 body returned by the API for every failure. */
 export interface ProblemDetail {
   type?: string;
   title?: string;
   status?: number;
   detail?: string;
-  instance?: string;
-  errors?: Record<string, string[]>;
+  /** Stable machine-readable identifier (translated via messages `errors.<code>`). */
+  code?: string;
+  errors?: FieldError[];
+  [extra: string]: unknown;
 }
 
 export class ApiError extends Error {
@@ -16,6 +25,11 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.problem = problem;
+  }
+
+  /** e.g. "not_found", "duplicate", "four_eyes_required". */
+  get code(): string {
+    return this.problem.code ?? (this.status === 0 ? "network" : "unknown");
   }
 
   get isAuth(): boolean {

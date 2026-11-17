@@ -1,0 +1,43 @@
+{
+  "dashboard": "Overview",
+  "panels": "Panels",
+  "revisions": "Revisions",
+  "schematics": "Schematics",
+  "issues": "Issues",
+  "maintenance": "Maintenance",
+  "labels": "Labels",
+  "users": "Users",
+  "settings": "Settings",
+  "account": "My account",
+  "more": "More",
+  "groupWork": "Workspace",
+  "groupField": "Field",
+  "groupAdmin": "Admin",
+  "collapse": "Collapse menu",
+  "expand": "Expand menu",
+  "openMenu": "Open menu",
+  "searchPlaceholder": "Search panels, projects, issues…",
+  "searchHint": "Type at least 2 characters to search",
+  "searchEmpty": "No results for “{query}”",
+  "searchGoTo": "Go to",
+  "searchTypes": {
+    "panel": "Panel",
+    "project": "Project",
+    "system_group": "System group",
+    "cabinet": "Cabinet",
+    "component": "Component",
+    "issue": "Issue"
+  },
+  "scanQr": "Scan QR",
+  "userMenu": {
+    "account": "Account & security",
+    "language": "Language",
+    "theme": "Appearance",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "signOut": "Sign out",
+    "switchCompany": "Switch organization"
+  },
+  "skipToContent": "Skip to content"
+}

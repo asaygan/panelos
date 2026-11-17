@@ -1,25 +1,18 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { AppShell } from "./_shell";
+import { AppShell } from "@/components/app/app-shell";
 import { getSession } from "@/lib/auth/session";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const session = await getSession();
+  const me = await getSession();
   // Never render the app chrome for an unknown user.
-  if (!session) redirect("/login");
-  const user = session.user;
-  const company = session.company.name;
-  const companies = session.companies;
-  const activeCompanyId = session.company.id;
-  const counts = { panels: 0, rev: 0 };
+  if (!me) redirect("/login");
 
   return (
     <AppShell
-      user={user}
-      company={company}
-      companies={companies}
-      activeCompanyId={activeCompanyId}
-      counts={counts}
+      user={{ name: me.name, email: me.email, role: me.role ?? null }}
+      companies={me.companies}
+      activeCompanyId={me.active_company_id ?? null}
     >
       {children}
     </AppShell>

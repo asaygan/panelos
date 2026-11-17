@@ -1,0 +1,9 @@
+{
+  "title": "Notifications",
+  "open": "Open notifications",
+  "unreadCount": "{count, plural, one {# unread notification} other {# unread notifications}}",
+  "markAllRead": "Mark all as read",
+  "empty": "You're all caught up",
+  "emptyHint": "Revisions awaiting approval, issues and maintenance reminders show up here.",
+  "settings": "Notification preferences"
+}
