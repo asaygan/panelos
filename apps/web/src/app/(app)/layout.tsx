@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app/app-shell";
+import { SessionSeed } from "@/components/app/session-seed";
 import { getSession } from "@/lib/auth/session";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -9,12 +10,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   if (!me) redirect("/login");
 
   return (
-    <AppShell
-      user={{ name: me.name, email: me.email, role: me.role ?? null }}
-      companies={me.companies}
-      activeCompanyId={me.active_company_id ?? null}
-    >
-      {children}
-    </AppShell>
+    <SessionSeed me={me}>
+      <AppShell
+        user={{ name: me.name, email: me.email, role: me.role ?? null }}
+        companies={me.companies}
+        activeCompanyId={me.active_company_id ?? null}
+      >
+        {children}
+      </AppShell>
+    </SessionSeed>
   );
 }
