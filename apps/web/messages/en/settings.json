@@ -1,1 +1,136 @@
-{}
+{
+  "title": "Settings",
+  "description": "Company details, policies, locations and data tools.",
+  "readOnly": "Only administrators can change these settings. You are viewing them read-only.",
+  "tabs": {
+    "organization": "Organization",
+    "policies": "Policies",
+    "locations": "Locations",
+    "labels": "Labels",
+    "data": "Data"
+  },
+  "organization": {
+    "saved": "Organization details saved.",
+    "unsaved": "You have unsaved changes.",
+    "save": "Save changes",
+    "discard": "Discard",
+    "logo": {
+      "title": "Logo",
+      "description": "Represents your company on labels and in emails.",
+      "alt": "{name} logo",
+      "hint": "PNG, JPEG, SVG or WebP, up to {max} MB. A horizontal logo with a transparent background works best.",
+      "upload": "Upload logo",
+      "replace": "Replace logo",
+      "updated": "Logo updated.",
+      "wrongType": "The logo must be a PNG, JPEG, SVG or WebP image.",
+      "tooLarge": "The logo is too large (max {max} MB)."
+    },
+    "details": {
+      "title": "Company details",
+      "description": "Used on labels, invitation emails and reports."
+    },
+    "name": "Company name",
+    "shortName": "Short name",
+    "shortNameHint": "Printed on labels (up to 12 characters).",
+    "standards": "Standards profile",
+    "standardsHint": "Design and verification reference for panels.",
+    "locale": "Default email language",
+    "localeHint": "Invitations and notification emails are sent in this language.",
+    "timezone": "Time zone",
+    "timezoneHint": "Maintenance dates and reports are calculated in this time zone.",
+    "errors": {
+      "nameRequired": "Company name is required.",
+      "shortNameLong": "Use at most 12 characters."
+    }
+  },
+  "policies": {
+    "title": "Access and approval policies",
+    "description": "Changes are saved immediately and take effect right away.",
+    "saved": "Policy updated.",
+    "public_qr_access_enabled": {
+      "title": "Anyone who scans a QR can see the panel identity",
+      "description": "When off, only signed-in company members see the panel identity. Schematics always require sign-in."
+    },
+    "require_four_eyes": {
+      "title": "Four-eyes rule",
+      "description": "The person who prepared a revision cannot approve it; another authorized person must."
+    },
+    "engineer_can_approve": {
+      "title": "Engineers can approve revisions",
+      "description": "When off, only admins and owners approve revisions."
+    }
+  },
+  "locations": {
+    "title": "Locations",
+    "description": "The sites and plants where your panels are installed.",
+    "add": "Add location",
+    "region": "Region",
+    "empty": {
+      "title": "No locations yet",
+      "description": "Locations let you group panels by site or plant and restrict user access to specific sites."
+    },
+    "delete": {
+      "title": "Delete “{name}”?",
+      "description": "The location is permanently deleted. It cannot be deleted while panels or user restrictions use it.",
+      "done": "Location deleted."
+    },
+    "dialog": {
+      "createTitle": "Add location",
+      "editTitle": "Edit location",
+      "description": "The code appears as a short identifier on panels and in filters.",
+      "codeHint": "e.g. IST-01",
+      "region": "Region",
+      "regionHint": "Optional, e.g. Marmara",
+      "created": "Location added.",
+      "updated": "Location updated.",
+      "errors": {
+        "codeRequired": "Code is required.",
+        "nameRequired": "Name is required."
+      }
+    }
+  },
+  "labels": {
+    "templates": {
+      "title": "Label templates",
+      "description": "Design the size, layout and content of panel labels.",
+      "cta": "Open templates"
+    },
+    "print": {
+      "title": "Print labels",
+      "description": "Generate and print QR labels for the panels you select.",
+      "cta": "Go to labels"
+    }
+  },
+  "data": {
+    "export": {
+      "title": "Export",
+      "description": "Download your data as Excel or CSV. Exports are recorded in the audit log.",
+      "noPermission": "You do not have access to this data.",
+      "format": {
+        "xlsx": "Excel (.xlsx)",
+        "csv": "CSV"
+      },
+      "panels": {
+        "title": "Panels",
+        "description": "All panels with their status and location."
+      },
+      "issues": {
+        "title": "Issues",
+        "description": "Open and closed issue records."
+      },
+      "maintenance": {
+        "title": "Maintenance records",
+        "description": "Completed maintenance and its results."
+      },
+      "audit": {
+        "title": "Audit log",
+        "description": "Who changed what, and when."
+      }
+    },
+    "import": {
+      "title": "Import",
+      "description": "Add or update panels in bulk from an Excel or CSV file. Rows are matched by serial number: a panel with the same serial number is updated, new serial numbers are created as new panels.",
+      "cta": "Start import"
+    }
+  }
+}

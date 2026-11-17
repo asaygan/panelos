@@ -6,6 +6,7 @@ import { ConfirmProvider } from "@/components/ui/confirm";
 import { TooltipProvider } from "@/components/ui/menu";
 import { Toaster } from "@/components/ui/toaster";
 import { ApiError } from "@/lib/api/errors";
+import { RegisterServiceWorker } from "./register-sw";
 
 /** Client-side providers shared by every route (auth pages included). */
 export function Providers({ children }: { children: ReactNode }) {
@@ -29,6 +30,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <ConfirmProvider>{children}</ConfirmProvider>
       </TooltipProvider>
       <Toaster />
+      <RegisterServiceWorker />
     </QueryClientProvider>
   );
 }

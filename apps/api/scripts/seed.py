@@ -266,7 +266,9 @@ def _role(label: str) -> Role:
 
 
 async def reset(session: Any) -> None:
-    await session.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
+    # One statement per execute: asyncpg prepares statements and refuses batches.
+    await session.execute(text("DROP SCHEMA public CASCADE"))
+    await session.execute(text("CREATE SCHEMA public"))
     await session.commit()
 
 
@@ -441,8 +443,15 @@ async def seed() -> None:
             )
 
         # Sheets attached to rev E
+        from panelos_api.storage.factory import get_storage
+
+        storage = get_storage()
         for sheet_n, sheet_title in SHEETS:
             pdf_bytes = _make_placeholder_pdf(sheet_title)
+            # Store the bytes too, so the schematic viewer has something to open.
+            await storage.put(
+                f"seed/{DETAIL_TAG}/{sheet_n}.pdf", io.BytesIO(pdf_bytes), "application/pdf"
+            )
             pf = PdfFile(
                 company_id=company.id, storage_provider="local",
                 storage_key=f"seed/{DETAIL_TAG}/{sheet_n}.pdf",
@@ -480,6 +489,8 @@ async def seed() -> None:
                 )
             )
 
+        await _seed_fieldwork(session, company, users_by_key, panels_by_tag)
+
         await session.commit()
         print(
             f"seeded company={company.slug} users={len(USERS)} "
@@ -488,6 +499,94 @@ async def seed() -> None:
             f"revisions(detail)={len(REVISIONS_DETAIL)} queue={len(REV_QUEUE)}"
         )
     await dispose_engine()
+
+
+async def _seed_fieldwork(session: Any, company: Any, users: dict[str, Any], panels: dict[str, Any]) -> None:
+    """Issues, maintenance history/plans, scans and a few notifications."""
+    from datetime import date
+
+    from panelos_api.db.models.issue import Issue
+    from panelos_api.db.models.maintenance import MaintenancePlan, MaintenanceRecord
+    from panelos_api.db.models.notification import Notification
+    from panelos_api.db.models.scan_event import ScanEvent
+
+    now = datetime.now(UTC)
+    tags = list(panels)
+    owner, eng, tech = users["u1"], users["u2"], users["u4"]
+
+    issues = [
+        (tags[0], "L2 bara bağlantısında renk değişimi", "high", "open", None, 2),
+        (tags[1], "Kapı kilidi kapanmıyor", "low", "in_progress", tech.id, 6),
+        (tags[2], "Kompanzasyon kademesi devreye girmiyor", "critical", "open", None, 0),
+        (tags[3], "Fan filtresi tıkalı", "medium", "resolved", tech.id, 12),
+    ]
+    for n, (tag, title, severity, status, assignee, days) in enumerate(issues, start=1):
+        session.add(
+            Issue(
+                company_id=company.id, panel_id=panels[tag].id, number=n, title=title,
+                description="Saha kontrolünde tespit edildi.", severity=severity, status=status,
+                reported_by=tech.id, assigned_to=assignee,
+                created_at=now - timedelta(days=days),
+                resolved_at=now - timedelta(days=1) if status == "resolved" else None,
+                resolved_by=tech.id if status == "resolved" else None,
+                resolution_note="Filtre değiştirildi." if status == "resolved" else None,
+            )
+        )
+
+    plans = [
+        (tags[0], "Yıllık termal ölçüm", "thermography", 365, -9),
+        (tags[1], "6 aylık genel bakım", "preventive", 180, 4),
+        (tags[4], "Aylık görsel kontrol", "inspection", 30, 18),
+        (tags[5], "Yıllık topraklama ölçümü", "test", 365, 120),
+    ]
+    for tag, title, kind, interval, due_in in plans:
+        session.add(
+            MaintenancePlan(
+                company_id=company.id, panel_id=panels[tag].id, title=title, kind=kind,
+                interval_days=interval, next_due_on=date.today() + timedelta(days=due_in),
+            )
+        )
+
+    records = [
+        (tags[0], "inspection", "ok", "Görsel kontrol yapıldı, sorun yok", 40),
+        (tags[1], "preventive", "attention", "Klemensler sıkıldı, kapı contası yıpranmış", 25),
+        (tags[3], "corrective", "ok", "Fan filtresi değiştirildi", 1),
+        (tags[4], "cleaning", "ok", "Pano içi temizlendi", 10),
+    ]
+    for tag, kind, result, summary, days in records:
+        session.add(
+            MaintenanceRecord(
+                company_id=company.id, panel_id=panels[tag].id, kind=kind, result=result,
+                summary=summary, performed_at=now - timedelta(days=days), performed_by=tech.id,
+            )
+        )
+
+    for i, tag in enumerate(tags[:8]):
+        for j in range(1 + (i % 4)):
+            session.add(
+                ScanEvent(
+                    panel_id=panels[tag].id, user_id=tech.id,
+                    device="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/605.1",
+                    at=now - timedelta(days=(i * 3 + j) % 28, hours=j),
+                )
+            )
+
+    first = panels[tags[2]]
+    session.add(
+        Notification(
+            company_id=company.id, user_id=owner.id, kind="issue_reported",
+            params={"tag": first.tag, "panel": first.name, "actor": tech.name,
+                    "title": "Kompanzasyon kademesi devreye girmiyor", "severity": "critical"},
+            link=f"/panels/{first.id}?tab=issues",
+        )
+    )
+    session.add(
+        Notification(
+            company_id=company.id, user_id=owner.id, kind="revision_submitted",
+            params={"tag": first.tag, "panel": first.name, "actor": eng.name, "rev": "B"},
+            link=f"/panels/{first.id}?tab=revisions",
+        )
+    )
 
 
 async def main() -> None:

@@ -1,14 +1,11 @@
 // Canonical Label Layout schema v2 — mirrors docs/design/label-layout-schema.md.
 // Single source of truth for the web side; backend implements the same geometry.
 
-import type { Panel } from "@/lib/api/types";
+import type { Company, Panel } from "@/data/types";
+import { scanUrl } from "@/lib/api/origin";
 
-/** Minimal company shape needed for bindings (works for CompanyOut and view-model). */
-export interface CompanyLike {
-  name?: string | null;
-  short_name?: string | null;
-  standards_profile?: string | null;
-}
+/** The slice of the company the label bindings need. */
+export type CompanyLike = Pick<Company, "name" | "short_name" | "standards_profile">;
 
 // ── Constants (geometry contract) ─────────────────────────────────────────────
 export const UNITS_PER_MM = 10;
@@ -31,6 +28,7 @@ export type Binding =
   | "current"
   | "phase"
   | "mfr"
+  | "customer"
   | "enclosure"
   | "location"
   | "area"
@@ -39,22 +37,24 @@ export type Binding =
   | "standards"
   | "scan_url";
 
-export const BINDINGS: { value: Binding; label: string }[] = [
-  { value: "tag", label: "Tag" },
-  { value: "name", label: "Name" },
-  { value: "serial", label: "Serial" },
-  { value: "rev", label: "Revision" },
-  { value: "voltage", label: "Voltage" },
-  { value: "current", label: "Current" },
-  { value: "phase", label: "Phase" },
-  { value: "mfr", label: "Manufacturer" },
-  { value: "enclosure", label: "Enclosure" },
-  { value: "location", label: "Location" },
-  { value: "area", label: "Area" },
-  { value: "company", label: "Company" },
-  { value: "company_short", label: "Company (short)" },
-  { value: "standards", label: "Standards" },
-  { value: "scan_url", label: "Scan URL" },
+/** Every value a "field" element can be bound to (labels live in messages: labels.bindings.*). */
+export const BINDINGS: readonly Binding[] = [
+  "tag",
+  "name",
+  "serial",
+  "rev",
+  "voltage",
+  "current",
+  "phase",
+  "mfr",
+  "customer",
+  "enclosure",
+  "location",
+  "area",
+  "company",
+  "company_short",
+  "standards",
+  "scan_url",
 ];
 
 export interface ElementBase {
@@ -155,6 +155,7 @@ export interface LabelData {
   current: string;
   phase: string;
   mfr: string;
+  customer: string;
   enclosure: string;
   location: string;
   area: string;
@@ -171,33 +172,32 @@ const STANDARDS_LABEL: Record<string, string> = {
   ul: "UL 508A",
 };
 
-/** Build the flat binding record from a Panel + Company (+ app url). */
+/** Build the flat binding record from a Panel + Company. The QR always encodes scanUrl(panel.qr_token). */
 export function buildLabelData(
   panel: Panel | undefined,
   company: CompanyLike | undefined,
-  opts: { appUrl?: string; logoUrl?: string | null } = {},
+  opts: { logoUrl?: string | null } = {},
 ): LabelData {
-  const appUrl = opts.appUrl ?? "";
-  const token = panel?.qr_token ?? "";
   const standards = company?.standards_profile
-    ? STANDARDS_LABEL[company.standards_profile] ?? company.standards_profile.toUpperCase()
+    ? (STANDARDS_LABEL[company.standards_profile] ?? company.standards_profile.toUpperCase())
     : "";
   return {
     tag: panel?.tag ?? "",
     name: panel?.name ?? "",
     serial: panel?.serial ?? "",
-    rev: panel?.rev && panel.rev !== "—" ? panel.rev : "",
-    voltage: panel?.volt && panel.volt !== "—" ? panel.volt : "",
-    current: panel?.amp && panel.amp !== "—" ? panel.amp : "",
-    phase: panel?.phase && panel.phase !== "—" ? panel.phase : "",
-    mfr: panel?.mfr && panel.mfr !== "—" ? panel.mfr : "",
-    enclosure: panel?.enclosure && panel.enclosure !== "—" ? panel.enclosure : "",
-    location: panel?.loc && panel.loc !== "—" ? panel.loc : "",
-    area: panel?.area && panel.area !== "—" ? panel.area : "",
+    rev: panel?.active_revision?.letter ?? "",
+    voltage: panel?.voltage ?? "",
+    current: panel?.current_a ?? "",
+    phase: panel?.phase ?? "",
+    mfr: panel?.mfr ?? "",
+    customer: panel?.customer ?? "",
+    enclosure: panel?.enclosure ?? "",
+    location: panel?.location_name ?? "",
+    area: panel?.area ?? "",
     company: company?.name ?? "",
     company_short: company?.short_name ?? company?.name ?? "",
     standards,
-    scan_url: token ? `${appUrl}/q/${token}` : "",
+    scan_url: panel?.qr_token ? scanUrl(panel.qr_token) : "",
     logo_url: opts.logoUrl ?? null,
   };
 }
@@ -217,6 +217,7 @@ export const SAMPLE_DATA: LabelData = {
   current: "800A",
   phase: "3PH",
   mfr: "Siemens",
+  customer: "Riverside Utilities",
   enclosure: "IP42",
   location: "Riverside Water Treatment",
   area: "Blower Hall",
@@ -436,6 +437,7 @@ export function coerceLayout(
       size_mm: { w: size.w, h: size.h },
       background: l.background ?? blankLayout(fallbackKind).background,
       grid_mm: typeof l.grid_mm === "number" ? l.grid_mm : 1,
+      ...(typeof l.snap === "boolean" ? { snap: l.snap } : {}),
       elements: l.elements,
     };
   }

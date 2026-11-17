@@ -1,1 +1,98 @@
-{}
+{
+  "title": "Hesabım",
+  "description": "Profil bilgileriniz, güvenlik ayarlarınız ve bildirim tercihleriniz.",
+  "tabs": {
+    "profile": "Profil",
+    "security": "Güvenlik",
+    "notifications": "Bildirimler"
+  },
+  "profile": {
+    "title": "Profil",
+    "name": "Ad soyad",
+    "email": "E-posta",
+    "emailHint": "E-posta adresi değiştirilemez. Farklı bir adres için yöneticinizden yeni davet isteyin.",
+    "language": "Dil",
+    "languageHint": "Arayüz ve size gönderilen e-postalar bu dilde olur.",
+    "theme": "Görünüm",
+    "saved": "Profil güncellendi",
+    "organizations": "Üyesi olduğunuz şirketler"
+  },
+  "password": {
+    "title": "Parola",
+    "description": "Parolanızı değiştirdiğinizde diğer cihazlardaki oturumlarınız kapatılır.",
+    "current": "Mevcut parola",
+    "new": "Yeni parola",
+    "confirm": "Yeni parola (tekrar)",
+    "hint": "En az 10 karakter; harflerin yanında rakam veya sembol.",
+    "mismatch": "Parolalar eşleşmiyor.",
+    "submit": "Parolayı değiştir",
+    "changed": "Parolanız değiştirildi"
+  },
+  "mfa": {
+    "title": "İki adımlı doğrulama",
+    "description": "Girişte parolanıza ek olarak telefonunuzdaki kimlik doğrulama uygulamasının ürettiği kod istenir.",
+    "on": "Açık",
+    "off": "Kapalı",
+    "required": "Şirketiniz bu ayarı zorunlu tutuyor.",
+    "enable": "Kurulumu başlat",
+    "disable": "Kapat",
+    "step1": "1. Kimlik doğrulama uygulamanızla (Google Authenticator, Microsoft Authenticator, 1Password…) bu QR kodu okutun.",
+    "manual": "QR okutamıyorsanız bu anahtarı elle girin:",
+    "step2": "2. Uygulamada görünen 6 haneli kodu girin.",
+    "code": "Doğrulama kodu",
+    "verify": "Doğrula ve aç",
+    "enabled": "İki adımlı doğrulama açıldı",
+    "recoveryTitle": "Kurtarma kodlarınızı saklayın",
+    "recoveryBody": "Telefonunuza erişemezseniz bu kodlardan biriyle giriş yapabilirsiniz. Her kod yalnızca bir kez kullanılır ve bu ekran kapandıktan sonra tekrar gösterilmez.",
+    "recoveryCopy": "Kodları kopyala",
+    "recoveryDone": "Kodları sakladım",
+    "disableTitle": "İki adımlı doğrulamayı kapat",
+    "disableBody": "Hesabınız yalnızca parola ile korunur. Devam etmek için parolanızı girin.",
+    "disabled": "İki adımlı doğrulama kapatıldı"
+  },
+  "sessions": {
+    "title": "Oturumlar",
+    "description": "Bu cihaz dahil tüm cihazlardaki oturumlarınızı kapatın. Bir cihazı kaybettiyseniz veya hesabınızdan şüpheleniyorsanız kullanın.",
+    "logoutAll": "Tüm cihazlardan çıkış yap",
+    "confirmTitle": "Tüm cihazlardan çıkış yapılsın mı?",
+    "confirmBody": "Bu cihazda da yeniden giriş yapmanız gerekecek."
+  },
+  "notifications": {
+    "title": "Bildirim tercihleri",
+    "description": "Hangi olaylarda uygulama içinden ve e-posta ile haber almak istediğinizi seçin.",
+    "inApp": "Uygulama",
+    "email": "E-posta",
+    "event": "Olay",
+    "saved": "Tercihler kaydedildi",
+    "kinds": {
+      "revision_submitted": {
+        "title": "Revizyon onayınıza sunuldu",
+        "hint": "Onay yetkiniz varsa"
+      },
+      "revision_approved": {
+        "title": "Revizyonunuz onaylandı",
+        "hint": "Hazırladığınız revizyonlar için"
+      },
+      "revision_rejected": {
+        "title": "Revizyonunuz reddedildi",
+        "hint": "Ret gerekçesiyle birlikte"
+      },
+      "issue_reported": {
+        "title": "Yeni arıza bildirildi",
+        "hint": "Arıza yönetme yetkiniz varsa"
+      },
+      "issue_assigned": {
+        "title": "Size arıza atandı",
+        "hint": ""
+      },
+      "issue_resolved": {
+        "title": "Arıza çözüldü",
+        "hint": "Bildirdiğiniz veya size atanan arızalar"
+      },
+      "maintenance_due": {
+        "title": "Bakım zamanı yaklaştı",
+        "hint": "Vadesine 7 gün kalan ve geciken planlar"
+      }
+    }
+  }
+}

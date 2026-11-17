@@ -1,1 +1,361 @@
-{}
+{
+  "title": "Kullanıcılar",
+  "description": "Ekibinizi, rollerini ve denetim kayıtlarını yönetin.",
+  "tabs": {
+    "members": "Üyeler",
+    "roles": "Roller",
+    "audit": "Denetim kaydı"
+  },
+  "forbidden": {
+    "title": "Bu sayfaya erişiminiz yok",
+    "description": "Kullanıcı yönetimi için yönetici yetkisi gerekir. Gerekirse şirket yöneticinizle görüşün."
+  },
+  "invitedAt": "Davet: {when}",
+  "status": {
+    "active": "Aktif",
+    "invited": "Davet edildi",
+    "suspended": "Askıda"
+  },
+  "filters": {
+    "search": "Ad veya e-posta ara…",
+    "allRoles": "Tüm roller",
+    "allStatuses": "Tüm durumlar"
+  },
+  "columns": {
+    "activity": "Son etkinlik"
+  },
+  "empty": {
+    "title": "Henüz üye yok",
+    "description": "Ekip arkadaşlarınızı davet ederek panoları birlikte yönetmeye başlayın."
+  },
+  "roleDescriptions": {
+    "owner": "Şirketin tam kontrolü: tüm ayarlar, üyeler ve veriler.",
+    "admin": "Üyeleri, ayarları ve onayları yönetir; sahiplerin hesabına dokunamaz.",
+    "engineer": "Pano, revizyon, şema ve etiket hazırlar; revizyon onaylayabilir.",
+    "technician": "Sahada QR okutur, onaylı şemaları görür, arıza ve bakım kaydı girer.",
+    "viewer": "Panoları ve onaylı şemaları yalnızca görüntüler."
+  },
+  "locations": {
+    "all": "Tüm lokasyonlar",
+    "title": "Lokasyon kısıtı",
+    "description": "{name} için erişilebilecek lokasyonları seçin.",
+    "explain": "Hiçbiri seçilmezse kullanıcı tüm lokasyonlara erişir. Kısıt mühendis, teknisyen ve izleyici rollerine uygulanır; yönetici ve sahip her zaman tüm lokasyonları görür.",
+    "adminNote": "Bu kullanıcının rolü yönetici veya sahip olduğundan kısıt uygulanmaz.",
+    "noneDefined": "Henüz lokasyon tanımlanmamış. Önce Ayarlar > Lokasyonlar bölümünden ekleyin.",
+    "allSelected": "Hiçbiri seçili değil: tüm lokasyonlara erişim.",
+    "selected": "{count, plural, one {# lokasyon seçili} other {# lokasyon seçili}}",
+    "done": "{name} için lokasyon erişimi güncellendi."
+  },
+  "changeRole": {
+    "title": "Rolü değiştir",
+    "description": "{name} için yeni bir rol seçin.",
+    "done": "{name} için rol güncellendi."
+  },
+  "menu": {
+    "open": "{name} için işlemler",
+    "role": "Rolü değiştir",
+    "locations": "Lokasyon kısıtı",
+    "resend": "Daveti yeniden gönder",
+    "resent": "{email} adresine davet yeniden gönderildi.",
+    "suspend": "Askıya al",
+    "activate": "Yeniden etkinleştir",
+    "remove": "Şirketten çıkar",
+    "blocked": {
+      "ownerProtected": "Yöneticiler sahip hesaplarında değişiklik yapamaz.",
+      "self": "Kendi rolünüzü, durumunuzu veya üyeliğinizi değiştiremezsiniz.",
+      "lastOwner": "Son aktif sahip rolü düşürülemez, askıya alınamaz veya çıkarılamaz. Önce başka bir sahip atayın."
+    }
+  },
+  "confirm": {
+    "suspend": {
+      "title": "{name} askıya alınsın mı?",
+      "description": "Kullanıcı giriş yapamaz ve verilere erişemez. İstediğiniz zaman yeniden etkinleştirebilirsiniz.",
+      "confirm": "Askıya al",
+      "done": "Kullanıcı askıya alındı."
+    },
+    "activate": {
+      "title": "{name} yeniden etkinleştirilsin mi?",
+      "description": "Kullanıcı eski rolü ve lokasyon kısıtlarıyla tekrar giriş yapabilir.",
+      "confirm": "Etkinleştir",
+      "done": "Kullanıcı yeniden etkinleştirildi."
+    },
+    "remove": {
+      "title": "{name} şirketten çıkarılsın mı?",
+      "description": "Kullanıcının bu şirkete erişimi sona erer. Geçmiş kayıtlarda adı görünmeye devam eder.",
+      "confirm": "Şirketten çıkar",
+      "done": "Kullanıcı şirketten çıkarıldı."
+    }
+  },
+  "invite": {
+    "open": "Kullanıcı davet et",
+    "title": "Kullanıcı davet et",
+    "description": "E-posta adresine bir davet bağlantısı gönderilir.",
+    "locations": "Lokasyon kısıtı",
+    "message": "Kişisel mesaj",
+    "messageHint": "Davet e-postasında gösterilir.",
+    "submit": "Davet gönder",
+    "sent": "{email} adresine davet e-postası gönderildi. Bağlantı 14 gün geçerlidir.",
+    "errors": {
+      "emailRequired": "E-posta gerekli.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "messageLong": "En fazla 500 karakter."
+    }
+  },
+  "roles": {
+    "intro": "Her rolün yapabildiklerini aşağıda görebilirsiniz. Roller sabittir; kullanıcıya uygun rolü atayın.",
+    "permission": "Yetki",
+    "members": "{count, plural, =0 {Üye yok} one {# üye} other {# üye}}",
+    "allowed": "İzin var",
+    "notAllowed": "İzin yok",
+    "approveNote": "Şirket politikası bu yetkiyi daha da kısıtlayabilir (Ayarlar > Politikalar).",
+    "permissions": {
+      "manage_org": {
+        "label": "Şirket ayarları",
+        "description": "Şirket bilgilerini, politikaları ve lokasyonları düzenler."
+      },
+      "manage_users": {
+        "label": "Kullanıcı yönetimi",
+        "description": "Kullanıcı davet eder, rol ve erişimleri değiştirir."
+      },
+      "view_audit": {
+        "label": "Denetim kaydı",
+        "description": "Tüm işlem geçmişini görüntüler ve bütünlüğünü doğrular."
+      },
+      "crud_panels": {
+        "label": "Pano yönetimi",
+        "description": "Proje, sistem grubu, pano ve kabin oluşturur, düzenler, arşivler."
+      },
+      "create_revision": {
+        "label": "Revizyon hazırlama",
+        "description": "Yeni revizyon açar; şema ve malzeme listesini düzenler."
+      },
+      "approve_revision": {
+        "label": "Revizyon onayı",
+        "description": "Revizyonları onaylar veya reddeder."
+      },
+      "upload_pdf": {
+        "label": "PDF yükleme",
+        "description": "Şema PDF dosyalarını yükler."
+      },
+      "generate_labels": {
+        "label": "Etiket üretme",
+        "description": "QR etiketleri ve şablonları oluşturur."
+      },
+      "manage_maintenance": {
+        "label": "Bakım yönetimi",
+        "description": "Bakım planı ve kaydı oluşturur."
+      },
+      "manage_issues": {
+        "label": "Arıza yönetimi",
+        "description": "Arızaları atar, günceller ve kapatır."
+      },
+      "report_issue": {
+        "label": "Arıza bildirme",
+        "description": "Sahada arıza kaydı açar, fotoğraf ekler."
+      },
+      "export_data": {
+        "label": "Veri dışa aktarma",
+        "description": "Pano, arıza ve bakım verilerini Excel/CSV indirir."
+      },
+      "scan_qr": {
+        "label": "QR okutma",
+        "description": "Pano QR kodunu okutup kimliğine ulaşır."
+      }
+    }
+  },
+  "audit": {
+    "export": "CSV olarak indir",
+    "empty": {
+      "title": "Henüz kayıt yok",
+      "description": "Şirketinizdeki işlemler burada görünür."
+    },
+    "filters": {
+      "category": "Kategori",
+      "allCategories": "Tüm kategoriler",
+      "actor": "Kullanıcı",
+      "allActors": "Tüm kullanıcılar",
+      "since": "Başlangıç tarihi",
+      "until": "Bitiş tarihi"
+    },
+    "categories": {
+      "panel": "Panolar",
+      "project": "Projeler",
+      "system_group": "Sistem grupları",
+      "cabinet": "Kabinler",
+      "revision": "Revizyonlar",
+      "file": "Dosyalar",
+      "label": "Etiketler",
+      "user": "Kullanıcılar",
+      "auth": "Oturum ve güvenlik",
+      "company": "Şirket ayarları",
+      "issue": "Arızalar",
+      "maintenance": "Bakım",
+      "attachment": "Ekler",
+      "panels": "Toplu içe aktarma",
+      "data": "Veri dışa aktarma"
+    },
+    "showDetails": "Ayrıntıları göster",
+    "hideDetails": "Ayrıntıları gizle",
+    "noDetails": "Bu kayıt için ek ayrıntı yok.",
+    "openTarget": "İlgili kaydı aç",
+    "verify": {
+      "button": "Bütünlüğü doğrula",
+      "intact": "Denetim zinciri sağlam: hiçbir kayıt değiştirilmemiş veya silinmemiş.",
+      "broken": "Denetim zinciri bozulmuş: kayıtlarda değişiklik veya silinme tespit edildi. Sistem yöneticinize bildirin.",
+      "failed": "Doğrulama yapılamadı. Tekrar deneyin.",
+      "checkedAt": "Kontrol: {when}"
+    },
+    "targets": {
+      "panel": "Pano",
+      "project": "Proje",
+      "system_group": "Sistem grubu",
+      "cabinet": "Kabin",
+      "revision": "Revizyon",
+      "file": "Dosya",
+      "label": "Etiket",
+      "label_batch": "Etiket partisi",
+      "user": "Kullanıcı",
+      "membership": "Üyelik",
+      "invitation": "Davet",
+      "company": "Şirket",
+      "issue": "Arıza",
+      "maintenance": "Bakım",
+      "attachment": "Ek"
+    },
+    "meta": {
+      "changes": "Değişiklikler",
+      "name": "Ad",
+      "title": "Başlık",
+      "tag": "Etiket",
+      "serial": "Seri no",
+      "email": "E-posta",
+      "target_email": "Hedef e-posta",
+      "role": "Rol",
+      "old_role": "Eski rol",
+      "new_role": "Yeni rol",
+      "from": "Önce",
+      "to": "Sonra",
+      "status": "Durum",
+      "severity": "Önem",
+      "count": "Adet",
+      "rows": "Satır",
+      "format": "Biçim",
+      "dataset": "Veri kümesi",
+      "filename": "Dosya adı",
+      "size": "Boyut",
+      "number": "Numara",
+      "result": "Sonuç",
+      "kind": "Tür",
+      "type": "Tür",
+      "note": "Not",
+      "template": "Şablon",
+      "device": "Cihaz",
+      "via": "Yöntem",
+      "created": "Eklenen",
+      "updated": "Güncellenen",
+      "interval_days": "Aralık (gün)",
+      "panel_id": "Pano kimliği",
+      "project_id": "Proje kimliği",
+      "issue_id": "Arıza kimliği",
+      "plan_id": "Plan kimliği",
+      "record_id": "Kayıt kimliği",
+      "attachment_id": "Ek kimliği",
+      "location_ids": "Lokasyon kimlikleri",
+      "invited_by": "Davet eden",
+      "letter": "Harf",
+      "superseded_by": "Yerine geçen",
+      "moved_from": "Taşındığı yer",
+      "moved_to": "Taşınan yer"
+    },
+    "actions": {
+      "panel": {
+        "created": "pano oluşturdu",
+        "updated": "panoyu güncelledi",
+        "archived": "panoyu arşivledi",
+        "status_changed": "panonun durumunu değiştirdi"
+      },
+      "panel_set": {
+        "created": "pano seti oluşturdu",
+        "updated": "pano setini güncelledi",
+        "archived": "pano setini arşivledi"
+      },
+      "section": {
+        "created": "bölüm ekledi",
+        "updated": "bölümü güncelledi",
+        "deleted": "bölümü sildi"
+      },
+      "project": {
+        "created": "proje oluşturdu",
+        "updated": "projeyi güncelledi",
+        "archived": "projeyi arşivledi",
+        "status_changed": "projenin durumunu değiştirdi"
+      },
+      "system_group": {
+        "created": "sistem grubu oluşturdu",
+        "updated": "sistem grubunu güncelledi",
+        "deleted": "sistem grubunu sildi",
+        "status_changed": "sistem grubunun durumunu değiştirdi"
+      },
+      "cabinet": {
+        "created": "kabin ekledi",
+        "updated": "kabini güncelledi",
+        "deleted": "kabini sildi"
+      },
+      "revision": {
+        "created": "revizyon oluşturdu",
+        "submitted": "revizyonu onaya gönderdi",
+        "approved": "revizyonu onayladı",
+        "rejected": "revizyonu reddetti",
+        "superseded": "revizyonu yeni sürümle değiştirdi"
+      },
+      "file": {
+        "uploaded": "dosya yükledi"
+      },
+      "label": {
+        "rendered": "etiket oluşturdu"
+      },
+      "user": {
+        "invited": "kullanıcı davet etti",
+        "removed": "kullanıcıyı şirketten çıkardı",
+        "role_changed": "kullanıcının rolünü değiştirdi",
+        "suspended": "kullanıcıyı askıya aldı",
+        "activated": "kullanıcıyı yeniden etkinleştirdi",
+        "invite_resent": "daveti yeniden gönderdi",
+        "invite_accepted": "daveti kabul etti",
+        "locations_assigned": "kullanıcının lokasyon erişimini güncelledi"
+      },
+      "auth": {
+        "login": "giriş yaptı",
+        "logout": "çıkış yaptı",
+        "password_reset_requested": "parola sıfırlama istedi",
+        "password_changed": "parolasını değiştirdi",
+        "mfa_enabled": "iki adımlı doğrulamayı açtı",
+        "mfa_disabled": "iki adımlı doğrulamayı kapattı"
+      },
+      "company": {
+        "updated": "şirket ayarlarını güncelledi"
+      },
+      "issue": {
+        "created": "arıza kaydı açtı",
+        "updated": "arıza kaydını güncelledi",
+        "status_changed": "arızanın durumunu değiştirdi"
+      },
+      "maintenance": {
+        "recorded": "bakım kaydı girdi",
+        "plan_created": "bakım planı oluşturdu",
+        "plan_updated": "bakım planını güncelledi",
+        "plan_deleted": "bakım planını sildi"
+      },
+      "attachment": {
+        "added": "ek ekledi",
+        "removed": "eki kaldırdı"
+      },
+      "panels": {
+        "imported": "panoları içe aktardı"
+      },
+      "data": {
+        "exported": "veri dışa aktardı"
+      }
+    }
+  }
+}

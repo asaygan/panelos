@@ -1,1 +1,149 @@
-{}
+{
+  "breadcrumb": {
+    "label": "Konum yolu",
+    "panels": "Panolar"
+  },
+  "state": {
+    "notFoundTitle": "Pano bulunamadı",
+    "notFoundBody": "Bu pano silinmiş, arşivlenmiş ya da görüntüleme yetkiniz yok.",
+    "backToPanels": "Panolara dön",
+    "loadError": "Pano yüklenemedi"
+  },
+  "chips": {
+    "openIssues": "{count, plural, one {# açık arıza} other {# açık arıza}}",
+    "maintenanceOverdue": "Bakım gecikti"
+  },
+  "actions": {
+    "reportIssue": "Arıza bildir",
+    "logMaintenance": "Bakım kaydet",
+    "label": "Etiket",
+    "edit": "Düzenle",
+    "archive": "Arşivle",
+    "fieldActions": "Saha işlemleri"
+  },
+  "archive": {
+    "title": "Pano arşivlensin mi?",
+    "body": "{tag} panosu listelerden kalkar; şema, bakım ve arıza geçmişi korunur.",
+    "confirm": "Arşivle",
+    "done": "{tag} arşivlendi"
+  },
+  "tabs": {
+    "label": "Pano bölümleri",
+    "overview": "Genel bakış",
+    "schematics": "Şemalar",
+    "revisions": "Revizyonlar",
+    "bom": "BOM",
+    "cabinets": "Kabinler",
+    "maintenance": "Bakım",
+    "issues": "Arızalar",
+    "files": "Dosyalar",
+    "activity": "Hareketler"
+  },
+  "glance": {
+    "title": "Bir bakışta",
+    "schematic": "Güncel şema",
+    "schematicRev": "Rev. {letter}",
+    "noSchematic": "Onaylı şema yok",
+    "noSchematicHint": "Sahada kullanılacak bir şema henüz onaylanmadı.",
+    "openSchematic": "Şemayı aç",
+    "goSchematics": "Şemalara git",
+    "pending": "Bekleyen revizyon",
+    "noPending": "Bekleyen revizyon yok",
+    "viewRevisions": "Revizyonları gör",
+    "issues": "Açık arızalar",
+    "noIssues": "Açık arıza yok",
+    "viewIssues": "Arızaları gör",
+    "nextMaintenance": "Sonraki bakım",
+    "noMaintenance": "Planlı bakım yok",
+    "viewMaintenance": "Bakıma git",
+    "lastScan": "Son QR okutma",
+    "neverScanned": "Henüz okutulmadı"
+  },
+  "details": {
+    "title": "Kimlik ve teknik bilgiler",
+    "notes": "Notlar"
+  },
+  "qr": {
+    "title": "QR kodu",
+    "alt": "{tag} panosunun QR kodu",
+    "explain": "Kodu telefonla okutan kişi giriş yaptıysa bu pano sayfasını açar; okutma Hareketler sekmesine işlenir.",
+    "copyLink": "Bağlantıyı kopyala",
+    "downloadPng": "PNG indir",
+    "downloadSvg": "SVG indir",
+    "linkLabel": "Okutma bağlantısı"
+  },
+  "cabinets": {
+    "title": "Kabinler",
+    "description": "Panonun fiziksel bölmeleri",
+    "add": "Kabin ekle",
+    "emptyTitle": "Henüz kabin tanımlanmadı",
+    "emptyBody": "Kabin, bir panonun fiziksel bölmesi ya da hücresidir (ör. giriş hücresi, kompanzasyon hücresi). Malzeme listesini kabinlere göre ayırmak için ekleyin.",
+    "emptyReadOnly": "Bu pano için kabin tanımlanmamış.",
+    "loadError": "Kabinler yüklenemedi",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "addTitle": "Yeni kabin",
+    "editTitle": "Kabini düzenle",
+    "fieldName": "Kabin adı",
+    "namePlaceholder": "Örn. Giriş hücresi",
+    "fieldCode": "Kabin kodu",
+    "codePlaceholder": "Örn. K1",
+    "nameRequired": "Kabin adı gerekli.",
+    "created": "Kabin eklendi",
+    "updated": "Kabin güncellendi",
+    "moved": "Sıra güncellendi",
+    "deleteTitle": "{name} silinsin mi?",
+    "deleteBody": "Kabin silinir. Bu kabine bağlı malzeme kayıtları varsa silme işlemi reddedilebilir.",
+    "deleted": "Kabin silindi"
+  },
+  "files": {
+    "title": "Dosyalar",
+    "description": "Fotoğraflar, etiket görselleri ve genel belgeler",
+    "emptyTitle": "Henüz dosya yok",
+    "emptyBody": "Pano fotoğrafı, etiket (plaka) görseli veya saha belgesi ekleyin; ekip sahada hızlıca bulabilsin.",
+    "emptyReadOnly": "Bu pano için genel dosya eklenmemiş.",
+    "loadError": "Dosyalar yüklenemedi",
+    "caption": "Açıklama",
+    "captionHint": "Seçtiğiniz tüm dosyalara uygulanır.",
+    "captionPlaceholder": "Örn. Pano etiketi, kapak içi",
+    "takePhoto": "Fotoğraf çek",
+    "choose": "Dosya seç",
+    "typesHint": "Fotoğraf (JPG, PNG, WebP){pdf, select, true { veya PDF} other {}} · en fazla {max} MB",
+    "added": "{count, plural, one {# dosya eklendi} other {# dosya eklendi}}",
+    "uploadFailed": "{name} yüklenemedi",
+    "unsupported": "{name} desteklenmiyor",
+    "removeTitle": "Dosya kaldırılsın mı?",
+    "removeBody": "Dosya bu panodan kaldırılır.",
+    "removed": "Dosya kaldırıldı"
+  },
+  "activity": {
+    "scansTitle": "QR okutmaları",
+    "scansDescription": "Bu panonun kodunun okutulduğu son zamanlar",
+    "scansEmpty": "Bu pano henüz okutulmadı",
+    "scansEmptyHint": "Etiketi panoya yapıştırıp telefonla okutarak deneyebilirsiniz.",
+    "scansError": "Okutma geçmişi yüklenemedi",
+    "historyTitle": "Değişiklik geçmişi",
+    "historyDescription": "Bu panoda yapılan işlemler",
+    "historyEmpty": "Kayıtlı işlem yok",
+    "historyError": "Değişiklik geçmişi yüklenemedi",
+    "showMore": "Daha fazla göster",
+    "unknownDevice": "Bilinmeyen cihaz",
+    "actions": {
+      "panel": {
+        "created": "Pano oluşturuldu",
+        "updated": "Pano bilgileri güncellendi",
+        "archived": "Pano arşivlendi"
+      },
+      "maintenance": {
+        "recorded": "Bakım kaydedildi",
+        "plan_created": "Bakım planı oluşturuldu",
+        "plan_updated": "Bakım planı güncellendi",
+        "plan_deleted": "Bakım planı silindi"
+      },
+      "attachment": {
+        "added": "Dosya eklendi",
+        "removed": "Dosya kaldırıldı"
+      }
+    }
+  }
+}

@@ -1,1 +1,211 @@
-{}
+{
+  "title": "Panolar",
+  "description": "Proje, sistem grubu, pano ve kabin hiyerarşisini buradan kurun ve yönetin.",
+  "view": {
+    "label": "Görünüm",
+    "tree": "Ağaç",
+    "table": "Tablo"
+  },
+  "toolbar": {
+    "newProject": "Yeni proje",
+    "newPanel": "Yeni pano"
+  },
+  "export": {
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (.csv)"
+  },
+  "fields": {
+    "site": "Saha / tesis"
+  },
+  "validation": {
+    "required": "Bu alan zorunlu.",
+    "tooLong": "Çok uzun, kısaltın."
+  },
+  "toast": {
+    "groupCreated": "Sistem grubu oluşturuldu",
+    "panelCreated": "Pano oluşturuldu",
+    "cabinetCreated": "Kabin oluşturuldu",
+    "moved": "Taşındı. QR kodu değişmedi.",
+    "archived": "Arşivlendi"
+  },
+  "confirm": {
+    "archiveProject": {
+      "title": "“{name}” projesi arşivlensin mi?",
+      "body": "Proje ve içindeki {groups, plural, other {# sistem grubu}} ile {panels, plural, other {# pano}} listelerden gizlenir. Kayıtlar silinmez."
+    },
+    "archivePanel": {
+      "title": "“{name}” panosu arşivlensin mi?",
+      "body": "{tag} etiketli pano listelerden gizlenir. Revizyonları ve geçmişi silinmez."
+    },
+    "deleteGroup": {
+      "title": "“{name}” grubu silinsin mi?",
+      "body": "Gruptaki {panels, plural, other {# pano}} silinmez, “Atanmamış” alanına taşınır."
+    },
+    "deleteCabinet": {
+      "title": "“{name}” kabini silinsin mi?",
+      "body": "Kabin kaydı kalıcı olarak silinir. Bu işlem geri alınamaz."
+    }
+  },
+  "tree": {
+    "aria": "Varlık hiyerarşisi",
+    "filter": "Etiket, ad, seri no veya kod ara…",
+    "expandAll": "Tümünü aç",
+    "collapseAll": "Tümünü kapat",
+    "emptyTitle": "Henüz proje yok",
+    "emptyBody": "Hiyerarşi Proje → Sistem grubu → Pano → Kabin şeklindedir. Önce bir proje oluşturun, sonra gruplarını ve panolarını ekleyin.",
+    "createFirst": "İlk projeyi oluştur",
+    "noMatch": "“{query}” ile eşleşen öğe yok."
+  },
+  "row": {
+    "unassigned": "Atanmamış panolar",
+    "projectCounts": "{groups, plural, other {# grup}} · {panels, plural, other {# pano}}",
+    "panelCount": "{count, plural, other {# pano}}"
+  },
+  "cells": {
+    "issuesAria": "{count} açık arıza, en yüksek önem: {severity}",
+    "overdue": "Bakım gecikti"
+  },
+  "quickAdd": {
+    "group": "Sistem grubu ekle",
+    "panel": "Pano ekle",
+    "cabinet": "Kabin ekle",
+    "placeholder": {
+      "group": "Sistem grubu adı",
+      "panel": "Pano adı",
+      "cabinet": "Kabin adı"
+    },
+    "emptyGroup": "Henüz sistem grubu yok. İlkini ekleyin.",
+    "emptyPanel": "Henüz pano yok. İlkini ekleyin.",
+    "keys": "Enter: ekle · Shift+Enter: ekle ve sıradakine geç · Esc: iptal"
+  },
+  "menu": {
+    "openPanel": "Panoyu aç",
+    "move": "Taşı…",
+    "add": {
+      "project": "Sistem grubu ekle",
+      "group": "Pano ekle",
+      "panel": "Kabin ekle",
+      "cabinet": "Ekle",
+      "unassigned": "Pano ekle"
+    }
+  },
+  "dnd": {
+    "instructions": "Taşımak için Boşluk tuşuna basın, yukarı/aşağı oklarla hedef seçin, Boşluk veya Enter ile bırakın, Esc ile vazgeçin.",
+    "picked": "{name} seçildi.",
+    "over": "{name}, {target} üzerinde.",
+    "dropped": "{name}, {target} hedefine bırakıldı.",
+    "cancelled": "Taşıma iptal edildi."
+  },
+  "moveBar": {
+    "title": "Taşımayı onayla",
+    "cancel": "Vazgeç",
+    "panelGroup": "“{name}” panosunu “{target}” grubuna taşı",
+    "panelUnassigned": "“{name}” panosunu atanmamışlara taşı",
+    "cabinet": "“{name}” kabinini “{target}” panosuna taşı"
+  },
+  "moveDialog": {
+    "titlePanel": "“{name}” panosunu taşı",
+    "titleCabinet": "“{name}” kabinini taşı",
+    "helper": "Taşıma QR kodunu değiştirmez; basılı etiketler geçerli kalır.",
+    "search": "Hedef ara…",
+    "empty": "Uygun hedef bulunamadı",
+    "current": "Şu anki konum"
+  },
+  "detail": {
+    "placeholder": "Ayrıntıları görmek ve düzenlemek için ağaçtan bir öğe seçin.",
+    "path": "Konum",
+    "docStatus": "Şema durumu",
+    "issues": "Açık arızalar",
+    "nextMaintenance": "Sonraki bakım",
+    "openPanel": "Panoyu aç",
+    "edit": "Düzenle"
+  },
+  "newProject": {
+    "title": "Yeni proje",
+    "description": "Projeyi oluşturduktan sonra sistem gruplarını ve panoları ağaçtan ekleyebilirsiniz.",
+    "created": "Proje oluşturuldu"
+  },
+  "form": {
+    "createTitle": "Yeni pano",
+    "editTitle": "Panoyu düzenle",
+    "createDescription": "Yalnızca ad zorunludur. Etiket ve seri no boş bırakılırsa otomatik üretilir.",
+    "editDescription": "Pano kimliği ve teknik bilgileri.",
+    "created": "Pano oluşturuldu",
+    "tagHint": "Boşsa addan üretilir",
+    "serialHint": "Boşsa otomatik üretilir. İçe aktarmada eşleştirme anahtarıdır.",
+    "serialLocked": "Seri no değiştirilemez; içe aktarmada kimlik anahtarıdır.",
+    "groupNeedsProject": "Önce proje seçin",
+    "technical": "Teknik bilgiler",
+    "technicalHint": "isteğe bağlı"
+  },
+  "table": {
+    "search": "Etiket, ad, seri no veya proje ara…",
+    "allLocations": "Tüm lokasyonlar",
+    "allDocs": "Tüm şema durumları",
+    "docStatus": "Şema",
+    "clearFilters": "Filtreleri temizle",
+    "count": "{shown} / {total} pano",
+    "emptyTitle": "Henüz pano yok",
+    "emptyBody": "İlk panoyu ekleyin veya mevcut panolarınızı Excel ile içe aktarın.",
+    "create": "Yeni pano",
+    "path": "Proje › grup",
+    "issues": "Arıza",
+    "nextMaintenance": "Sonraki bakım",
+    "lastScan": "Son tarama"
+  },
+  "import": {
+    "title": "Panoları içe aktar",
+    "description": "Excel veya CSV dosyasından panoları toplu oluşturun ya da güncelleyin.",
+    "steps": {
+      "label": "Adımlar",
+      "pick": "Dosya",
+      "preview": "Önizleme",
+      "done": "Tamamlandı"
+    },
+    "formatTitle": "Dosya biçimi",
+    "formatRequired": "Her satırda ad ve seri no zorunludur. Diğer sütunlar için şablonu indirin.",
+    "formatMatch": "Eşleştirme seri no ile yapılır: seri no sistemde varsa pano güncellenir, yoksa yeni pano oluşturulur.",
+    "formatLimits": "En fazla 5000 satır ve 5 MB. Önce deneme çalıştırması yapılır, hiçbir şey kaydedilmez.",
+    "templateXlsx": "Şablonu indir (.xlsx)",
+    "templateCsv": "Şablonu indir (.csv)",
+    "dropHint": ".xlsx veya .csv · en fazla 5 MB",
+    "checking": "Dosya kontrol ediliyor…",
+    "chooseAnother": "Başka dosya seç",
+    "toCreate": "Oluşturulacak",
+    "toUpdate": "Güncellenecek",
+    "failed": "Hatalı satır",
+    "unknownColumns": "Tanınmayan sütunlar yok sayılacak: {columns}",
+    "fixErrors": "İçe aktarmak için dosyadaki hataları düzeltip yeniden yükleyin.",
+    "onlyErrors": "Yalnızca hatalı satırlar",
+    "row": "Satır",
+    "moreRows": "{count, plural, other {# satır daha}} gösterilmiyor.",
+    "status": {
+      "create": "Yeni",
+      "update": "Güncellenecek",
+      "error": "Hata"
+    },
+    "success": "{created, plural, other {# pano}} oluşturuldu, {updated, plural, other {# pano}} güncellendi.",
+    "errors": {
+      "name_required": "Ad boş olamaz.",
+      "serial_required": "Seri no boş olamaz.",
+      "duplicate_serial_in_file": "Bu seri no dosyada birden fazla kez geçiyor.",
+      "unknown_location": "Lokasyon kodu tanınmıyor.",
+      "project_required_for_group": "Sistem grubu için proje de belirtilmeli.",
+      "tooLong": "“{field}” alanı çok uzun."
+    },
+    "fields": {
+      "tag": "Etiket",
+      "name": "Ad",
+      "serial": "Seri no",
+      "area": "Alan",
+      "voltage": "Gerilim",
+      "current_a": "Akım",
+      "phase": "Faz",
+      "mfr": "Üretici",
+      "customer": "Müşteri",
+      "enclosure": "Pano tipi",
+      "ip_class": "IP sınıfı",
+      "notes": "Notlar"
+    }
+  }
+}

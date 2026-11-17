@@ -22,6 +22,8 @@ const PUBLIC_PATHS = [
   "/manifest.webmanifest",
   "/sw.js",
   "/icons",
+  "/offline",
+  "/pdf.worker.min.mjs",
 ];
 
 /** Refresh slightly early so a request never races the token's last second. */
@@ -103,6 +105,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|api/|favicon.svg|apple-touch-icon.png|icons/|manifest.webmanifest|sw.js).*)",
+    "/((?!_next/static|_next/image|api/|favicon.svg|apple-touch-icon.png|icons/|manifest.webmanifest|sw.js|pdf.worker.min.mjs).*)",
   ],
 };

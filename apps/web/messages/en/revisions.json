@@ -1,1 +1,135 @@
-{}
+{
+  "title": "Revisions",
+  "description": "Schematic revisions waiting for approval, drafts and finished ones.",
+  "queue": {
+    "tabs": {
+      "review": "Awaiting approval",
+      "draft": "Drafts",
+      "history": "History"
+    },
+    "tabsLabel": "Revision filter",
+    "empty": {
+      "review": "No revisions awaiting approval",
+      "draft": "No draft revisions",
+      "history": "No past revisions"
+    },
+    "emptyHint": {
+      "review": "Revisions submitted for approval appear here.",
+      "draft": "Start a new draft from a panel's revisions tab.",
+      "history": "Approved or rejected revisions appear here."
+    },
+    "browsePanels": "Browse panels",
+    "panel": "Panel",
+    "revision": "Revision",
+    "author": "Author",
+    "contents": "Contents",
+    "summary": "Change summary",
+    "when": {
+      "review": "Submitted",
+      "draft": "Updated",
+      "history": "Decided"
+    },
+    "openPanel": "Open panel"
+  },
+  "timeline": {
+    "title": "Revision history",
+    "emptyTitle": "No revisions yet",
+    "emptyDescription": "Start the first draft to add schematics and a bill of materials.",
+    "live": "Live in the field",
+    "noSummary": "No change summary",
+    "createdBy": "Created by {name}",
+    "submittedBy": "Submitted by {name}",
+    "approvedBy": "Approved by {name}",
+    "rejectedBy": "Rejected by {name}",
+    "supersededAt": "Replaced by a newer revision",
+    "reviewNote": "Note",
+    "sheets": "{count, plural, =0 {No sheets} one {# sheet} other {# sheets}}",
+    "components": "{count, plural, =0 {No components} one {# component} other {# components}}",
+    "newDraft": "New draft",
+    "draftExists": "A draft revision already exists. Submit it for approval first.",
+    "editSummary": "Edit summary",
+    "submit": "Submit for approval",
+    "approve": "Approve",
+    "reject": "Reject",
+    "viewSheets": "View schematics",
+    "viewBom": "Bill of materials"
+  },
+  "summaryDialog": {
+    "newTitle": "New draft revision",
+    "newDescription": "The draft is not valid in the field until it is submitted and approved.",
+    "editTitle": "Edit Rev {letter} summary",
+    "label": "Change summary",
+    "placeholder": "What changes in this revision?",
+    "create": "Create draft",
+    "created": "Draft Rev {letter} created",
+    "updated": "Summary updated"
+  },
+  "submit": {
+    "title": "Submit Rev {letter} for approval?",
+    "body": "Once submitted, the sheets and bill of materials can no longer be changed. Approvers are notified.",
+    "zeroSheets": "This revision has no sheets. Submit it for approval anyway?",
+    "done": "Rev {letter} submitted for approval"
+  },
+  "decision": {
+    "approveTitle": "Approve Rev {letter}?",
+    "approveBody": "Once approved, this revision becomes live in the field and the previous approved one is superseded.",
+    "rejectTitle": "Reject Rev {letter}?",
+    "rejectBody": "The author will see your reason.",
+    "zeroSheets": "This revision has no sheets.",
+    "noteLabel": "Note",
+    "noteReasonLabel": "Reason for rejection",
+    "noteRequired": "A reason for rejection is required.",
+    "notePlaceholder": "Add an optional note",
+    "approveAction": "Approve",
+    "rejectAction": "Reject",
+    "approved": "Rev {letter} approved",
+    "rejected": "Rev {letter} rejected"
+  },
+  "bom": {
+    "revision": "Revision",
+    "slot": "Slot",
+    "ref": "Reference",
+    "description": "Description",
+    "partNumber": "Part number",
+    "rating": "Rating",
+    "type": "Type",
+    "status": "Status",
+    "statusOk": "OK",
+    "statusWarn": "Attention",
+    "search": "Search reference, description or part number…",
+    "searchLabel": "Search the bill of materials",
+    "count": "{count, plural, one {# item} other {# items}}",
+    "emptyTitle": "The bill of materials is empty",
+    "emptyDescription": "This revision has no components yet.",
+    "emptyAction": "Add the first row",
+    "noRevisionTitle": "No bill of materials",
+    "noRevisionDescription": "This panel has no approved revision yet.",
+    "readOnly": "The bill of materials can only be edited in a draft revision.",
+    "add": "Add row",
+    "edit": "Edit row",
+    "delete": "Delete row",
+    "deleteTitle": "Delete row {ref}?",
+    "deleteBody": "The row is removed from the draft revision.",
+    "addTitle": "Add component",
+    "editTitle": "Edit component",
+    "required": "This field is required",
+    "added": "Row added",
+    "updated": "Row updated",
+    "deleted": "Row deleted",
+    "import": "Import CSV",
+    "importTitle": "Import bill of materials",
+    "importDescription": "Rows from the CSV file are added to the draft revision.",
+    "importFormat": "Columns: slot, ref, description, part_number, rating, type, status",
+    "importHint": "CSV · up to 5 MB",
+    "imported": "{count, plural, one {# row imported} other {# rows imported}}",
+    "export": "Export",
+    "exportLive": "Live revision",
+    "exportXlsx": "Excel (.xlsx)",
+    "exportCsv": "CSV (.csv)",
+    "rowActions": "Row actions"
+  },
+  "shared": {
+    "revisionLabel": "Rev {letter}",
+    "liveSuffix": "live"
+  }
+}

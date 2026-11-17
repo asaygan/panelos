@@ -1,1 +1,217 @@
-{}
+{
+  "page": {
+    "title": "Labels",
+    "description": "Preview, download or print QR labels for your panels."
+  },
+  "noPermission": {
+    "title": "You can't generate labels",
+    "body": "Generating labels needs the “generate labels” permission. Ask an administrator to update your role."
+  },
+  "noPanels": {
+    "title": "No panels yet",
+    "body": "Create a panel first to produce its label."
+  },
+  "builtin": {
+    "engraved": "Engraved plate",
+    "plain": "Print label"
+  },
+  "orientation": {
+    "landscape": "Landscape",
+    "portrait": "Portrait"
+  },
+  "sizeLine": "{w} × {h} mm · {orientation}",
+  "panels": {
+    "search": "Search tag, name, serial or project…",
+    "selectedCount": "{selected} of {total} panels selected",
+    "selectAll": "Select all ({count})",
+    "clear": "Clear",
+    "clearSearch": "Clear search",
+    "noMatch": "No matching panels",
+    "noMatchHint": "Try a different search.",
+    "selectOne": "Select panel {tag}",
+    "truncated": "Showing the first {shown} of {total} results. Narrow your search."
+  },
+  "preview": {
+    "title": "Preview",
+    "emptyTitle": "Select a panel to preview",
+    "emptyBody": "Pick a panel from the list to see its label here.",
+    "previous": "Previous label",
+    "next": "Next label",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fit": "Fit to view"
+  },
+  "options": {
+    "title": "Options",
+    "template": "Label template",
+    "defaultMark": "default",
+    "manageTemplates": "Manage templates",
+    "fileFormat": "File format",
+    "formatHint": {
+      "png": "High-resolution image, works with most label printers.",
+      "svg": "Vector file, stays sharp at any size.",
+      "pdf": "Print-ready PDF placed on an A4 sheet."
+    }
+  },
+  "single": {
+    "title": "This label",
+    "description": "For the panel shown in the preview."
+  },
+  "batch": {
+    "title": "Batch",
+    "none": "Select at least one panel from the list.",
+    "summary": "{count, plural, one {# label} other {# labels}} · {sheets, plural, one {# A4 sheet} other {# A4 sheets}}",
+    "createPdf": "Create PDF",
+    "print": "Print ({count})",
+    "sheetHint": "{perSheet} labels fit on one A4 sheet; more are split into one PDF per sheet. Print sends the whole selection at once.",
+    "progress": "Sheet {done} of {total} ready…",
+    "ready": "{count} labels ready",
+    "failed": "Only {done} of {total} sheets were prepared. Try again.",
+    "part": "Sheet {index} · {count} labels"
+  },
+  "dialog": {
+    "title": "Panel label",
+    "download": "Download {format}"
+  },
+  "toast": {
+    "exported": "{format} file is ready",
+    "exportEmpty": "The label could not be generated. Try again.",
+    "batchReady": "PDF for {count} labels is ready",
+    "templateSaved": "Template saved",
+    "templateDeleted": "Template deleted",
+    "defaultSet": "Default template updated"
+  },
+  "delete": {
+    "title": "Delete template “{name}”?",
+    "body": "This cannot be undone. Labels already produced are not affected."
+  },
+  "bindings": {
+    "tag": "Panel tag",
+    "name": "Panel name",
+    "serial": "Serial no.",
+    "rev": "Revision",
+    "voltage": "Voltage",
+    "current": "Current",
+    "phase": "Phase",
+    "mfr": "Manufacturer",
+    "customer": "Customer",
+    "enclosure": "Enclosure",
+    "location": "Location",
+    "area": "Area",
+    "company": "Company",
+    "company_short": "Company (short)",
+    "standards": "Standards",
+    "scan_url": "Scan URL"
+  },
+  "elements": {
+    "field": "Field",
+    "text": "Text",
+    "qr": "QR code",
+    "logo": "Logo",
+    "line": "Line",
+    "box": "Box"
+  },
+  "canvas": {
+    "rotate": "Rotate"
+  },
+  "new": {
+    "title": "New template",
+    "description": "Choose a name and a starting point, then design.",
+    "name": "Template name",
+    "start": "Starting point",
+    "sampleEngraved": "Engraved plate (ready-made)",
+    "samplePrint": "Print label (ready-made)",
+    "blankEngraved": "Blank · dark background",
+    "blankPlain": "Blank · white background",
+    "copyOf": "Copy of “{name}”"
+  },
+  "designer": {
+    "title": "Label templates",
+    "description": "Design and edit the QR labels attached to your panels.",
+    "back": "Settings",
+    "needsLargerScreen": "Designing templates needs a larger screen. Here you can view templates and choose the default.",
+    "readOnly": "You don't have permission to edit templates; you can only view them.",
+    "templates": "Templates",
+    "newTemplate": "New",
+    "newName": "New template",
+    "copyName": "{name} copy",
+    "untitled": "Untitled template",
+    "unsavedBadge": "Not saved",
+    "dirty": "Unsaved changes",
+    "noTemplates": "No templates yet",
+    "noTemplatesHint": "Use “New” to create your first label template.",
+    "actionsFor": "Actions for {name}",
+    "setDefault": "Set as default",
+    "deleteTemplate": "Delete template {name}",
+    "templateName": "Template name",
+    "nameRequired": "Template name is required",
+    "status": "Status",
+    "makeDefault": "Default",
+    "undo": "Undo",
+    "redo": "Redo",
+    "previewWith": "Preview data",
+    "sampleData": "Sample",
+    "realPanel": "Real panel",
+    "addElement": "Add element"
+  },
+  "inspector": {
+    "document": "Label",
+    "orientation": "Orientation",
+    "sizePreset": "Size",
+    "custom": "Custom",
+    "widthMm": "Width (mm)",
+    "heightMm": "Height (mm)",
+    "background": "Background",
+    "backgroundKind": "Background type",
+    "engraved": "Engraved",
+    "plain": "Plain",
+    "fill": "Fill",
+    "radiusMm": "Corner radius (mm)",
+    "pickColor": "pick colour",
+    "grid": "Grid",
+    "gridMm": "Grid step (mm)",
+    "snap": "Snap to grid and guides",
+    "layers": "Elements ({count})",
+    "noLayers": "No elements yet. Add one from the left.",
+    "hide": "Hide",
+    "show": "Show",
+    "binding": "Bound data",
+    "text": "Text",
+    "logoSource": "Source",
+    "logoCompany": "Company logo",
+    "logoMonogram": "Monogram",
+    "forward": "Bring forward",
+    "back": "Send back",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "position": "Position and size",
+    "x": "X (mm)",
+    "y": "Y (mm)",
+    "w": "Width (mm)",
+    "h": "Height (mm)",
+    "rotation": "Rotation (°)",
+    "visible": "Visible",
+    "typography": "Text style",
+    "font": "Font",
+    "fontSans": "Sans",
+    "fontMono": "Mono",
+    "sizePt": "Size (pt)",
+    "weight": "Weight",
+    "align": "Align",
+    "alignLeft": "Left",
+    "alignCenter": "Center",
+    "alignRight": "Right",
+    "color": "Colour",
+    "uppercase": "Uppercase",
+    "qr": "QR code",
+    "qrHint": "The QR always carries the panel's scan link.",
+    "foreground": "Foreground",
+    "backgroundColor": "Background",
+    "quietMm": "Quiet zone (mm)",
+    "box": "Box",
+    "line": "Line",
+    "stroke": "Stroke",
+    "strokeMm": "Stroke width (mm)",
+    "noneHint": "Type “none” to turn off fill or stroke."
+  }
+}

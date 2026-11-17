@@ -1,1 +1,26 @@
-{}
+{
+  "metaTitle": "Pano kaydı",
+  "panel": "Pano",
+  "verified": "Bu QR kodu {company} şirketine ait kayıtlı bir panoya bağlı.",
+  "fields": {
+    "tag": "Etiket",
+    "name": "Ad",
+    "serial": "Seri no",
+    "location": "Lokasyon",
+    "revision": "Geçerli şema"
+  },
+  "revisionApproved": "Rev {letter} · onaylı",
+  "revisionNone": "Onaylı şema yok",
+  "signInTitle": "Şema, bakım ve arıza kayıtları için giriş yapın",
+  "signInBody": "Şemalar ve saha kayıtları yalnızca şirket üyelerine açıktır.",
+  "signIn": "Giriş yap",
+  "restrictedTitle": "Bu pano kaydı gizli",
+  "restrictedBody": "{company} pano bilgilerini yalnızca kendi üyelerine gösteriyor. Görüntülemek için şirket hesabınızla giriş yapın.",
+  "notMember": "Giriş yaptınız ancak bu panonun şirketinin üyesi değilsiniz.",
+  "unknownTitle": "QR kodu tanınmadı",
+  "unknownBody": "Bu kod bir panoya bağlı değil veya pano kaldırılmış. Etiketi kontrol edip tekrar okutun.",
+  "poweredBy": "PanelOS ile yönetiliyor",
+  "offlineTitle": "Çevrimdışısınız",
+  "offlineBody": "İnternet bağlantısı yok. Bağlantı geldiğinde sayfa kendiliğinden yenilenir.",
+  "install": "Ana ekrana ekle"
+}

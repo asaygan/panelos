@@ -3,7 +3,6 @@ import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import "@/styles/design-tokens.css";
 import "@/styles/globals.css";
 import { Providers } from "@/components/app/providers";
 import { THEME_COOKIE } from "@/i18n/config";

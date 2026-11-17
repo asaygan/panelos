@@ -1,1 +1,98 @@
-{}
+{
+  "title": "My account",
+  "description": "Your profile, security settings and notification preferences.",
+  "tabs": {
+    "profile": "Profile",
+    "security": "Security",
+    "notifications": "Notifications"
+  },
+  "profile": {
+    "title": "Profile",
+    "name": "Full name",
+    "email": "Email",
+    "emailHint": "The email address can't be changed. Ask your administrator for a new invitation to use another address.",
+    "language": "Language",
+    "languageHint": "Used for the interface and for emails sent to you.",
+    "theme": "Appearance",
+    "saved": "Profile updated",
+    "organizations": "Your organizations"
+  },
+  "password": {
+    "title": "Password",
+    "description": "Changing your password signs you out on your other devices.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "hint": "At least 10 characters; mix letters with digits or symbols.",
+    "mismatch": "The passwords do not match.",
+    "submit": "Change password",
+    "changed": "Your password was changed"
+  },
+  "mfa": {
+    "title": "Two-step verification",
+    "description": "In addition to your password, sign-in asks for a code from the authenticator app on your phone.",
+    "on": "On",
+    "off": "Off",
+    "required": "Your organization requires this setting.",
+    "enable": "Set up",
+    "disable": "Turn off",
+    "step1": "1. Scan this QR code with your authenticator app (Google Authenticator, Microsoft Authenticator, 1Password…).",
+    "manual": "If you can't scan, enter this key manually:",
+    "step2": "2. Enter the 6-digit code shown in the app.",
+    "code": "Verification code",
+    "verify": "Verify and turn on",
+    "enabled": "Two-step verification is on",
+    "recoveryTitle": "Save your recovery codes",
+    "recoveryBody": "If you lose access to your phone, sign in with one of these codes. Each works once, and they won't be shown again after you close this screen.",
+    "recoveryCopy": "Copy codes",
+    "recoveryDone": "I've saved the codes",
+    "disableTitle": "Turn off two-step verification",
+    "disableBody": "Your account will be protected by your password only. Enter your password to continue.",
+    "disabled": "Two-step verification is off"
+  },
+  "sessions": {
+    "title": "Sessions",
+    "description": "Sign out everywhere, including this device. Use it if you lost a device or suspect your account.",
+    "logoutAll": "Sign out everywhere",
+    "confirmTitle": "Sign out on all devices?",
+    "confirmBody": "You'll need to sign in again on this device too."
+  },
+  "notifications": {
+    "title": "Notification preferences",
+    "description": "Choose which events notify you in the app and by email.",
+    "inApp": "In app",
+    "email": "Email",
+    "event": "Event",
+    "saved": "Preferences saved",
+    "kinds": {
+      "revision_submitted": {
+        "title": "A revision needs your approval",
+        "hint": "If you can approve revisions"
+      },
+      "revision_approved": {
+        "title": "Your revision was approved",
+        "hint": "For revisions you prepared"
+      },
+      "revision_rejected": {
+        "title": "Your revision was rejected",
+        "hint": "Including the reviewer's reason"
+      },
+      "issue_reported": {
+        "title": "A new issue was reported",
+        "hint": "If you can manage issues"
+      },
+      "issue_assigned": {
+        "title": "An issue was assigned to you",
+        "hint": ""
+      },
+      "issue_resolved": {
+        "title": "An issue was resolved",
+        "hint": "Issues you reported or were assigned"
+      },
+      "maintenance_due": {
+        "title": "Maintenance is due",
+        "hint": "Plans due within 7 days or overdue"
+      }
+    }
+  }
+}

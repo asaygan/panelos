@@ -1,1 +1,135 @@
-{}
+{
+  "title": "Genel bakış",
+  "greeting": "Merhaba {name}",
+  "subtitle": "{company} pano envanterinin güncel durumu.",
+  "stats": {
+    "panels": "Pano",
+    "panelsHint": "{projects} proje · {cabinets} kabin",
+    "documented": "Onaylı şeması olan",
+    "documentedHint": "{missing, plural, =0 {Tüm panolar belgeli} one {# panonun onaylı şeması yok} other {# panonun onaylı şeması yok}}",
+    "openIssues": "Açık arıza",
+    "openIssuesHint": "{critical, plural, =0 {Kritik arıza yok} one {# kritik} other {# kritik}} · son 30 günde {resolved} çözüldü",
+    "overdue": "Geciken bakım",
+    "overdueHint": "{soon, plural, =0 {Bu hafta yaklaşan yok} one {# bakım bu hafta} other {# bakım bu hafta}} · son 30 günde {done} yapıldı",
+    "review": "Onay bekleyen revizyon",
+    "reviewHint": "{drafts, plural, =0 {Taslak yok} one {# taslak} other {# taslak}} · son 30 günde {approved} onaylandı",
+    "scans": "QR okutma (7 gün)",
+    "scansHint": "Bugün {today} · son 30 günde {month}",
+    "scanTrend": "Son 30 günün günlük QR okutma sayısı",
+    "issueTrend": "Son 30 günde günlük bildirilen arıza sayısı"
+  },
+  "attention": {
+    "title": "Dikkat gerektirenler",
+    "description": "Açık arızalar, geciken bakımlar ve onay bekleyen revizyonlar.",
+    "emptyTitle": "Her şey yolunda",
+    "emptyBody": "Açık arıza, geciken bakım veya onay bekleyen revizyon yok.",
+    "kinds": {
+      "issue": "Arıza",
+      "maintenance_overdue": "Geciken bakım",
+      "review": "Onay bekliyor",
+      "no_approved_revision": "Onaylı şema yok"
+    }
+  },
+  "locations": {
+    "title": "Lokasyonlara göre",
+    "unassigned": "Lokasyonu belirtilmemiş",
+    "panelCount": "{count, plural, one {# pano} other {# pano}}",
+    "issueCount": "{count, plural, one {# açık arıza} other {# açık arıza}}",
+    "empty": "Henüz pano eklenmemiş."
+  },
+  "activity": {
+    "title": "Son hareketler",
+    "empty": "Henüz kayıtlı bir işlem yok.",
+    "viewAll": "Tüm kayıtlar",
+    "actions": {
+      "panel": {
+        "created": "{actor} bir pano ekledi",
+        "updated": "{actor} bir panoyu güncelledi",
+        "archived": "{actor} bir panoyu arşivledi"
+      },
+      "project": {
+        "created": "{actor} proje oluşturdu",
+        "updated": "{actor} projeyi güncelledi",
+        "archived": "{actor} projeyi arşivledi",
+        "status_changed": "{actor} proje durumunu değiştirdi"
+      },
+      "system_group": {
+        "created": "{actor} sistem grubu ekledi",
+        "updated": "{actor} sistem grubunu güncelledi",
+        "deleted": "{actor} sistem grubunu sildi",
+        "status_changed": "{actor} sistem grubu durumunu değiştirdi"
+      },
+      "cabinet": {
+        "created": "{actor} kabin ekledi",
+        "updated": "{actor} kabini güncelledi",
+        "deleted": "{actor} kabini sildi"
+      },
+      "revision": {
+        "created": "{actor} revizyon taslağı açtı",
+        "submitted": "{actor} revizyonu onaya gönderdi",
+        "approved": "{actor} revizyonu onayladı",
+        "rejected": "{actor} revizyonu reddetti",
+        "superseded": "Bir revizyon yenisiyle değiştirildi"
+      },
+      "file": {
+        "uploaded": "{actor} dosya yükledi"
+      },
+      "label": {
+        "rendered": "{actor} etiket oluşturdu"
+      },
+      "user": {
+        "invited": "{actor} bir kullanıcı davet etti",
+        "removed": "{actor} bir kullanıcıyı çıkardı",
+        "role_changed": "{actor} bir kullanıcının rolünü değiştirdi",
+        "suspended": "{actor} bir kullanıcıyı askıya aldı",
+        "activated": "{actor} bir kullanıcıyı etkinleştirdi",
+        "invite_resent": "{actor} daveti yeniden gönderdi",
+        "invite_accepted": "{actor} daveti kabul etti",
+        "locations_assigned": "{actor} lokasyon yetkisi atadı"
+      },
+      "company": {
+        "updated": "{actor} şirket ayarlarını güncelledi"
+      },
+      "issue": {
+        "created": "{actor} arıza bildirdi",
+        "updated": "{actor} arızayı güncelledi",
+        "status_changed": "{actor} arıza durumunu değiştirdi"
+      },
+      "maintenance": {
+        "recorded": "{actor} bakım kaydetti",
+        "plan_created": "{actor} bakım planı oluşturdu",
+        "plan_updated": "{actor} bakım planını güncelledi",
+        "plan_deleted": "{actor} bakım planını sildi"
+      },
+      "attachment": {
+        "added": "{actor} dosya ekledi",
+        "removed": "{actor} dosya kaldırdı"
+      },
+      "panels": {
+        "imported": "{actor} toplu pano içe aktardı"
+      },
+      "data": {
+        "exported": "{actor} veri dışa aktardı"
+      },
+      "auth": {
+        "password_changed": "{actor} parolasını değiştirdi",
+        "password_reset_requested": "{actor} parola sıfırlama istedi",
+        "mfa_enabled": "{actor} iki adımlı doğrulamayı açtı",
+        "mfa_disabled": "{actor} iki adımlı doğrulamayı kapattı"
+      }
+    }
+  },
+  "quick": {
+    "title": "Hızlı işlemler",
+    "reportIssue": "Arıza bildir",
+    "logMaintenance": "Bakım kaydet",
+    "newPanel": "Pano ekle",
+    "reviewQueue": "Onay kuyruğu"
+  },
+  "onboarding": {
+    "title": "PanelOS'a hoş geldiniz",
+    "body": "İlk projenizi oluşturup panolarınızı ekleyin; her pano için QR etiketi ve şema revizyonları hazır olsun.",
+    "createProject": "İlk projeyi oluştur",
+    "importPanels": "Excel'den içe aktar"
+  }
+}

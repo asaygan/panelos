@@ -1,1 +1,136 @@
-{}
+{
+  "title": "Ayarlar",
+  "description": "Şirket bilgileri, politikalar, lokasyonlar ve veri işlemleri.",
+  "readOnly": "Bu ayarları yalnızca yöneticiler değiştirebilir. Şu an salt okunur görüntülüyorsunuz.",
+  "tabs": {
+    "organization": "Şirket",
+    "policies": "Politikalar",
+    "locations": "Lokasyonlar",
+    "labels": "Etiketler",
+    "data": "Veri"
+  },
+  "organization": {
+    "saved": "Şirket bilgileri kaydedildi.",
+    "unsaved": "Kaydedilmemiş değişiklikler var.",
+    "save": "Değişiklikleri kaydet",
+    "discard": "Vazgeç",
+    "logo": {
+      "title": "Logo",
+      "description": "Etiketlerde ve e-postalarda şirketinizi temsil eder.",
+      "alt": "{name} logosu",
+      "hint": "PNG, JPEG, SVG veya WebP. En fazla {max} MB; şeffaf arka planlı, yatay logo en iyi sonucu verir.",
+      "upload": "Logo yükle",
+      "replace": "Logoyu değiştir",
+      "updated": "Logo güncellendi.",
+      "wrongType": "Logo PNG, JPEG, SVG veya WebP olmalı.",
+      "tooLarge": "Logo çok büyük (en fazla {max} MB)."
+    },
+    "details": {
+      "title": "Şirket bilgileri",
+      "description": "Bu bilgiler etiketlerde, davet e-postalarında ve raporlarda kullanılır."
+    },
+    "name": "Şirket adı",
+    "shortName": "Kısa ad",
+    "shortNameHint": "Etiketlerde kullanılır (en fazla 12 karakter).",
+    "standards": "Standart profili",
+    "standardsHint": "Panoların tasarım ve doğrulama referansı.",
+    "locale": "Varsayılan e-posta dili",
+    "localeHint": "Davetler ve bildirim e-postaları bu dilde gönderilir.",
+    "timezone": "Saat dilimi",
+    "timezoneHint": "Bakım tarihleri ve raporlar bu saat dilimine göre hesaplanır.",
+    "errors": {
+      "nameRequired": "Şirket adı gerekli.",
+      "shortNameLong": "En fazla 12 karakter olabilir."
+    }
+  },
+  "policies": {
+    "title": "Erişim ve onay politikaları",
+    "description": "Değişiklikler anında kaydedilir ve hemen geçerli olur.",
+    "saved": "Politika güncellendi.",
+    "public_qr_access_enabled": {
+      "title": "QR okutan herkes pano kimliğini görebilsin",
+      "description": "Kapalıyken pano kimliğini yalnızca giriş yapmış şirket üyeleri görür. Şemalar her durumda giriş gerektirir."
+    },
+    "require_four_eyes": {
+      "title": "Dört göz kuralı",
+      "description": "Revizyonu hazırlayan kişi kendi revizyonunu onaylayamaz; onay için başka bir yetkili gerekir."
+    },
+    "engineer_can_approve": {
+      "title": "Mühendisler revizyon onaylayabilsin",
+      "description": "Kapalıyken revizyonları yalnızca yönetici ve sahip onaylar."
+    }
+  },
+  "locations": {
+    "title": "Lokasyonlar",
+    "description": "Panoların bulunduğu saha ve tesisler.",
+    "add": "Lokasyon ekle",
+    "region": "Bölge",
+    "empty": {
+      "title": "Henüz lokasyon yok",
+      "description": "Lokasyonlar panoları sahaya veya tesise göre gruplamanızı ve kullanıcı erişimini lokasyonla sınırlamanızı sağlar."
+    },
+    "delete": {
+      "title": "“{name}” silinsin mi?",
+      "description": "Lokasyon kalıcı olarak silinir. Panolarda veya kullanıcı kısıtlarında kullanılıyorsa silinemez.",
+      "done": "Lokasyon silindi."
+    },
+    "dialog": {
+      "createTitle": "Lokasyon ekle",
+      "editTitle": "Lokasyonu düzenle",
+      "description": "Kod, panolarda ve filtrelerde kısa tanımlayıcı olarak görünür.",
+      "codeHint": "Örn. IST-01",
+      "region": "Bölge",
+      "regionHint": "İsteğe bağlı; örn. Marmara",
+      "created": "Lokasyon eklendi.",
+      "updated": "Lokasyon güncellendi.",
+      "errors": {
+        "codeRequired": "Kod gerekli.",
+        "nameRequired": "Ad gerekli."
+      }
+    }
+  },
+  "labels": {
+    "templates": {
+      "title": "Etiket şablonları",
+      "description": "Pano etiketlerinin boyutunu, düzenini ve içeriğini tasarlayın.",
+      "cta": "Şablonları aç"
+    },
+    "print": {
+      "title": "Etiket yazdır",
+      "description": "Seçtiğiniz panolar için QR etiketleri oluşturun ve yazdırın.",
+      "cta": "Etiketlere git"
+    }
+  },
+  "data": {
+    "export": {
+      "title": "Dışa aktar",
+      "description": "Verilerinizi Excel veya CSV olarak indirin. Dışa aktarma denetim kaydına işlenir.",
+      "noPermission": "Bu veri için yetkiniz yok.",
+      "format": {
+        "xlsx": "Excel (.xlsx)",
+        "csv": "CSV"
+      },
+      "panels": {
+        "title": "Panolar",
+        "description": "Tüm panolar, durumları ve lokasyonları."
+      },
+      "issues": {
+        "title": "Arızalar",
+        "description": "Açık ve kapanmış arıza kayıtları."
+      },
+      "maintenance": {
+        "title": "Bakım kayıtları",
+        "description": "Yapılan bakımlar ve sonuçları."
+      },
+      "audit": {
+        "title": "Denetim kaydı",
+        "description": "Kim neyi ne zaman değiştirdi."
+      }
+    },
+    "import": {
+      "title": "İçe aktar",
+      "description": "Excel veya CSV dosyasıyla panoları toplu ekleyin veya güncelleyin. Satırlar seri numarasına göre eşleşir: aynı seri numaralı pano güncellenir, yeni seri numaraları yeni pano olarak eklenir.",
+      "cta": "İçe aktarmaya başla"
+    }
+  }
+}

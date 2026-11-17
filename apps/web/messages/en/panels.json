@@ -1,1 +1,211 @@
-{}
+{
+  "title": "Panels",
+  "description": "Build and manage the project, system group, panel and cabinet hierarchy.",
+  "view": {
+    "label": "View",
+    "tree": "Tree",
+    "table": "Table"
+  },
+  "toolbar": {
+    "newProject": "New project",
+    "newPanel": "New panel"
+  },
+  "export": {
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (.csv)"
+  },
+  "fields": {
+    "site": "Site"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "tooLong": "Too long, please shorten it."
+  },
+  "toast": {
+    "groupCreated": "System group created",
+    "panelCreated": "Panel created",
+    "cabinetCreated": "Cabinet created",
+    "moved": "Moved. The QR code did not change.",
+    "archived": "Archived"
+  },
+  "confirm": {
+    "archiveProject": {
+      "title": "Archive project “{name}”?",
+      "body": "The project and its {groups, plural, one {# system group} other {# system groups}} and {panels, plural, one {# panel} other {# panels}} are hidden from lists. Nothing is deleted."
+    },
+    "archivePanel": {
+      "title": "Archive panel “{name}”?",
+      "body": "Panel {tag} is hidden from lists. Its revisions and history are kept."
+    },
+    "deleteGroup": {
+      "title": "Delete group “{name}”?",
+      "body": "The {panels, plural, one {# panel} other {# panels}} in this group are not deleted; they move to “Unassigned”."
+    },
+    "deleteCabinet": {
+      "title": "Delete cabinet “{name}”?",
+      "body": "The cabinet record is deleted permanently. This cannot be undone."
+    }
+  },
+  "tree": {
+    "aria": "Asset hierarchy",
+    "filter": "Search tag, name, serial or code…",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "emptyTitle": "No projects yet",
+    "emptyBody": "The hierarchy is Project → System group → Panel → Cabinet. Create a project first, then add its groups and panels.",
+    "createFirst": "Create the first project",
+    "noMatch": "Nothing matches “{query}”."
+  },
+  "row": {
+    "unassigned": "Unassigned panels",
+    "projectCounts": "{groups, plural, one {# group} other {# groups}} · {panels, plural, one {# panel} other {# panels}}",
+    "panelCount": "{count, plural, one {# panel} other {# panels}}"
+  },
+  "cells": {
+    "issuesAria": "{count, plural, one {# open issue} other {# open issues}}, worst severity: {severity}",
+    "overdue": "Maintenance overdue"
+  },
+  "quickAdd": {
+    "group": "Add system group",
+    "panel": "Add panel",
+    "cabinet": "Add cabinet",
+    "placeholder": {
+      "group": "System group name",
+      "panel": "Panel name",
+      "cabinet": "Cabinet name"
+    },
+    "emptyGroup": "No system groups yet. Add the first one.",
+    "emptyPanel": "No panels yet. Add the first one.",
+    "keys": "Enter: add · Shift+Enter: add and keep going · Esc: cancel"
+  },
+  "menu": {
+    "openPanel": "Open panel",
+    "move": "Move to…",
+    "add": {
+      "project": "Add system group",
+      "group": "Add panel",
+      "panel": "Add cabinet",
+      "cabinet": "Add",
+      "unassigned": "Add panel"
+    }
+  },
+  "dnd": {
+    "instructions": "Press Space to pick up, use Up/Down to choose a target, Space or Enter to drop, Escape to cancel.",
+    "picked": "Picked up {name}.",
+    "over": "{name} is over {target}.",
+    "dropped": "Dropped {name} on {target}.",
+    "cancelled": "Move cancelled."
+  },
+  "moveBar": {
+    "title": "Confirm move",
+    "cancel": "Cancel",
+    "panelGroup": "Move panel “{name}” to group “{target}”",
+    "panelUnassigned": "Move panel “{name}” to unassigned",
+    "cabinet": "Move cabinet “{name}” to panel “{target}”"
+  },
+  "moveDialog": {
+    "titlePanel": "Move panel “{name}”",
+    "titleCabinet": "Move cabinet “{name}”",
+    "helper": "Moving never changes the QR code; printed labels stay valid.",
+    "search": "Search targets…",
+    "empty": "No valid target found",
+    "current": "Current location"
+  },
+  "detail": {
+    "placeholder": "Select an item in the tree to see and edit its details.",
+    "path": "Path",
+    "docStatus": "Schematic status",
+    "issues": "Open issues",
+    "nextMaintenance": "Next maintenance",
+    "openPanel": "Open panel",
+    "edit": "Edit"
+  },
+  "newProject": {
+    "title": "New project",
+    "description": "After creating the project you can add system groups and panels from the tree.",
+    "created": "Project created"
+  },
+  "form": {
+    "createTitle": "New panel",
+    "editTitle": "Edit panel",
+    "createDescription": "Only the name is required. Tag and serial are generated if left empty.",
+    "editDescription": "Panel identity and technical data.",
+    "created": "Panel created",
+    "tagHint": "Generated from the name if empty",
+    "serialHint": "Generated if empty. It is the matching key when importing.",
+    "serialLocked": "The serial number cannot be changed; it identifies the panel when importing.",
+    "groupNeedsProject": "Choose a project first",
+    "technical": "Technical details",
+    "technicalHint": "optional"
+  },
+  "table": {
+    "search": "Search tag, name, serial or project…",
+    "allLocations": "All locations",
+    "allDocs": "All schematic statuses",
+    "docStatus": "Schematic",
+    "clearFilters": "Clear filters",
+    "count": "{shown} of {total} panels",
+    "emptyTitle": "No panels yet",
+    "emptyBody": "Add your first panel or import existing panels from Excel.",
+    "create": "New panel",
+    "path": "Project › group",
+    "issues": "Issues",
+    "nextMaintenance": "Next maintenance",
+    "lastScan": "Last scan"
+  },
+  "import": {
+    "title": "Import panels",
+    "description": "Create or update panels in bulk from an Excel or CSV file.",
+    "steps": {
+      "label": "Steps",
+      "pick": "File",
+      "preview": "Preview",
+      "done": "Done"
+    },
+    "formatTitle": "File format",
+    "formatRequired": "Name and serial number are required on every row. Download the template for the other columns.",
+    "formatMatch": "Rows are matched by serial number: an existing serial updates that panel, a new serial creates one.",
+    "formatLimits": "Up to 5000 rows and 5 MB. A dry run comes first; nothing is saved yet.",
+    "templateXlsx": "Download template (.xlsx)",
+    "templateCsv": "Download template (.csv)",
+    "dropHint": ".xlsx or .csv · up to 5 MB",
+    "checking": "Checking the file…",
+    "chooseAnother": "Choose another file",
+    "toCreate": "To create",
+    "toUpdate": "To update",
+    "failed": "Rows with errors",
+    "unknownColumns": "Unknown columns will be ignored: {columns}",
+    "fixErrors": "Fix the errors in the file and upload it again to import.",
+    "onlyErrors": "Only rows with errors",
+    "row": "Row",
+    "moreRows": "{count, plural, one {# more row is} other {# more rows are}} not shown.",
+    "status": {
+      "create": "New",
+      "update": "Update",
+      "error": "Error"
+    },
+    "success": "{created, plural, one {# panel} other {# panels}} created, {updated, plural, one {# panel} other {# panels}} updated.",
+    "errors": {
+      "name_required": "Name is required.",
+      "serial_required": "Serial number is required.",
+      "duplicate_serial_in_file": "This serial number appears more than once in the file.",
+      "unknown_location": "Unknown location code.",
+      "project_required_for_group": "A project is required when a system group is given.",
+      "tooLong": "The “{field}” value is too long."
+    },
+    "fields": {
+      "tag": "Tag",
+      "name": "Name",
+      "serial": "Serial",
+      "area": "Area",
+      "voltage": "Voltage",
+      "current_a": "Current",
+      "phase": "Phase",
+      "mfr": "Manufacturer",
+      "customer": "Customer",
+      "enclosure": "Enclosure",
+      "ip_class": "IP rating",
+      "notes": "Notes"
+    }
+  }
+}

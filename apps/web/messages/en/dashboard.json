@@ -1,1 +1,135 @@
-{}
+{
+  "title": "Overview",
+  "greeting": "Hello {name}",
+  "subtitle": "The current state of {company}'s panel fleet.",
+  "stats": {
+    "panels": "Panels",
+    "panelsHint": "{projects} projects · {cabinets} cabinets",
+    "documented": "With approved schematic",
+    "documentedHint": "{missing, plural, =0 {Every panel is documented} one {# panel has no approved schematic} other {# panels have no approved schematic}}",
+    "openIssues": "Open issues",
+    "openIssuesHint": "{critical, plural, =0 {No critical issues} one {# critical} other {# critical}} · {resolved} resolved in 30 days",
+    "overdue": "Overdue maintenance",
+    "overdueHint": "{soon, plural, =0 {Nothing due this week} one {# due this week} other {# due this week}} · {done} done in 30 days",
+    "review": "Revisions in review",
+    "reviewHint": "{drafts, plural, =0 {No drafts} one {# draft} other {# drafts}} · {approved} approved in 30 days",
+    "scans": "QR scans (7 days)",
+    "scansHint": "{today} today · {month} in 30 days",
+    "scanTrend": "Daily QR scans over the last 30 days",
+    "issueTrend": "Issues reported per day over the last 30 days"
+  },
+  "attention": {
+    "title": "Needs attention",
+    "description": "Open issues, overdue maintenance and revisions awaiting approval.",
+    "emptyTitle": "All clear",
+    "emptyBody": "No open issues, overdue maintenance or revisions awaiting approval.",
+    "kinds": {
+      "issue": "Issue",
+      "maintenance_overdue": "Overdue maintenance",
+      "review": "Awaiting approval",
+      "no_approved_revision": "No approved schematic"
+    }
+  },
+  "locations": {
+    "title": "By location",
+    "unassigned": "No location set",
+    "panelCount": "{count, plural, one {# panel} other {# panels}}",
+    "issueCount": "{count, plural, one {# open issue} other {# open issues}}",
+    "empty": "No panels yet."
+  },
+  "activity": {
+    "title": "Recent activity",
+    "empty": "No activity recorded yet.",
+    "viewAll": "Full audit log",
+    "actions": {
+      "panel": {
+        "created": "{actor} added a panel",
+        "updated": "{actor} updated a panel",
+        "archived": "{actor} archived a panel"
+      },
+      "project": {
+        "created": "{actor} created a project",
+        "updated": "{actor} updated a project",
+        "archived": "{actor} archived a project",
+        "status_changed": "{actor} changed a project's status"
+      },
+      "system_group": {
+        "created": "{actor} added a system group",
+        "updated": "{actor} updated a system group",
+        "deleted": "{actor} deleted a system group",
+        "status_changed": "{actor} changed a system group's status"
+      },
+      "cabinet": {
+        "created": "{actor} added a cabinet",
+        "updated": "{actor} updated a cabinet",
+        "deleted": "{actor} deleted a cabinet"
+      },
+      "revision": {
+        "created": "{actor} started a revision draft",
+        "submitted": "{actor} submitted a revision for approval",
+        "approved": "{actor} approved a revision",
+        "rejected": "{actor} rejected a revision",
+        "superseded": "A revision was superseded"
+      },
+      "file": {
+        "uploaded": "{actor} uploaded a file"
+      },
+      "label": {
+        "rendered": "{actor} generated a label"
+      },
+      "user": {
+        "invited": "{actor} invited a user",
+        "removed": "{actor} removed a user",
+        "role_changed": "{actor} changed a user's role",
+        "suspended": "{actor} suspended a user",
+        "activated": "{actor} activated a user",
+        "invite_resent": "{actor} resent an invitation",
+        "invite_accepted": "{actor} accepted an invitation",
+        "locations_assigned": "{actor} assigned locations"
+      },
+      "company": {
+        "updated": "{actor} updated company settings"
+      },
+      "issue": {
+        "created": "{actor} reported an issue",
+        "updated": "{actor} updated an issue",
+        "status_changed": "{actor} changed an issue's status"
+      },
+      "maintenance": {
+        "recorded": "{actor} logged maintenance",
+        "plan_created": "{actor} created a maintenance plan",
+        "plan_updated": "{actor} updated a maintenance plan",
+        "plan_deleted": "{actor} deleted a maintenance plan"
+      },
+      "attachment": {
+        "added": "{actor} added an attachment",
+        "removed": "{actor} removed an attachment"
+      },
+      "panels": {
+        "imported": "{actor} imported panels"
+      },
+      "data": {
+        "exported": "{actor} exported data"
+      },
+      "auth": {
+        "password_changed": "{actor} changed their password",
+        "password_reset_requested": "{actor} requested a password reset",
+        "mfa_enabled": "{actor} turned on two-step verification",
+        "mfa_disabled": "{actor} turned off two-step verification"
+      }
+    }
+  },
+  "quick": {
+    "title": "Quick actions",
+    "reportIssue": "Report an issue",
+    "logMaintenance": "Log maintenance",
+    "newPanel": "Add a panel",
+    "reviewQueue": "Review queue"
+  },
+  "onboarding": {
+    "title": "Welcome to PanelOS",
+    "body": "Create your first project and add your panels; each gets a QR label and schematic revisions.",
+    "createProject": "Create the first project",
+    "importPanels": "Import from Excel"
+  }
+}

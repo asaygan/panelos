@@ -1,1 +1,135 @@
-{}
+{
+  "title": "Revizyonlar",
+  "description": "Onay bekleyen, taslak ve tamamlanmış şema revizyonları.",
+  "queue": {
+    "tabs": {
+      "review": "Onay bekleyen",
+      "draft": "Taslaklar",
+      "history": "Geçmiş"
+    },
+    "tabsLabel": "Revizyon filtresi",
+    "empty": {
+      "review": "Onay bekleyen revizyon yok",
+      "draft": "Taslak revizyon yok",
+      "history": "Geçmişte revizyon yok"
+    },
+    "emptyHint": {
+      "review": "Onaya gönderilen revizyonlar burada listelenir.",
+      "draft": "Bir panonun revizyonlar sekmesinden yeni taslak başlatabilirsiniz.",
+      "history": "Onaylanan veya reddedilen revizyonlar burada listelenir."
+    },
+    "browsePanels": "Panolara git",
+    "panel": "Pano",
+    "revision": "Revizyon",
+    "author": "Hazırlayan",
+    "contents": "İçerik",
+    "summary": "Değişiklik özeti",
+    "when": {
+      "review": "Gönderildi",
+      "draft": "Güncellendi",
+      "history": "Karar tarihi"
+    },
+    "openPanel": "Panoyu aç"
+  },
+  "timeline": {
+    "title": "Revizyon geçmişi",
+    "emptyTitle": "Henüz revizyon yok",
+    "emptyDescription": "İlk taslağı başlatarak şema ve malzeme listesi eklemeye başlayın.",
+    "live": "Sahada geçerli",
+    "noSummary": "Değişiklik özeti girilmemiş",
+    "createdBy": "{name} oluşturdu",
+    "submittedBy": "{name} onaya gönderdi",
+    "approvedBy": "{name} onayladı",
+    "rejectedBy": "{name} reddetti",
+    "supersededAt": "Yeni sürümle değiştirildi",
+    "reviewNote": "Not",
+    "sheets": "{count, plural, =0 {Şema yok} one {# şema} other {# şema}}",
+    "components": "{count, plural, =0 {Malzeme yok} one {# malzeme} other {# malzeme}}",
+    "newDraft": "Yeni taslak",
+    "draftExists": "Zaten açık bir taslak revizyon var. Önce onu onaya gönderin.",
+    "editSummary": "Özeti düzenle",
+    "submit": "Onaya gönder",
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "viewSheets": "Şemaları gör",
+    "viewBom": "Malzeme listesi"
+  },
+  "summaryDialog": {
+    "newTitle": "Yeni taslak revizyon",
+    "newDescription": "Taslak, onaya gönderilip onaylanana kadar sahada geçerli olmaz.",
+    "editTitle": "Rev {letter} özetini düzenle",
+    "label": "Değişiklik özeti",
+    "placeholder": "Bu revizyonda ne değişiyor?",
+    "create": "Taslağı oluştur",
+    "created": "Rev {letter} taslağı oluşturuldu",
+    "updated": "Özet güncellendi"
+  },
+  "submit": {
+    "title": "Rev {letter} onaya gönderilsin mi?",
+    "body": "Gönderildikten sonra taslağın şema ve malzeme listesi değiştirilemez. Onaylayacak kişilere bildirim gider.",
+    "zeroSheets": "Bu revizyonda hiç şema yok. Yine de onaya göndermek istiyor musunuz?",
+    "done": "Rev {letter} onaya gönderildi"
+  },
+  "decision": {
+    "approveTitle": "Rev {letter} onaylansın mı?",
+    "approveBody": "Onaylanınca bu revizyon sahada geçerli olur; önceki onaylı revizyon eski sürüme düşer.",
+    "rejectTitle": "Rev {letter} reddedilsin mi?",
+    "rejectBody": "Hazırlayan kişi gerekçenizi görür.",
+    "zeroSheets": "Bu revizyonda hiç şema yok.",
+    "noteLabel": "Not",
+    "noteReasonLabel": "Reddetme gerekçesi",
+    "noteRequired": "Reddetme gerekçesi zorunludur.",
+    "notePlaceholder": "İsteğe bağlı bir not ekleyin",
+    "approveAction": "Onayla",
+    "rejectAction": "Reddet",
+    "approved": "Rev {letter} onaylandı",
+    "rejected": "Rev {letter} reddedildi"
+  },
+  "bom": {
+    "revision": "Revizyon",
+    "slot": "Yuva",
+    "ref": "Referans",
+    "description": "Açıklama",
+    "partNumber": "Parça no",
+    "rating": "Değer",
+    "type": "Tür",
+    "status": "Durum",
+    "statusOk": "Normal",
+    "statusWarn": "Dikkat",
+    "search": "Referans, açıklama veya parça no ara…",
+    "searchLabel": "Malzeme listesinde ara",
+    "count": "{count, plural, one {# kalem} other {# kalem}}",
+    "emptyTitle": "Malzeme listesi boş",
+    "emptyDescription": "Bu revizyonda henüz malzeme yok.",
+    "emptyAction": "İlk satırı ekle",
+    "noRevisionTitle": "Malzeme listesi yok",
+    "noRevisionDescription": "Bu pano için henüz onaylı bir revizyon yok.",
+    "readOnly": "Malzeme listesi yalnızca taslak revizyonda düzenlenebilir.",
+    "add": "Satır ekle",
+    "edit": "Satırı düzenle",
+    "delete": "Satırı sil",
+    "deleteTitle": "{ref} satırı silinsin mi?",
+    "deleteBody": "Satır taslak revizyondan kaldırılır.",
+    "addTitle": "Malzeme ekle",
+    "editTitle": "Malzemeyi düzenle",
+    "required": "Bu alan zorunlu",
+    "added": "Satır eklendi",
+    "updated": "Satır güncellendi",
+    "deleted": "Satır silindi",
+    "import": "CSV içe aktar",
+    "importTitle": "Malzeme listesini içe aktar",
+    "importDescription": "CSV dosyasındaki satırlar taslak revizyona eklenir.",
+    "importFormat": "Sütunlar: slot, ref, description, part_number, rating, type, status",
+    "importHint": "CSV · en fazla 5 MB",
+    "imported": "{count, plural, one {# satır içe aktarıldı} other {# satır içe aktarıldı}}",
+    "export": "Dışa aktar",
+    "exportLive": "Sahada geçerli revizyon",
+    "exportXlsx": "Excel (.xlsx)",
+    "exportCsv": "CSV (.csv)",
+    "rowActions": "Satır işlemleri"
+  },
+  "shared": {
+    "revisionLabel": "Rev {letter}",
+    "liveSuffix": "sahada geçerli"
+  }
+}

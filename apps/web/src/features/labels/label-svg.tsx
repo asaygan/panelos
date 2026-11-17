@@ -21,8 +21,10 @@ import { qrMatrix } from "@/lib/api/qr-matrix";
 export interface LabelSvgProps {
   layout: LabelLayout;
   data: LabelData;
-  /** CSS px width applied to the svg; height derives from aspect. */
+  /** CSS px per mm applied to the svg (width = scale * w_mm). Omit to let CSS size it. */
   scale?: number;
+  /** Real-world size (width/height in mm): used by the print view. Overrides `scale`. */
+  physical?: boolean;
   interactive?: boolean;
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
@@ -255,6 +257,7 @@ export function LabelSvg({
   layout,
   data,
   scale,
+  physical = false,
   interactive = false,
   selectedId = null,
   onSelect,
@@ -266,12 +269,14 @@ export function LabelSvg({
   const vbH = u(h);
   const ordered = [...layout.elements].sort((a, b) => a.z - b.z);
   const widthPx = scale != null ? scale * w : undefined;
+  const svgWidth = physical ? `${w}mm` : widthPx;
+  const svgHeight = physical ? `${h}mm` : widthPx != null ? scale! * h : undefined;
 
   return (
     <svg
       viewBox={`0 0 ${vbW} ${vbH}`}
-      width={widthPx}
-      height={widthPx != null ? scale! * h : undefined}
+      width={svgWidth}
+      height={svgHeight}
       className={className}
       style={{ display: "block", ...style }}
       onClick={interactive ? () => onSelect?.(null) : undefined}

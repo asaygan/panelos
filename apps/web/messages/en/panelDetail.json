@@ -1,1 +1,149 @@
-{}
+{
+  "breadcrumb": {
+    "label": "Breadcrumb",
+    "panels": "Panels"
+  },
+  "state": {
+    "notFoundTitle": "Panel not found",
+    "notFoundBody": "This panel was removed, archived, or you don't have access to it.",
+    "backToPanels": "Back to panels",
+    "loadError": "Couldn't load the panel"
+  },
+  "chips": {
+    "openIssues": "{count, plural, one {# open issue} other {# open issues}}",
+    "maintenanceOverdue": "Maintenance overdue"
+  },
+  "actions": {
+    "reportIssue": "Report issue",
+    "logMaintenance": "Log maintenance",
+    "label": "Label",
+    "edit": "Edit",
+    "archive": "Archive",
+    "fieldActions": "Field actions"
+  },
+  "archive": {
+    "title": "Archive this panel?",
+    "body": "{tag} will be removed from lists; its schematics, maintenance and issue history are kept.",
+    "confirm": "Archive",
+    "done": "{tag} archived"
+  },
+  "tabs": {
+    "label": "Panel sections",
+    "overview": "Overview",
+    "schematics": "Schematics",
+    "revisions": "Revisions",
+    "bom": "BOM",
+    "cabinets": "Cabinets",
+    "maintenance": "Maintenance",
+    "issues": "Issues",
+    "files": "Files",
+    "activity": "Activity"
+  },
+  "glance": {
+    "title": "At a glance",
+    "schematic": "Live schematic",
+    "schematicRev": "Rev. {letter}",
+    "noSchematic": "No approved schematic",
+    "noSchematicHint": "No schematic has been approved for field use yet.",
+    "openSchematic": "Open schematic",
+    "goSchematics": "Go to schematics",
+    "pending": "Pending revision",
+    "noPending": "No pending revision",
+    "viewRevisions": "View revisions",
+    "issues": "Open issues",
+    "noIssues": "No open issues",
+    "viewIssues": "View issues",
+    "nextMaintenance": "Next maintenance",
+    "noMaintenance": "No maintenance planned",
+    "viewMaintenance": "Go to maintenance",
+    "lastScan": "Last QR scan",
+    "neverScanned": "Not scanned yet"
+  },
+  "details": {
+    "title": "Identity and technical data",
+    "notes": "Notes"
+  },
+  "qr": {
+    "title": "QR code",
+    "alt": "QR code of panel {tag}",
+    "explain": "Scanning the code with a phone opens this panel page for signed-in users; the scan is logged under Activity.",
+    "copyLink": "Copy link",
+    "downloadPng": "Download PNG",
+    "downloadSvg": "Download SVG",
+    "linkLabel": "Scan link"
+  },
+  "cabinets": {
+    "title": "Cabinets",
+    "description": "Physical compartments of the panel",
+    "add": "Add cabinet",
+    "emptyTitle": "No cabinets yet",
+    "emptyBody": "A cabinet is a physical compartment or cell of a panel (e.g. incomer cell, compensation cell). Add them to organise the bill of materials by compartment.",
+    "emptyReadOnly": "No cabinets are defined for this panel.",
+    "loadError": "Couldn't load cabinets",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "addTitle": "New cabinet",
+    "editTitle": "Edit cabinet",
+    "fieldName": "Cabinet name",
+    "namePlaceholder": "e.g. Incomer cell",
+    "fieldCode": "Cabinet code",
+    "codePlaceholder": "e.g. C1",
+    "nameRequired": "Cabinet name is required.",
+    "created": "Cabinet added",
+    "updated": "Cabinet updated",
+    "moved": "Order updated",
+    "deleteTitle": "Delete {name}?",
+    "deleteBody": "The cabinet will be deleted. The request may be refused if components are still assigned to it.",
+    "deleted": "Cabinet deleted"
+  },
+  "files": {
+    "title": "Files",
+    "description": "Photos, nameplate pictures and general documents",
+    "emptyTitle": "No files yet",
+    "emptyBody": "Add a photo of the panel, its nameplate or a field document so the team can find it quickly.",
+    "emptyReadOnly": "No general files have been added to this panel.",
+    "loadError": "Couldn't load files",
+    "caption": "Caption",
+    "captionHint": "Applied to every file you select.",
+    "captionPlaceholder": "e.g. Nameplate, inside of door",
+    "takePhoto": "Take photo",
+    "choose": "Choose files",
+    "typesHint": "Photos (JPG, PNG, WebP){pdf, select, true { or PDF} other {}} · up to {max} MB",
+    "added": "{count, plural, one {# file added} other {# files added}}",
+    "uploadFailed": "Couldn't upload {name}",
+    "unsupported": "{name} is not supported",
+    "removeTitle": "Remove this file?",
+    "removeBody": "The file will be removed from this panel.",
+    "removed": "File removed"
+  },
+  "activity": {
+    "scansTitle": "QR scans",
+    "scansDescription": "Recent times this panel's code was scanned",
+    "scansEmpty": "This panel hasn't been scanned yet",
+    "scansEmptyHint": "Stick the label on the panel and scan it with a phone to try.",
+    "scansError": "Couldn't load scan history",
+    "historyTitle": "Change history",
+    "historyDescription": "Actions taken on this panel",
+    "historyEmpty": "No recorded actions",
+    "historyError": "Couldn't load change history",
+    "showMore": "Show more",
+    "unknownDevice": "Unknown device",
+    "actions": {
+      "panel": {
+        "created": "Panel created",
+        "updated": "Panel details updated",
+        "archived": "Panel archived"
+      },
+      "maintenance": {
+        "recorded": "Maintenance logged",
+        "plan_created": "Maintenance plan created",
+        "plan_updated": "Maintenance plan updated",
+        "plan_deleted": "Maintenance plan deleted"
+      },
+      "attachment": {
+        "added": "File added",
+        "removed": "File removed"
+      }
+    }
+  }
+}

@@ -207,5 +207,13 @@
     "scada": "SCADA",
     "dcs": "DCS",
     "custom": "Custom"
+  },
+  "pages": {
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you are looking for may have moved or never existed.",
+    "errorTitle": "Something went wrong",
+    "errorBody": "An unexpected error occurred while loading the page. Try again; if it keeps happening, tell your administrator.",
+    "home": "Back to home",
+    "errorRef": "Error reference: {id}"
   }
 }

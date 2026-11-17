@@ -207,5 +207,13 @@
     "scada": "SCADA",
     "dcs": "DCS",
     "custom": "Diğer"
+  },
+  "pages": {
+    "notFoundTitle": "Sayfa bulunamadı",
+    "notFoundBody": "Aradığınız sayfa taşınmış veya hiç var olmamış olabilir.",
+    "errorTitle": "Bir şeyler ters gitti",
+    "errorBody": "Sayfa yüklenirken beklenmeyen bir hata oluştu. Tekrar deneyin; sorun sürerse yöneticinize haber verin.",
+    "home": "Ana sayfaya dön",
+    "errorRef": "Hata kodu: {id}"
   }
 }

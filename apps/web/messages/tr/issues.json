@@ -1,1 +1,144 @@
-{}
+{
+  "title": "Arızalar",
+  "description": "Sahadan bildirilen tüm arızalar ve çözüm durumları.",
+  "report": "Arıza bildir",
+  "filters": {
+    "state": "Durum",
+    "open": "Açık",
+    "closed": "Kapalı",
+    "all": "Tümü",
+    "severity": "Önem derecesi",
+    "allSeverities": "Tüm önem dereceleri",
+    "mine": "Bana atananlar",
+    "clear": "Filtreleri temizle"
+  },
+  "export": {
+    "label": "Dışa aktar",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (.csv)"
+  },
+  "columns": {
+    "number": "No",
+    "issue": "Arıza",
+    "panel": "Pano",
+    "severity": "Önem",
+    "status": "Durum",
+    "assignee": "Atanan",
+    "reported": "Bildirilme",
+    "photos": "Fotoğraf"
+  },
+  "unassigned": "Atanmamış",
+  "photoCount": "{count, plural, one {# fotoğraf} other {# fotoğraf}}",
+  "count": "{count, plural, =0 {Arıza yok} one {# arıza} other {# arıza}}",
+  "empty": {
+    "openTitle": "Açık arıza yok",
+    "openHint": "Şu an bildirilmiş bir sorun görünmüyor. Bir şey fark ederseniz hemen kayda geçirin.",
+    "closedTitle": "Kapanmış arıza yok",
+    "closedHint": "Çözülen veya kapatılan arızalar burada listelenir.",
+    "allTitle": "Henüz arıza bildirilmemiş",
+    "filteredTitle": "Filtreye uyan arıza yok",
+    "filteredHint": "Filtreleri gevşetmeyi deneyin."
+  },
+  "errorTitle": "Arızalar yüklenemedi",
+  "panelTab": {
+    "title": "Arızalar",
+    "open": "Açık arızalar",
+    "closed": "Kapanan arızalar",
+    "showClosed": "{count, plural, one {# kapanan arızayı göster} other {# kapanan arızayı göster}}",
+    "hideClosed": "Kapananları gizle",
+    "noneOpen": "Bu panoda açık arıza yok.",
+    "emptyTitle": "Bu pano için arıza kaydı yok",
+    "emptyHint": "Panoda bir sorun görürseniz fotoğrafıyla birlikte bildirin."
+  },
+  "severityHint": {
+    "low": "Gözlem",
+    "medium": "Planlı müdahale",
+    "high": "Kısa sürede müdahale",
+    "critical": "Güvenlik riski, hemen"
+  },
+  "reportDialog": {
+    "title": "Arıza bildir",
+    "description": "Ne olduğunu kısaca yazın, mümkünse fotoğraf ekleyin.",
+    "panel": "Pano",
+    "panelRequired": "Bir pano seçin.",
+    "titleLabel": "Başlık",
+    "titlePlaceholder": "Örn. Fan motoru aşırı ısınıyor",
+    "titleError": "Başlık 3 ile 200 karakter arasında olmalı.",
+    "severity": "Önem derecesi",
+    "descriptionLabel": "Açıklama",
+    "descriptionPlaceholder": "Ne gördünüz, ne zaman başladı, hangi kabinde?",
+    "photos": "Fotoğraflar",
+    "submit": "Bildir",
+    "uploading": "Fotoğraflar yükleniyor…",
+    "created": "Arıza #{number} bildirildi",
+    "open": "Aç"
+  },
+  "detail": {
+    "back": "Arızalar",
+    "notFoundTitle": "Arıza bulunamadı",
+    "notFoundHint": "Bu arıza silinmiş ya da erişim yetkiniz yok.",
+    "errorTitle": "Arıza yüklenemedi",
+    "openPanel": "Panoyu aç",
+    "reportedLine": "{name} bildirdi · {when}",
+    "reportedAnon": "Bildirildi · {when}",
+    "description": "Açıklama",
+    "noDescription": "Açıklama girilmemiş.",
+    "photos": "Fotoğraflar",
+    "noPhotos": "Henüz fotoğraf eklenmemiş.",
+    "addPhoto": "Fotoğraf ekle",
+    "savePhotos": "{count, plural, one {# fotoğrafı kaydet} other {# fotoğrafı kaydet}}",
+    "photosAdded": "Fotoğraflar eklendi",
+    "removePhotoTitle": "Fotoğraf kaldırılsın mı?",
+    "removePhotoBody": "Fotoğraf bu arızadan silinir.",
+    "photoRemoved": "Fotoğraf kaldırıldı",
+    "resolution": "Çözüm",
+    "noNote": "Çözüm notu yazılmamış.",
+    "details": "Ayrıntılar",
+    "assignee": "Atanan kişi",
+    "assigneePlaceholder": "Kişi seçin",
+    "severity": "Önem derecesi",
+    "status": "Durum",
+    "reportedBy": "Bildiren",
+    "createdAt": "Bildirilme",
+    "resolvedAt": "Çözülme",
+    "actions": "İşlemler",
+    "noActions": "Bu arıza için yapabileceğiniz bir işlem yok."
+  },
+  "actions": {
+    "start": "İşleme al",
+    "resolve": "Çözüldü olarak işaretle",
+    "resolveWithMaintenance": "Bakım kaydıyla çöz",
+    "close": "Kapat",
+    "reopen": "Yeniden aç",
+    "edit": "Başlığı ve açıklamayı düzenle"
+  },
+  "toast": {
+    "started": "Arıza işleme alındı",
+    "resolved": "Arıza çözüldü olarak işaretlendi",
+    "closed": "Arıza kapatıldı",
+    "reopened": "Arıza yeniden açıldı",
+    "assigned": "Atama güncellendi",
+    "unassigned": "Atama kaldırıldı",
+    "severity": "Önem derecesi güncellendi",
+    "updated": "Arıza güncellendi"
+  },
+  "resolveDialog": {
+    "title": "Arızayı çöz",
+    "description": "Ne yapıldığını kısaca not edin; kayıt geçmişte görünür.",
+    "note": "Çözüm notu",
+    "notePlaceholder": "Örn. Kontaktör değiştirildi, test edildi.",
+    "noteRequired": "Çözüm notu yazın.",
+    "submit": "Çözüldü olarak işaretle"
+  },
+  "confirm": {
+    "closeTitle": "Arıza kapatılsın mı?",
+    "closeBody": "Kapatılan arıza açık listeden kalkar. İstediğiniz zaman yeniden açabilirsiniz.",
+    "reopenTitle": "Arıza yeniden açılsın mı?",
+    "reopenBody": "Arıza açık listeye geri döner."
+  },
+  "edit": {
+    "title": "Arızayı düzenle",
+    "titleLabel": "Başlık",
+    "descriptionLabel": "Açıklama"
+  }
+}

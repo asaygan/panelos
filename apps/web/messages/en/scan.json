@@ -1,1 +1,26 @@
-{}
+{
+  "metaTitle": "Panel record",
+  "panel": "Panel",
+  "verified": "This QR code is linked to a registered panel of {company}.",
+  "fields": {
+    "tag": "Tag",
+    "name": "Name",
+    "serial": "Serial no.",
+    "location": "Location",
+    "revision": "Current schematic"
+  },
+  "revisionApproved": "Rev {letter} · approved",
+  "revisionNone": "No approved schematic",
+  "signInTitle": "Sign in for schematics, maintenance and issues",
+  "signInBody": "Schematics and field records are available to organization members only.",
+  "signIn": "Sign in",
+  "restrictedTitle": "This panel record is private",
+  "restrictedBody": "{company} shows panel details to its own members only. Sign in with your organization account to view it.",
+  "notMember": "You are signed in, but you are not a member of this panel's organization.",
+  "unknownTitle": "QR code not recognized",
+  "unknownBody": "This code is not linked to a panel, or the panel was removed. Check the label and scan again.",
+  "poweredBy": "Managed with PanelOS",
+  "offlineTitle": "You're offline",
+  "offlineBody": "There is no internet connection. The page will reload when you are back online.",
+  "install": "Add to home screen"
+}

@@ -1,1 +1,144 @@
-{}
+{
+  "title": "Issues",
+  "description": "Every issue reported from the field and where it stands.",
+  "report": "Report issue",
+  "filters": {
+    "state": "State",
+    "open": "Open",
+    "closed": "Closed",
+    "all": "All",
+    "severity": "Severity",
+    "allSeverities": "All severities",
+    "mine": "Assigned to me",
+    "clear": "Clear filters"
+  },
+  "export": {
+    "label": "Export",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (.csv)"
+  },
+  "columns": {
+    "number": "No.",
+    "issue": "Issue",
+    "panel": "Panel",
+    "severity": "Severity",
+    "status": "Status",
+    "assignee": "Assignee",
+    "reported": "Reported",
+    "photos": "Photos"
+  },
+  "unassigned": "Unassigned",
+  "photoCount": "{count, plural, one {# photo} other {# photos}}",
+  "count": "{count, plural, =0 {No issues} one {# issue} other {# issues}}",
+  "empty": {
+    "openTitle": "No open issues",
+    "openHint": "Nothing is reported right now. If you notice something, log it straight away.",
+    "closedTitle": "No closed issues",
+    "closedHint": "Resolved and closed issues are listed here.",
+    "allTitle": "No issues reported yet",
+    "filteredTitle": "No issues match these filters",
+    "filteredHint": "Try loosening the filters."
+  },
+  "errorTitle": "Could not load issues",
+  "panelTab": {
+    "title": "Issues",
+    "open": "Open issues",
+    "closed": "Closed issues",
+    "showClosed": "{count, plural, one {Show # closed issue} other {Show # closed issues}}",
+    "hideClosed": "Hide closed",
+    "noneOpen": "This panel has no open issues.",
+    "emptyTitle": "No issues recorded for this panel",
+    "emptyHint": "If you spot a problem on this panel, report it with a photo."
+  },
+  "severityHint": {
+    "low": "Observation",
+    "medium": "Schedule a fix",
+    "high": "Fix soon",
+    "critical": "Safety risk, act now"
+  },
+  "reportDialog": {
+    "title": "Report an issue",
+    "description": "Say briefly what is wrong and add photos if you can.",
+    "panel": "Panel",
+    "panelRequired": "Select a panel.",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Fan motor overheating",
+    "titleError": "The title must be 3 to 200 characters.",
+    "severity": "Severity",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What did you see, when did it start, which cabinet?",
+    "photos": "Photos",
+    "submit": "Report",
+    "uploading": "Uploading photos…",
+    "created": "Issue #{number} reported",
+    "open": "Open"
+  },
+  "detail": {
+    "back": "Issues",
+    "notFoundTitle": "Issue not found",
+    "notFoundHint": "This issue was removed or you do not have access.",
+    "errorTitle": "Could not load the issue",
+    "openPanel": "Open panel",
+    "reportedLine": "Reported by {name} · {when}",
+    "reportedAnon": "Reported · {when}",
+    "description": "Description",
+    "noDescription": "No description given.",
+    "photos": "Photos",
+    "noPhotos": "No photos yet.",
+    "addPhoto": "Add photos",
+    "savePhotos": "{count, plural, one {Save # photo} other {Save # photos}}",
+    "photosAdded": "Photos added",
+    "removePhotoTitle": "Remove this photo?",
+    "removePhotoBody": "The photo is deleted from this issue.",
+    "photoRemoved": "Photo removed",
+    "resolution": "Resolution",
+    "noNote": "No resolution note.",
+    "details": "Details",
+    "assignee": "Assignee",
+    "assigneePlaceholder": "Select a person",
+    "severity": "Severity",
+    "status": "Status",
+    "reportedBy": "Reported by",
+    "createdAt": "Reported",
+    "resolvedAt": "Resolved",
+    "actions": "Actions",
+    "noActions": "There is nothing you can do on this issue."
+  },
+  "actions": {
+    "start": "Start work",
+    "resolve": "Mark as resolved",
+    "resolveWithMaintenance": "Resolve with maintenance record",
+    "close": "Close",
+    "reopen": "Reopen",
+    "edit": "Edit title and description"
+  },
+  "toast": {
+    "started": "Issue is now in progress",
+    "resolved": "Issue marked as resolved",
+    "closed": "Issue closed",
+    "reopened": "Issue reopened",
+    "assigned": "Assignee updated",
+    "unassigned": "Assignee removed",
+    "severity": "Severity updated",
+    "updated": "Issue updated"
+  },
+  "resolveDialog": {
+    "title": "Resolve issue",
+    "description": "Note what was done. It stays on the record.",
+    "note": "Resolution note",
+    "notePlaceholder": "e.g. Contactor replaced and tested.",
+    "noteRequired": "Write a resolution note.",
+    "submit": "Mark as resolved"
+  },
+  "confirm": {
+    "closeTitle": "Close this issue?",
+    "closeBody": "A closed issue leaves the open list. You can reopen it any time.",
+    "reopenTitle": "Reopen this issue?",
+    "reopenBody": "The issue goes back to the open list."
+  },
+  "edit": {
+    "title": "Edit issue",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description"
+  }
+}

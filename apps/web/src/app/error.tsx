@@ -1,32 +1,50 @@
 "use client";
 
 import { useEffect } from "react";
-import { Btn } from "@/components/primitives/button";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/feedback";
 
-export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+/** Route-level error boundary: a failed page never leaves a blank screen. */
+export default function RouteError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  const t = useTranslations("common");
+
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-        padding: 24,
-      }}
-    >
-      <div style={{ fontSize: 16, fontWeight: 660, color: "var(--c-ink)" }}>Something went wrong</div>
-      <div style={{ fontSize: 12, color: "var(--c-ink-3)", maxWidth: 420, textAlign: "center" }}>
-        {error.message || "An unexpected error occurred."}
-      </div>
-      <Btn variant="primary" onClick={reset}>
-        Try again
-      </Btn>
+    <div className="flex min-h-[60dvh] flex-1 items-center justify-center bg-background">
+      <ErrorState
+        title={t("pages.errorTitle")}
+        description={
+          <>
+            {t("pages.errorBody")}
+            {error.digest && (
+              <span className="mt-2 block font-mono text-xs text-subtle">
+                {t("pages.errorRef", { id: error.digest })}
+              </span>
+            )}
+          </>
+        }
+        action={
+          <div className="flex gap-2">
+            <Button variant="primary" onClick={reset}>
+              {t("actions.retry")}
+            </Button>
+            <Button asChild>
+              <Link href="/dashboard">{t("pages.home")}</Link>
+            </Button>
+          </div>
+        }
+      />
     </div>
   );
 }

@@ -1,1 +1,361 @@
-{}
+{
+  "title": "Users",
+  "description": "Manage your team, their roles and the audit trail.",
+  "tabs": {
+    "members": "Members",
+    "roles": "Roles",
+    "audit": "Audit log"
+  },
+  "forbidden": {
+    "title": "You do not have access to this page",
+    "description": "User management requires administrator rights. Contact your company administrator if you need access."
+  },
+  "invitedAt": "Invited {when}",
+  "status": {
+    "active": "Active",
+    "invited": "Invited",
+    "suspended": "Suspended"
+  },
+  "filters": {
+    "search": "Search name or email…",
+    "allRoles": "All roles",
+    "allStatuses": "All statuses"
+  },
+  "columns": {
+    "activity": "Last active"
+  },
+  "empty": {
+    "title": "No members yet",
+    "description": "Invite your teammates to start managing panels together."
+  },
+  "roleDescriptions": {
+    "owner": "Full control of the company: all settings, members and data.",
+    "admin": "Manages members, settings and approvals; cannot act on owners.",
+    "engineer": "Prepares panels, revisions, schematics and labels; can approve revisions.",
+    "technician": "Scans QR codes in the field, views approved schematics, logs issues and maintenance.",
+    "viewer": "Read-only access to panels and approved schematics."
+  },
+  "locations": {
+    "all": "All locations",
+    "title": "Location access",
+    "description": "Choose which locations {name} can access.",
+    "explain": "If none are selected the user can access all locations. Restrictions apply to engineers, technicians and viewers; admins and owners always see every location.",
+    "adminNote": "This user is an admin or owner, so restrictions do not apply.",
+    "noneDefined": "No locations are defined yet. Add some under Settings > Locations first.",
+    "allSelected": "None selected: access to all locations.",
+    "selected": "{count, plural, one {# location selected} other {# locations selected}}",
+    "done": "Location access updated for {name}."
+  },
+  "changeRole": {
+    "title": "Change role",
+    "description": "Choose a new role for {name}.",
+    "done": "Role updated for {name}."
+  },
+  "menu": {
+    "open": "Actions for {name}",
+    "role": "Change role",
+    "locations": "Restrict to locations",
+    "resend": "Resend invitation",
+    "resent": "Invitation sent again to {email}.",
+    "suspend": "Suspend",
+    "activate": "Reactivate",
+    "remove": "Remove from company",
+    "blocked": {
+      "ownerProtected": "Admins cannot make changes to owners.",
+      "self": "You cannot change your own role, status or membership.",
+      "lastOwner": "The last active owner cannot be demoted, suspended or removed. Assign another owner first."
+    }
+  },
+  "confirm": {
+    "suspend": {
+      "title": "Suspend {name}?",
+      "description": "The user can no longer sign in or access data. You can reactivate them at any time.",
+      "confirm": "Suspend",
+      "done": "User suspended."
+    },
+    "activate": {
+      "title": "Reactivate {name}?",
+      "description": "The user can sign in again with their previous role and location restrictions.",
+      "confirm": "Reactivate",
+      "done": "User reactivated."
+    },
+    "remove": {
+      "title": "Remove {name} from the company?",
+      "description": "The user loses access to this company. Their name stays in past records.",
+      "confirm": "Remove",
+      "done": "User removed from the company."
+    }
+  },
+  "invite": {
+    "open": "Invite user",
+    "title": "Invite a user",
+    "description": "An invitation link is sent to their email address.",
+    "locations": "Location access",
+    "message": "Personal message",
+    "messageHint": "Shown in the invitation email.",
+    "submit": "Send invitation",
+    "sent": "Invitation email sent to {email}. The link is valid for 14 days.",
+    "errors": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "messageLong": "At most 500 characters."
+    }
+  },
+  "roles": {
+    "intro": "See what each role can do below. Roles are fixed; assign the one that fits each user.",
+    "permission": "Permission",
+    "members": "{count, plural, =0 {No members} one {# member} other {# members}}",
+    "allowed": "Allowed",
+    "notAllowed": "Not allowed",
+    "approveNote": "Company policy can restrict this further (Settings > Policies).",
+    "permissions": {
+      "manage_org": {
+        "label": "Company settings",
+        "description": "Edits company details, policies and locations."
+      },
+      "manage_users": {
+        "label": "User management",
+        "description": "Invites users and changes roles and access."
+      },
+      "view_audit": {
+        "label": "Audit log",
+        "description": "Views the full activity history and verifies its integrity."
+      },
+      "crud_panels": {
+        "label": "Panel management",
+        "description": "Creates, edits and archives projects, system groups, panels and cabinets."
+      },
+      "create_revision": {
+        "label": "Prepare revisions",
+        "description": "Opens revisions and edits schematics and the BOM."
+      },
+      "approve_revision": {
+        "label": "Approve revisions",
+        "description": "Approves or rejects revisions."
+      },
+      "upload_pdf": {
+        "label": "Upload PDFs",
+        "description": "Uploads schematic PDF files."
+      },
+      "generate_labels": {
+        "label": "Generate labels",
+        "description": "Creates QR labels and templates."
+      },
+      "manage_maintenance": {
+        "label": "Maintenance management",
+        "description": "Creates maintenance plans and records."
+      },
+      "manage_issues": {
+        "label": "Issue management",
+        "description": "Assigns, updates and closes issues."
+      },
+      "report_issue": {
+        "label": "Report issues",
+        "description": "Reports issues and attaches photos from the field."
+      },
+      "export_data": {
+        "label": "Export data",
+        "description": "Downloads panel, issue and maintenance data as Excel/CSV."
+      },
+      "scan_qr": {
+        "label": "Scan QR codes",
+        "description": "Scans panel QR codes to open their identity."
+      }
+    }
+  },
+  "audit": {
+    "export": "Download CSV",
+    "empty": {
+      "title": "No entries yet",
+      "description": "Activity in your company will appear here."
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All categories",
+      "actor": "User",
+      "allActors": "All users",
+      "since": "From date",
+      "until": "To date"
+    },
+    "categories": {
+      "panel": "Panels",
+      "project": "Projects",
+      "system_group": "System groups",
+      "cabinet": "Cabinets",
+      "revision": "Revisions",
+      "file": "Files",
+      "label": "Labels",
+      "user": "Users",
+      "auth": "Sign-in and security",
+      "company": "Company settings",
+      "issue": "Issues",
+      "maintenance": "Maintenance",
+      "attachment": "Attachments",
+      "panels": "Bulk import",
+      "data": "Data export"
+    },
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "noDetails": "No additional details for this entry.",
+    "openTarget": "Open related record",
+    "verify": {
+      "button": "Verify integrity",
+      "intact": "The audit chain is intact: no entry has been altered or removed.",
+      "broken": "The audit chain is broken: tampering or deletion was detected. Report it to your system administrator.",
+      "failed": "Verification could not be completed. Try again.",
+      "checkedAt": "Checked {when}"
+    },
+    "targets": {
+      "panel": "Panel",
+      "project": "Project",
+      "system_group": "System group",
+      "cabinet": "Cabinet",
+      "revision": "Revision",
+      "file": "File",
+      "label": "Label",
+      "label_batch": "Label batch",
+      "user": "User",
+      "membership": "Membership",
+      "invitation": "Invitation",
+      "company": "Company",
+      "issue": "Issue",
+      "maintenance": "Maintenance",
+      "attachment": "Attachment"
+    },
+    "meta": {
+      "changes": "Changes",
+      "name": "Name",
+      "title": "Title",
+      "tag": "Tag",
+      "serial": "Serial no",
+      "email": "Email",
+      "target_email": "Target email",
+      "role": "Role",
+      "old_role": "Previous role",
+      "new_role": "New role",
+      "from": "From",
+      "to": "To",
+      "status": "Status",
+      "severity": "Severity",
+      "count": "Count",
+      "rows": "Rows",
+      "format": "Format",
+      "dataset": "Dataset",
+      "filename": "File name",
+      "size": "Size",
+      "number": "Number",
+      "result": "Result",
+      "kind": "Type",
+      "type": "Type",
+      "note": "Note",
+      "template": "Template",
+      "device": "Device",
+      "via": "Via",
+      "created": "Created",
+      "updated": "Updated",
+      "interval_days": "Interval (days)",
+      "panel_id": "Panel ID",
+      "project_id": "Project ID",
+      "issue_id": "Issue ID",
+      "plan_id": "Plan ID",
+      "record_id": "Record ID",
+      "attachment_id": "Attachment ID",
+      "location_ids": "Location IDs",
+      "invited_by": "Invited by",
+      "letter": "Letter",
+      "superseded_by": "Superseded by",
+      "moved_from": "Moved from",
+      "moved_to": "Moved to"
+    },
+    "actions": {
+      "panel": {
+        "created": "created a panel",
+        "updated": "updated a panel",
+        "archived": "archived a panel",
+        "status_changed": "changed a panel’s status"
+      },
+      "panel_set": {
+        "created": "created a panel set",
+        "updated": "updated a panel set",
+        "archived": "archived a panel set"
+      },
+      "section": {
+        "created": "added a section",
+        "updated": "updated a section",
+        "deleted": "deleted a section"
+      },
+      "project": {
+        "created": "created a project",
+        "updated": "updated a project",
+        "archived": "archived a project",
+        "status_changed": "changed a project’s status"
+      },
+      "system_group": {
+        "created": "created a system group",
+        "updated": "updated a system group",
+        "deleted": "deleted a system group",
+        "status_changed": "changed a system group’s status"
+      },
+      "cabinet": {
+        "created": "added a cabinet",
+        "updated": "updated a cabinet",
+        "deleted": "deleted a cabinet"
+      },
+      "revision": {
+        "created": "created a revision",
+        "submitted": "submitted a revision for approval",
+        "approved": "approved a revision",
+        "rejected": "rejected a revision",
+        "superseded": "superseded a revision"
+      },
+      "file": {
+        "uploaded": "uploaded a file"
+      },
+      "label": {
+        "rendered": "generated a label"
+      },
+      "user": {
+        "invited": "invited a user",
+        "removed": "removed a user",
+        "role_changed": "changed a user’s role",
+        "suspended": "suspended a user",
+        "activated": "reactivated a user",
+        "invite_resent": "resent an invitation",
+        "invite_accepted": "accepted an invitation",
+        "locations_assigned": "updated a user’s location access"
+      },
+      "auth": {
+        "login": "signed in",
+        "logout": "signed out",
+        "password_reset_requested": "requested a password reset",
+        "password_changed": "changed their password",
+        "mfa_enabled": "turned on two-step verification",
+        "mfa_disabled": "turned off two-step verification"
+      },
+      "company": {
+        "updated": "updated company settings"
+      },
+      "issue": {
+        "created": "reported an issue",
+        "updated": "updated an issue",
+        "status_changed": "changed an issue’s status"
+      },
+      "maintenance": {
+        "recorded": "recorded maintenance",
+        "plan_created": "created a maintenance plan",
+        "plan_updated": "updated a maintenance plan",
+        "plan_deleted": "deleted a maintenance plan"
+      },
+      "attachment": {
+        "added": "added an attachment",
+        "removed": "removed an attachment"
+      },
+      "panels": {
+        "imported": "imported panels"
+      },
+      "data": {
+        "exported": "exported data"
+      }
+    }
+  }
+}

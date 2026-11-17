@@ -1,1 +1,217 @@
-{}
+{
+  "page": {
+    "title": "Etiketler",
+    "description": "Panolar için QR etiketlerini önizleyin, indirin veya yazdırın."
+  },
+  "noPermission": {
+    "title": "Etiket oluşturma yetkiniz yok",
+    "body": "Etiket oluşturmak için “etiket üretme” yetkisi gerekir. Yöneticinizden rolünüzü güncellemesini isteyin."
+  },
+  "noPanels": {
+    "title": "Henüz pano yok",
+    "body": "Etiket basmak için önce bir pano oluşturun."
+  },
+  "builtin": {
+    "engraved": "Kazınmış plaka",
+    "plain": "Baskı etiketi"
+  },
+  "orientation": {
+    "landscape": "Yatay",
+    "portrait": "Dikey"
+  },
+  "sizeLine": "{w} × {h} mm · {orientation}",
+  "panels": {
+    "search": "Etiket, ad, seri no veya proje ara…",
+    "selectedCount": "{selected} / {total} pano seçili",
+    "selectAll": "Tümünü seç ({count})",
+    "clear": "Temizle",
+    "clearSearch": "Aramayı temizle",
+    "noMatch": "Eşleşen pano yok",
+    "noMatchHint": "Farklı bir arama deneyin.",
+    "selectOne": "{tag} panosunu seç",
+    "truncated": "İlk {shown} pano gösteriliyor ({total} sonuç). Aramayı daraltın."
+  },
+  "preview": {
+    "title": "Önizleme",
+    "emptyTitle": "Önizleme için pano seçin",
+    "emptyBody": "Soldaki listeden bir pano seçtiğinizde etiketi burada görürsünüz.",
+    "previous": "Önceki etiket",
+    "next": "Sonraki etiket",
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır",
+    "fit": "Sığdır"
+  },
+  "options": {
+    "title": "Seçenekler",
+    "template": "Etiket şablonu",
+    "defaultMark": "varsayılan",
+    "manageTemplates": "Şablonları yönet",
+    "fileFormat": "Dosya biçimi",
+    "formatHint": {
+      "png": "Yüksek çözünürlüklü görsel, çoğu etiket yazıcısıyla uyumlu.",
+      "svg": "Vektör dosya, her boyutta keskin kalır.",
+      "pdf": "A4 sayfaya yerleştirilmiş, yazdırmaya hazır PDF."
+    }
+  },
+  "single": {
+    "title": "Bu etiket",
+    "description": "Önizlemedeki pano için."
+  },
+  "batch": {
+    "title": "Toplu işlem",
+    "none": "Listeden en az bir pano seçin.",
+    "summary": "{count} etiket · {sheets, plural, one {# A4 sayfa} other {# A4 sayfa}}",
+    "createPdf": "PDF oluştur",
+    "print": "Yazdır ({count})",
+    "sheetHint": "Bir A4 sayfaya {perSheet} etiket sığar; fazlası için her sayfa ayrı PDF olur. Yazdırma tüm seçimi tek seferde basar.",
+    "progress": "Sayfa {done} / {total} hazırlandı…",
+    "ready": "{count} etiket hazır",
+    "failed": "{total} sayfadan {done} tanesi hazırlanabildi. Tekrar deneyin.",
+    "part": "Sayfa {index} · {count} etiket"
+  },
+  "dialog": {
+    "title": "Pano etiketi",
+    "download": "{format} indir"
+  },
+  "toast": {
+    "exported": "{format} dosyası hazırlandı",
+    "exportEmpty": "Etiket oluşturulamadı. Tekrar deneyin.",
+    "batchReady": "{count} etiket için PDF hazır",
+    "templateSaved": "Şablon kaydedildi",
+    "templateDeleted": "Şablon silindi",
+    "defaultSet": "Varsayılan şablon güncellendi"
+  },
+  "delete": {
+    "title": "“{name}” şablonu silinsin mi?",
+    "body": "Bu işlem geri alınamaz. Daha önce üretilen etiketler etkilenmez."
+  },
+  "bindings": {
+    "tag": "Pano etiketi",
+    "name": "Pano adı",
+    "serial": "Seri no",
+    "rev": "Revizyon",
+    "voltage": "Gerilim",
+    "current": "Akım",
+    "phase": "Faz",
+    "mfr": "Üretici",
+    "customer": "Müşteri",
+    "enclosure": "Pano tipi",
+    "location": "Lokasyon",
+    "area": "Alan / bölüm",
+    "company": "Şirket",
+    "company_short": "Şirket (kısa)",
+    "standards": "Standart",
+    "scan_url": "QR bağlantısı"
+  },
+  "elements": {
+    "field": "Alan",
+    "text": "Metin",
+    "qr": "QR kod",
+    "logo": "Logo",
+    "line": "Çizgi",
+    "box": "Kutu"
+  },
+  "canvas": {
+    "rotate": "Döndür"
+  },
+  "new": {
+    "title": "Yeni şablon",
+    "description": "Ada ve başlangıç noktasına karar verin; sonra tasarlayın.",
+    "name": "Şablon adı",
+    "start": "Başlangıç noktası",
+    "sampleEngraved": "Kazınmış plaka (hazır tasarım)",
+    "samplePrint": "Baskı etiketi (hazır tasarım)",
+    "blankEngraved": "Boş · koyu zemin",
+    "blankPlain": "Boş · beyaz zemin",
+    "copyOf": "“{name}” kopyası"
+  },
+  "designer": {
+    "title": "Etiket şablonları",
+    "description": "Panolara yapıştırılan QR etiketlerinin tasarımını oluşturun ve düzenleyin.",
+    "back": "Ayarlar",
+    "needsLargerScreen": "Şablon tasarlamak için daha büyük bir ekran gerekir. Burada şablonları görüntüleyebilir ve varsayılanı seçebilirsiniz.",
+    "readOnly": "Şablonları düzenleme yetkiniz yok; yalnızca görüntüleyebilirsiniz.",
+    "templates": "Şablonlar",
+    "newTemplate": "Yeni",
+    "newName": "Yeni şablon",
+    "copyName": "{name} kopyası",
+    "untitled": "Adsız şablon",
+    "unsavedBadge": "Kaydedilmedi",
+    "dirty": "Değişiklik var",
+    "noTemplates": "Henüz şablon yok",
+    "noTemplatesHint": "“Yeni” ile ilk etiket şablonunuzu oluşturun.",
+    "actionsFor": "{name} işlemleri",
+    "setDefault": "Varsayılan yap",
+    "deleteTemplate": "{name} şablonunu sil",
+    "templateName": "Şablon adı",
+    "nameRequired": "Şablon adı gerekli",
+    "status": "Durum",
+    "makeDefault": "Varsayılan",
+    "undo": "Geri al",
+    "redo": "Yinele",
+    "previewWith": "Önizleme verisi",
+    "sampleData": "Örnek",
+    "realPanel": "Gerçek pano",
+    "addElement": "Öğe ekle"
+  },
+  "inspector": {
+    "document": "Etiket",
+    "orientation": "Yön",
+    "sizePreset": "Boyut",
+    "custom": "Özel",
+    "widthMm": "Genişlik (mm)",
+    "heightMm": "Yükseklik (mm)",
+    "background": "Zemin",
+    "backgroundKind": "Zemin türü",
+    "engraved": "Kazınmış",
+    "plain": "Düz",
+    "fill": "Dolgu",
+    "radiusMm": "Köşe yarıçapı (mm)",
+    "pickColor": "renk seç",
+    "grid": "Izgara",
+    "gridMm": "Izgara aralığı (mm)",
+    "snap": "Izgaraya ve kılavuzlara yapıştır",
+    "layers": "Öğeler ({count})",
+    "noLayers": "Etikette henüz öğe yok. Soldan ekleyin.",
+    "hide": "Gizle",
+    "show": "Göster",
+    "binding": "Bağlı veri",
+    "text": "Metin",
+    "logoSource": "Kaynak",
+    "logoCompany": "Şirket logosu",
+    "logoMonogram": "Monogram",
+    "forward": "Öne al",
+    "back": "Arkaya al",
+    "duplicate": "Çoğalt",
+    "delete": "Sil",
+    "position": "Konum ve boyut",
+    "x": "X (mm)",
+    "y": "Y (mm)",
+    "w": "Genişlik (mm)",
+    "h": "Yükseklik (mm)",
+    "rotation": "Döndürme (°)",
+    "visible": "Görünür",
+    "typography": "Yazı",
+    "font": "Yazı tipi",
+    "fontSans": "Sans",
+    "fontMono": "Mono",
+    "sizePt": "Boyut (pt)",
+    "weight": "Kalınlık",
+    "align": "Hizalama",
+    "alignLeft": "Sol",
+    "alignCenter": "Orta",
+    "alignRight": "Sağ",
+    "color": "Renk",
+    "uppercase": "Büyük harf",
+    "qr": "QR kod",
+    "qrHint": "QR her zaman panonun tarama bağlantısını taşır.",
+    "foreground": "Ön renk",
+    "backgroundColor": "Arka renk",
+    "quietMm": "Kenar boşluğu (mm)",
+    "box": "Kutu",
+    "line": "Çizgi",
+    "stroke": "Çizgi rengi",
+    "strokeMm": "Çizgi kalınlığı (mm)",
+    "noneHint": "Dolgu veya çizgi için “none” yazarak kapatabilirsiniz."
+  }
+}
