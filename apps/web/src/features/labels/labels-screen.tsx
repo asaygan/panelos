@@ -182,7 +182,7 @@ function LabelWorkspace() {
 
   return (
     <>
-      <div className="grid items-start gap-4 lg:grid-cols-[19rem_minmax(0,1fr)_20rem]">
+      <div className="grid items-start gap-4 lg:grid-cols-[17rem_minmax(0,1fr)] 2xl:grid-cols-[19rem_minmax(0,1fr)_20rem]">
         <div className="lg:sticky lg:top-0 lg:max-h-[calc(100dvh-11rem)] lg:min-h-[24rem] lg:[&>div]:max-h-[inherit]">
           <PanelSelectList
             panels={panels}
@@ -245,24 +245,26 @@ function LabelWorkspace() {
           </div>
         </Card>
 
-        <LabelOptions
-          choices={choices}
-          choice={choice}
-          onChoice={(id) => {
-            setChoiceId(id);
-            resetBatch();
-          }}
-          format={format}
-          onFormat={setFormat}
-          hasFocus={!!focused}
-          exporting={pending}
-          onExportOne={() => focused && void exportOne(focused, format)}
-          onPrintOne={() => focused && print([{ layout: choice.layout, data: focusData }])}
-          selectedCount={selectedPanels.length}
-          batch={batch}
-          onExportBatch={() => void exportBatch(selectedPanels)}
-          onPrintBatch={printBatchData}
-        />
+        <div className="min-w-0 lg:col-start-2 2xl:col-start-auto">
+          <LabelOptions
+            choices={choices}
+            choice={choice}
+            onChoice={(id) => {
+              setChoiceId(id);
+              resetBatch();
+            }}
+            format={format}
+            onFormat={setFormat}
+            hasFocus={!!focused}
+            exporting={pending}
+            onExportOne={() => focused && void exportOne(focused, format)}
+            onPrintOne={() => focused && print([{ layout: choice.layout, data: focusData }])}
+            selectedCount={selectedPanels.length}
+            batch={batch}
+            onExportBatch={() => void exportBatch(selectedPanels)}
+            onPrintBatch={printBatchData}
+          />
+        </div>
       </div>
       {node}
     </>
