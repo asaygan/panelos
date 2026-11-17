@@ -7,13 +7,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 RUN pip install uv
 WORKDIR /app
-COPY pyproject.toml ./
-# POSIX-safe (Docker RUN uses /bin/sh — no bash process substitution).
-# Compile pyproject deps to a file, then install from it. cairosvg + all
-# label-render deps come from pyproject so no separate fallback list needed.
+# Exact, hashed versions exported from the workspace uv.lock
+# (`uv export … -o apps/api/requirements.lock`; CI fails if it drifts), so
+# every image build installs the same dependency set that was tested.
+COPY requirements.lock ./
 RUN uv venv \
- && uv pip compile pyproject.toml -o /tmp/requirements.txt \
- && uv pip install --python /app/.venv/bin/python -r /tmp/requirements.txt
+ && uv pip install --python /app/.venv/bin/python --require-hashes -r requirements.lock
 
 # ---- builder ----
 FROM deps AS builder

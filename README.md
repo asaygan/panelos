@@ -30,7 +30,7 @@ git clone … panelos && cd panelos
 pnpm install
 uv sync
 cp .env.example .env
-docker compose -f infra/compose/docker-compose.yml up -d postgres redis minio
+docker compose -f infra/compose/docker-compose.yml up -d postgres minio
 cd apps/api && uv run alembic upgrade head && uv run python scripts/seed.py
 cd ../..
 pnpm dev
@@ -49,18 +49,18 @@ Start at [docs/README.md](docs/README.md). Highlights:
 - [API conventions](docs/api/conventions.md)
 - [Database schema](docs/database/schema.md)
 - [Design system](docs/design/design-system.md)
-- [Deployment](docs/deployment/production.md)
+- [Deployment (AWS)](docs/deployment/aws.md)
 - [Security & RBAC](docs/security/rbac.md)
 - [Architecture Decision Records](docs/adr/)
 
 ## Stack
 
-- **Frontend**: Next.js 15 · React 19 · TypeScript · Tailwind · shadcn/ui · TanStack Query
+- **Frontend**: Next.js 15 · React 19 · TypeScript · Tailwind · Radix · TanStack Query · next-intl (TR/EN)
 - **Backend**: FastAPI · SQLAlchemy 2.0 (async) · Alembic · pydantic v2
-- **Data**: PostgreSQL 16 · Redis 7
-- **Storage**: pluggable provider abstraction (local · S3 · Supabase · Azure)
-- **Mobile**: Flutter (planned)
-- **CI/CD**: GitHub Actions · Vercel (web) · Fly.io (api)
+- **Data**: PostgreSQL (row-level security per tenant)
+- **Storage**: local disk in development, S3 in production
+- **Hosting**: AWS — Amplify (web), App Runner (API), RDS, S3, SES
+- **CI/CD**: GitHub Actions (CI gates the API deploy)
 
 ## License
 

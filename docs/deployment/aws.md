@@ -1,79 +1,100 @@
-# AWS deployment — App Runner + RDS + S3 + Amplify
+# AWS deployment
 
-Target topology (Frankfurt, `eu-central-1`):
+Production runs in Frankfurt (`eu-central-1`) on `https://panelos.io`.
 
-| Layer    | Service           | Notes                                                              |
-| -------- | ----------------- | ------------------------------------------------------------------ |
-| Web      | Amplify Hosting   | Next.js, monorepo root build via `amplify.yml`                     |
-| API      | App Runner        | Container image from ECR, auto-deploy on `:latest` push            |
-| DB       | RDS PostgreSQL    | `db.t4g.micro`, Single-AZ, public access + SG allowlist            |
-| Storage  | S3                | `panelos-files-prod`, private, SSE-S3                              |
-| Registry | ECR               | Private repo `panelos-api`                                         |
-| Identity | IAM Role          | App Runner instance role → S3 access (no static keys)              |
+| Layer     | Service         | Notes                                                                 |
+| --------- | --------------- | --------------------------------------------------------------------- |
+| Web       | Amplify Hosting | Next.js SSR (`WEB_COMPUTE`), monorepo build via repo-root `amplify.yml` |
+| API       | App Runner      | Container image from ECR, auto-deploys when `:latest` is pushed       |
+| Database  | RDS PostgreSQL  | `db.t4g.micro`, Single-AZ                                             |
+| Files     | S3              | Private bucket, SSE-S3, versioning on; browsers upload via presigned URLs |
+| Registry  | ECR             | Private repository for the API image                                  |
+| Email     | SES             | Transactional mail (invites, password reset, notifications)           |
+| Identity  | IAM             | App Runner instance role (S3, SES, Secrets Manager); GitHub OIDC role for CI |
 
-## One-time setup
+Account-specific identifiers (account id, ARNs, hostnames) are deliberately not recorded in this
+repository; they live in the AWS console and in GitHub Actions secrets.
 
-1. **Upgrade AWS plan** to Pay-as-you-go (Free Plan blocks production RDS).
-2. **S3 bucket** `panelos-files-prod` in `eu-central-1`, SSE-S3, versioning on, public access blocked.
-3. **RDS** `panelos-prod`: PostgreSQL 18, `db.t4g.micro`, 20 GB gp3, auto-generated master password, public access on. Save the endpoint + password.
-4. **ECR repo** `panelos-api`. Note the URI.
-5. **IAM role for App Runner instance**: trust `tasks.apprunner.amazonaws.com`, attach a policy allowing `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket` on `arn:aws:s3:::panelos-files-prod/*`.
-6. **IAM role for GitHub OIDC** (for `cd-api-aws.yml`): trust `token.actions.githubusercontent.com` with `repo:asaygan/panelos:ref:refs/heads/main`, policy = ECR push to `panelos-api`.
-7. **GitHub secrets**: `AWS_ROLE_ARN`, `AWS_REGION=eu-central-1`, `ECR_REPOSITORY=707578706524.dkr.ecr.eu-central-1.amazonaws.com/panelos-api`.
+## How a change reaches production
 
-## App Runner service
+1. Push to `main`.
+2. `.github/workflows/cd-api-aws.yml` runs the full CI suite (`ci.yml`) and, only if it passes,
+   builds the API image and pushes `:latest` + `:<commit-sha>` to ECR.
+3. App Runner sees the new `:latest` and deploys it. The container entrypoint
+   (`apps/api/scripts/start.sh`) runs `alembic upgrade head` before starting uvicorn; if the
+   migration or the health check fails, App Runner keeps the previous version running.
+4. Amplify builds and deploys the web app from the same commit.
 
-- Source: Container registry → Amazon ECR → `panelos-api:latest`
-- Deployment: Automatic (on ECR push)
-- Service name: `panelos-api`
-- vCPU/memory: 1 vCPU / 2 GB (smallest)
-- Port: `8000`
-- Instance role: the IAM role from step 5
-- Environment variables (no static AWS keys):
-  - `APP_ENV=production`
-  - `DATABASE_URL=postgresql+asyncpg://postgres:<pw>@<rds-endpoint>:5432/postgres`
-  - `DATABASE_SYNC_URL=postgresql+psycopg://postgres:<pw>@<rds-endpoint>:5432/postgres`
-  - `JWT_SECRET=<gen>`
-  - `APP_URL=https://<amplify-domain>`
-  - `NEXT_PUBLIC_APP_URL=https://<amplify-domain>`
-  - `STORAGE_PROVIDER=s3`
-  - `S3_BUCKET=panelos-files-prod`
-  - `S3_REGION=eu-central-1`
-  - `STORAGE_PUBLIC_BASE_URL=` (leave empty — boto3 mints signed S3 URLs)
-  - `RATE_LIMIT_ENABLED=true`
+Rollback: redeploy a previous image by tag (`:<commit-sha>`) in App Runner; redeploy a previous
+build in Amplify. Migrations are additive, so the previous API version keeps working against the
+newer schema.
 
-## Amplify Hosting
+## API configuration (App Runner environment)
 
-- Connect GitHub `asaygan/panelos`, branch `main`.
-- Monorepo: yes, app root `apps/web`. Uses repo-root `amplify.yml`.
-- Environment variables:
-  - `NEXT_PUBLIC_API_BASE=/api/v1`
-  - `API_INTERNAL_URL=https://<app-runner-url>`
-  - `NEXT_PUBLIC_APP_URL=https://<amplify-domain>`
+| Variable | Value |
+| --- | --- |
+| `APP_ENV` | `production` (hides `/docs`, refuses to boot with the default `JWT_SECRET`) |
+| `APP_URL` | `https://panelos.io` — **printed QR codes encode this origin; never change it casually** |
+| `JWT_SECRET` | random 64 hex chars (Secrets Manager reference) |
+| `DB_HOST` / `DB_NAME` / `DB_USER` | RDS endpoint and database |
+| `DB_PASSWORD` | Secrets Manager reference to the RDS-managed secret (`…:password::`) |
+| `DB_APP_ROLE` | `panelos_app` — turns Postgres row-level security on for request traffic |
+| `STORAGE_PROVIDER` | `s3` |
+| `S3_BUCKET` / `S3_REGION` | bucket name / `eu-central-1` (no access keys: instance role) |
+| `EMAIL_PROVIDER` | `ses` |
+| `EMAIL_FROM` | `PanelOS <no-reply@panelos.io>` (domain verified in SES) |
+| `CORS_ORIGINS` | `https://panelos.io,https://www.panelos.io` |
+| `SENTRY_DSN` | optional |
 
-## Data migration (Supabase → RDS)
+Health checks: `GET /api/v1/health` (liveness) and `GET /api/v1/health/ready` (database reachable).
 
-```bash
-# Dump
-PGPASSWORD='<supabase-pw>' pg_dump \
-  -h <supabase-pooler> -U postgres -d postgres \
-  --no-owner --no-privileges --format=custom > panelos.dump
+## Web configuration (Amplify environment)
 
-# Restore
-PGPASSWORD='<rds-pw>' pg_restore \
-  -h <rds-endpoint> -U postgres -d postgres \
-  --no-owner --no-privileges --clean --if-exists \
-  panelos.dump
-```
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_API_BASE` | `/api/v1` |
+| `API_INTERNAL_URL` | the App Runner service URL |
+| `NEXT_PUBLIC_APP_URL` | `https://panelos.io` |
 
-Verify row counts:
+Amplify exposes app-level variables at build time only; `next.config.ts` bakes
+`API_INTERNAL_URL` into the server bundle so server actions and middleware can reach the API.
 
-```sql
-SELECT 'users' tbl, count(*) FROM users
-UNION ALL SELECT 'panels', count(*) FROM panels
-UNION ALL SELECT 'projects', count(*) FROM projects
-UNION ALL SELECT 'system_groups', count(*) FROM system_groups
-UNION ALL SELECT 'cabinets', count(*) FROM cabinets;
-```
+## Required one-time settings
 
-After cutover and 48h soak, decommission Railway + Vercel + Supabase Storage.
+These are easy to miss and each one breaks a feature when absent:
+
+- **S3 bucket CORS** — browsers PUT files straight to S3. Without this rule schematic and photo
+  uploads fail:
+
+  ```json
+  [
+    {
+      "AllowedOrigins": ["https://panelos.io", "https://www.panelos.io"],
+      "AllowedMethods": ["PUT", "GET", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+  ```
+
+- **Instance role policy** — on the files bucket: `s3:GetObject`, `s3:PutObject`,
+  `s3:DeleteObject` (objects) and `s3:ListBucket` (bucket); `ses:SendEmail` for the verified
+  identity; `secretsmanager:GetSecretValue` for the referenced secrets.
+- **SES** — verify the `panelos.io` domain (DKIM records in DNS) and request production access
+  (new accounts start in the sandbox and can only mail verified addresses).
+- **First tenant** — on an empty database set `BOOTSTRAP_ENABLED=true`, call
+  `POST /api/v1/auth/bootstrap` once with the owner's email and password, then set it back to
+  `false`.
+
+## Known gaps (tracked, not yet done)
+
+- RDS is publicly reachable (security group allows 5432 from anywhere). Move it to private
+  subnets with an App Runner VPC connector, or at minimum restrict the security group.
+- No staging environment; no infrastructure-as-code (everything above was created in the console).
+- No CloudWatch alarms or WAF. Backups rely on RDS defaults: confirm the retention period and
+  rehearse a restore.
+- App Runner is not accepting new customers; plan a move to ECS Fargate (same image, same
+  environment variables).
+- Rate limiting and the maintenance scheduler are in-process: fine for one instance, add a
+  shared store before scaling out.

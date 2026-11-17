@@ -65,7 +65,7 @@ jobs:
           DB_APP_ROLE: panelos_app
 
   openapi-drift:
-    name: OpenAPI drift
+    name: Generated files drift
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -84,11 +84,13 @@ jobs:
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Regenerate schema + client
         run: pnpm codegen
+      - name: Re-export the API image's locked requirements
+        run: uv export --frozen --no-dev --no-emit-workspace --package panelos-api -o apps/api/requirements.lock -q
       - name: Fail on drift
         run: |
-          if [ -n "$(git status --porcelain packages/types)" ]; then
-            echo "::error::packages/types is out of date. Run 'pnpm codegen' and commit the result."
-            git diff --stat packages/types
+          if [ -n "$(git status --porcelain packages/types apps/api/requirements.lock)" ]; then
+            echo "::error::Generated files are out of date. Run 'pnpm codegen' and 'uv export --frozen --no-dev --no-emit-workspace --package panelos-api -o apps/api/requirements.lock', then commit."
+            git diff --stat packages/types apps/api/requirements.lock
             exit 1
           fi
 
