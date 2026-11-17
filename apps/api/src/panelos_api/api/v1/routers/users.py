@@ -54,9 +54,10 @@ async def list_members(
         status=member_status,
         location_id=location_id,
     )
+    locations_by_member = await repo.locations_for_many([mem.id for mem, _u in rows])
     out: list[MemberOut] = []
     for mem, user in rows:
-        locs = await repo.locations_for(mem.id)
+        locs = locations_by_member.get(mem.id, [])
         out.append(
             MemberOut(
                 id=mem.id,

@@ -27,6 +27,8 @@ select = [
   "RUF"                 # ruff-specific
 ]
 ignore = ["S101", "B008"]
+# Turkish copy legitimately uses these characters.
+allowed-confusables = ["ı", "İ", "“", "”", "’", "—", "–"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*" = ["S", "N"]

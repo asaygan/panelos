@@ -137,6 +137,8 @@ async def migrated_db(postgres_container: str | None) -> AsyncIterator[str]:
     os.environ.setdefault("STORAGE_PROVIDER", "local")
     # Tests log in many times per second — keep the brute-force throttle off.
     os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
+    os.environ.setdefault("SCHEDULER_ENABLED", "false")
+    os.environ.setdefault("EMAIL_PROVIDER", "log")
 
     get_settings.cache_clear()
     # Reset any previously-built global engine so it rebinds to the container.
@@ -274,3 +276,43 @@ async def owner_auth(app_client, seed_owner) -> dict[str, object]:  # type: igno
         "X-Company-Id": str(seed_owner["company_id"]),
     }
     return {"headers": headers, "tokens": tokens, "seed": seed_owner}
+
+
+@pytest.fixture()
+def outbox_mail(monkeypatch):  # type: ignore[no-untyped-def]
+    """Capture outgoing mail. ``await mails.settle()`` waits for queued sends."""
+
+    from panelos_api.core import email, outbox
+
+    class Box(list):  # type: ignore[type-arg]
+        async def settle(self) -> Box:
+            await outbox.drain()
+            return self
+
+    box = Box()
+
+    def fake_send(mail):  # type: ignore[no-untyped-def]
+        box.append(mail)
+        return True
+
+    monkeypatch.setattr(email, "send_mail", fake_send)
+    return box
+
+
+async def add_member(app_client, owner_headers, email: str, role: str) -> dict[str, str]:  # type: ignore[no-untyped-def]
+    """Invite ``email`` with ``role`` into the owner's company, accept, return auth headers."""
+
+    password = "MemberPass123!"
+    r = await app_client.post(
+        "/api/v1/users/invitations", json={"email": email, "role": role}, headers=owner_headers
+    )
+    assert r.status_code == 201, r.text
+    r = await app_client.post(
+        "/api/v1/auth/accept-invite",
+        json={"token": r.json()["token"], "name": email.split("@")[0], "password": password},
+    )
+    assert r.status_code == 200, r.text
+    return {
+        "Authorization": f"Bearer {r.json()['access_token']}",
+        "X-Company-Id": owner_headers["X-Company-Id"],
+    }

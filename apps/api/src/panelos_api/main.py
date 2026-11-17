@@ -2,21 +2,33 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from sqlalchemy.exc import IntegrityError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from panelos_api import __version__
 from panelos_api.api.v1 import api_v1_router
 from panelos_api.config import get_settings
-from panelos_api.core.exceptions import DomainError, domain_error_handler
+from panelos_api.core import outbox
+from panelos_api.core.exceptions import (
+    DomainError,
+    domain_error_handler,
+    http_error_handler,
+    integrity_error_handler,
+    rate_limit_handler,
+    unhandled_error_handler,
+    validation_error_handler,
+)
 from panelos_api.core.logging import configure_logging, get_logger, request_id_var
 from panelos_api.core.rate_limit import auth_limiter
 from panelos_api.db.session import dispose_engine
@@ -40,17 +52,63 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
                 dsn=settings.SENTRY_DSN,
                 environment=settings.APP_ENV,
                 release=__version__,
-                traces_sample_rate=0.0,
+                traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+                send_default_pii=False,
             )
             log.info("sentry_initialized")
         except Exception as exc:  # never block startup on observability
             log.warning("sentry_init_failed", error=str(exc))
     log.info("startup", env=settings.APP_ENV, version=__version__)
+    scheduler = asyncio.create_task(_scheduler_loop()) if settings.SCHEDULER_ENABLED else None
     try:
         yield
     finally:
+        if scheduler is not None:
+            scheduler.cancel()
+        await outbox.drain()
         await dispose_engine()
         log.info("shutdown")
+
+
+SCHEDULER_INTERVAL_SECONDS = 3600
+
+
+async def run_scheduled_jobs() -> int:
+    """One pass of the periodic jobs. Safe to run on several instances at once:
+    a transaction-level advisory lock makes all but one of them a no-op."""
+
+    from sqlalchemy import text
+
+    from panelos_api.db.session import get_sessionmaker
+    from panelos_api.services import fieldwork_service
+
+    async with get_sessionmaker()() as session:
+        got = (
+            await session.execute(
+                text("SELECT pg_try_advisory_xact_lock(hashtextextended('panelos.scheduler', 0))")
+            )
+        ).scalar_one()
+        if not got:
+            return 0
+        announced = await fieldwork_service.announce_due_plans(session)
+        await session.commit()
+        outbox.dispatch(session)
+        return announced
+
+
+async def _scheduler_loop() -> None:
+    log = get_logger("panelos_api.scheduler")
+    await asyncio.sleep(30)  # let the app finish booting first
+    while True:
+        try:
+            n = await run_scheduled_jobs()
+            if n:
+                log.info("maintenance_due_announced", plans=n)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # keep the loop alive; try again next tick
+            log.warning("scheduler_failed", error=str(exc))
+        await asyncio.sleep(SCHEDULER_INTERVAL_SECONDS)
 
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
@@ -106,13 +164,8 @@ def create_app() -> FastAPI:
     auth_limiter.enabled = settings.RATE_LIMIT_ENABLED
     app.state.limiter = auth_limiter
     app.add_middleware(SlowAPIMiddleware)
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     # De-duplicate CORS origins while preserving order.
-    origins = list(
-        dict.fromkeys(
-            o for o in (settings.NEXT_PUBLIC_APP_URL, settings.APP_URL, *settings.CORS_ORIGINS) if o
-        )
-    )
+    origins = list(dict.fromkeys(o for o in (settings.APP_URL, *settings.CORS_ORIGINS) if o))
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -121,7 +174,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
         expose_headers=["X-Request-Id"],
     )
+    # One error shape for everything (RFC 7807 problem+json with a stable `code`).
     app.add_exception_handler(DomainError, domain_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
+    app.add_exception_handler(StarletteHTTPException, http_error_handler)
+    app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+    app.add_exception_handler(IntegrityError, integrity_error_handler)
+    app.add_exception_handler(Exception, unhandled_error_handler)
     app.include_router(api_v1_router)
     return app
 

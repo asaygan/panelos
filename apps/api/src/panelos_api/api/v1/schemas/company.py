@@ -13,6 +13,10 @@ class CompanyOut(ORMModel):
     standards_profile: str | None = None
     logo_key: str | None = None
     public_qr_access_enabled: bool = True
+    default_locale: str = "tr"
+    timezone: str = "Europe/Istanbul"
+    require_four_eyes: bool = False
+    engineer_can_approve: bool = True
 
 
 class CompanyUpdateIn(ORMModel):
@@ -21,6 +25,10 @@ class CompanyUpdateIn(ORMModel):
     standards_profile: str | None = None
     logo_key: str | None = None
     public_qr_access_enabled: bool | None = None
+    default_locale: str | None = None
+    timezone: str | None = None
+    require_four_eyes: bool | None = None
+    engineer_can_approve: bool | None = None
 
 
 class LocationOut(ORMModel):

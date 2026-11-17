@@ -1,6 +1,8 @@
-"""Role-based access control matrix.
+"""Role-based access control.
 
-Mirrors plan section 9. Single source of truth: ``ROLE_PERMISSIONS``.
+``Permission`` + ``ROLE_PERMISSIONS`` are the single source of truth: routers
+gate on them and ``GET /roles`` (the permission matrix in the UI) is generated
+from them, so what the UI shows is exactly what the API enforces.
 """
 
 from __future__ import annotations
@@ -23,45 +25,42 @@ class Permission(StrEnum):
 
     MANAGE_ORG = "manage_org"
     MANAGE_USERS = "manage_users"
+    VIEW_AUDIT = "view_audit"
     CRUD_PANELS = "crud_panels"
     CREATE_REVISION = "create_revision"
     APPROVE_REVISION = "approve_revision"
     UPLOAD_PDF = "upload_pdf"
     GENERATE_LABELS = "generate_labels"
-    SCAN_QR = "scan_qr"
+    MANAGE_MAINTENANCE = "manage_maintenance"
+    MANAGE_ISSUES = "manage_issues"
     REPORT_ISSUE = "report_issue"
+    EXPORT_DATA = "export_data"
+    SCAN_QR = "scan_qr"
 
+
+_ENGINEER = frozenset(
+    {
+        Permission.CRUD_PANELS,
+        Permission.CREATE_REVISION,
+        # Subject to the company's approval policy (engineer_can_approve).
+        Permission.APPROVE_REVISION,
+        Permission.UPLOAD_PDF,
+        Permission.GENERATE_LABELS,
+        Permission.MANAGE_MAINTENANCE,
+        Permission.MANAGE_ISSUES,
+        Permission.REPORT_ISSUE,
+        Permission.EXPORT_DATA,
+        Permission.SCAN_QR,
+    }
+)
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
     Role.OWNER: frozenset(Permission),
-    Role.ADMIN: frozenset(
-        {
-            Permission.MANAGE_USERS,
-            Permission.CRUD_PANELS,
-            Permission.CREATE_REVISION,
-            Permission.APPROVE_REVISION,
-            Permission.UPLOAD_PDF,
-            Permission.GENERATE_LABELS,
-            Permission.SCAN_QR,
-            Permission.REPORT_ISSUE,
-        }
-    ),
-    Role.ENGINEER: frozenset(
-        {
-            Permission.CRUD_PANELS,
-            Permission.CREATE_REVISION,
-            Permission.APPROVE_REVISION,  # togglable per org; default allowed.
-            Permission.UPLOAD_PDF,
-            Permission.GENERATE_LABELS,
-            Permission.SCAN_QR,
-            Permission.REPORT_ISSUE,
-        }
-    ),
+    Role.ADMIN: _ENGINEER | {Permission.MANAGE_USERS, Permission.VIEW_AUDIT},
+    Role.ENGINEER: _ENGINEER,
+    # Field staff: read, scan, report faults and log the maintenance they did.
     Role.TECHNICIAN: frozenset(
-        {
-            Permission.SCAN_QR,
-            Permission.REPORT_ISSUE,
-        }
+        {Permission.SCAN_QR, Permission.REPORT_ISSUE, Permission.MANAGE_MAINTENANCE}
     ),
     Role.VIEWER: frozenset({Permission.SCAN_QR}),
 }
@@ -73,99 +72,31 @@ def has_permission(role: Role, perm: Permission) -> bool:
     return perm in ROLE_PERMISSIONS[role]
 
 
-# ---------------------------------------------------------------------------
-# Display / contract catalog (additive — powers GET /roles + Permission Matrix).
-# NOT used for runtime gating; that stays with ``Permission`` + ``ROLE_PERMISSIONS``.
-# ---------------------------------------------------------------------------
+def permissions_for(role: Role) -> list[str]:
+    """Permission keys granted to ``role``, in catalog order."""
 
-# Ordered list of (key, label, description) for the spec's 21 permission keys.
+    return [p.value for p in Permission if p in ROLE_PERMISSIONS[role]]
+
+
+# (key, English label, English description). Clients translate by key; the
+# English text is the fallback and what API consumers see.
 PERMISSION_CATALOG: list[tuple[str, str, str]] = [
-    ("full_access", "Full Access", "Unrestricted access to every feature and setting."),
-    (
-        "manage_billing",
-        "Manage Billing",
-        "View invoices and manage the subscription and payment methods.",
-    ),
-    (
-        "manage_organization",
-        "Manage Organization",
-        "Edit company profile, standards, locations and branding.",
-    ),
-    ("manage_users", "Manage Users", "Invite, change roles, suspend, and remove members."),
-    ("manage_roles", "Manage Roles", "Define and assign roles and permission sets."),
-    ("manage_panels", "Manage Panels", "Create, edit, and archive panels."),
-    ("manage_revisions", "Manage Revisions", "Create, edit, and manage schematic revisions."),
-    ("approve_revisions", "Approve Revisions", "Review and approve or reject submitted revisions."),
-    ("generate_labels", "Generate Labels", "Render and export panel labels."),
-    ("view_audit_logs", "View Audit Logs", "Read the organization's audit trail."),
-    ("create_panels", "Create Panels", "Add new panels to the organization."),
-    ("edit_panels", "Edit Panels", "Modify existing panel details."),
-    ("upload_revisions", "Upload Revisions", "Upload schematic PDFs to revisions."),
-    ("create_revisions", "Create Revisions", "Start new revision drafts."),
-    ("view_panels", "View Panels", "Browse panels and their metadata."),
-    ("view_schematics", "View Schematics", "Open schematic sheets and drawings."),
-    ("view_approved_revisions", "View Approved Revisions", "Read released, approved revisions."),
-    ("download_pdfs", "Download PDFs", "Download schematic and label PDFs."),
-    ("scan_qr", "Scan QR Codes", "Scan panel QR codes in the field."),
-    ("report_issues", "Report Issues", "Flag faults or issues on panels."),
-    ("offline_access", "Offline Access", "Access cached panels and schematics offline."),
+    (Permission.MANAGE_ORG, "Manage organization", "Company profile, policies and locations."),
+    (Permission.MANAGE_USERS, "Manage users", "Invite, change roles, suspend and remove members."),
+    (Permission.VIEW_AUDIT, "View audit log", "Read and export the organization's audit trail."),
+    (Permission.CRUD_PANELS, "Manage panels", "Create, edit, move and archive assets."),
+    (Permission.CREATE_REVISION, "Create revisions", "Start drafts, edit BOM, submit for review."),
+    (Permission.APPROVE_REVISION, "Approve revisions", "Approve or reject submitted revisions."),
+    (Permission.UPLOAD_PDF, "Upload schematics", "Upload schematic PDFs and manage sheets."),
+    (Permission.GENERATE_LABELS, "Generate labels", "Render and export QR labels."),
+    (Permission.MANAGE_MAINTENANCE, "Log maintenance", "Record maintenance and manage plans."),
+    (Permission.MANAGE_ISSUES, "Manage issues", "Assign, update and close reported issues."),
+    (Permission.REPORT_ISSUE, "Report issues", "Report a fault on a panel from the field."),
+    (Permission.EXPORT_DATA, "Import & export", "Bulk import panels and export data."),
+    (Permission.SCAN_QR, "View & scan", "Browse panels, open approved schematics, scan QR."),
 ]
 
-# Source of truth for GET /roles + the Permission Matrix (display/contract only).
-ROLE_CATALOG: dict[Role, list[str]] = {
-    Role.OWNER: [key for key, _, _ in PERMISSION_CATALOG],
-    Role.ADMIN: [
-        "manage_organization",
-        "manage_users",
-        "manage_roles",
-        "manage_panels",
-        "manage_revisions",
-        "approve_revisions",
-        "generate_labels",
-        "view_audit_logs",
-        "create_panels",
-        "edit_panels",
-        "upload_revisions",
-        "create_revisions",
-        "view_panels",
-        "view_schematics",
-        "view_approved_revisions",
-        "download_pdfs",
-        "scan_qr",
-        "report_issues",
-        "offline_access",
-    ],
-    Role.ENGINEER: [
-        "manage_panels",
-        "manage_revisions",
-        "approve_revisions",
-        "generate_labels",
-        "create_panels",
-        "edit_panels",
-        "upload_revisions",
-        "create_revisions",
-        "view_panels",
-        "view_schematics",
-        "view_approved_revisions",
-        "download_pdfs",
-        "scan_qr",
-        "report_issues",
-        "offline_access",
-    ],
-    Role.TECHNICIAN: [
-        "view_panels",
-        "view_approved_revisions",
-        "download_pdfs",
-        "scan_qr",
-        "report_issues",
-        "offline_access",
-    ],
-    Role.VIEWER: [
-        "view_panels",
-        "view_approved_revisions",
-        "scan_qr",
-    ],
-}
+ROLE_CATALOG: dict[Role, list[str]] = {role: permissions_for(role) for role in Role}
 
 ROLE_LABELS: dict[Role, str] = {
     Role.OWNER: "Owner",

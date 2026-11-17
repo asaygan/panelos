@@ -15,8 +15,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy import delete, select
 
 from panelos_api.config import get_settings
+from panelos_api.core import mail_templates, outbox
 from panelos_api.core.audit import append_audit
-from panelos_api.core.email import send_invite_email
+from panelos_api.core.email import send_mail_async
 from panelos_api.core.exceptions import Conflict, Forbidden, NotFound
 from panelos_api.core.ids import new_invitation_token
 from panelos_api.core.rbac import Role
@@ -42,13 +43,21 @@ def _accept_url(token: str) -> str:
 async def _send_invite(
     session: AsyncSession, *, company_id: uuid.UUID, email: str, role: Role, token: str
 ) -> None:
+    """Queue the invitation email (sent after the transaction commits)."""
+
     company = await session.get(Company, company_id)
-    send_invite_email(
+    existing = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    locale = existing.locale if existing else (company.default_locale if company else None)
+    mail = mail_templates.build(
+        "invite",
+        locale,
         to=email,
-        company_name=company.name if company else "your organization",
-        accept_url=_accept_url(token),
+        url=_accept_url(token),
+        company=company.name if company else "PanelOS",
         role=role.value,
+        days=get_settings().INVITATION_TTL_DAYS,
     )
+    outbox.after_commit(session, lambda: send_mail_async(mail))
 
 
 async def _get_membership(
@@ -151,7 +160,7 @@ async def invite(
         email=email,
         role=role,
         token=new_invitation_token(),
-        expires_at=datetime.now(UTC) + timedelta(days=14),
+        expires_at=datetime.now(UTC) + timedelta(days=get_settings().INVITATION_TTL_DAYS),
     )
     session.add(inv)
     await session.flush()
@@ -314,12 +323,12 @@ async def resend_invite(
             email=email,
             role=mem.role,
             token=new_invitation_token(),
-            expires_at=datetime.now(UTC) + timedelta(days=14),
+            expires_at=datetime.now(UTC) + timedelta(days=get_settings().INVITATION_TTL_DAYS),
         )
         session.add(inv)
     else:
         inv.token = new_invitation_token()
-        inv.expires_at = datetime.now(UTC) + timedelta(days=14)
+        inv.expires_at = datetime.now(UTC) + timedelta(days=get_settings().INVITATION_TTL_DAYS)
         inv.accepted_at = None
     mem.invited_at = datetime.now(UTC)
     await session.flush()

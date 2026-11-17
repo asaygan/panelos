@@ -18,7 +18,8 @@ from panelos_api.db.models.revision_file import RevisionFile
 from panelos_api.deps import CurrentMembership, get_current_membership, get_db, require_permission
 from panelos_api.repositories.panel_repo import PanelRepo
 from panelos_api.repositories.scan_repo import ScanRepo
-from panelos_api.services import panel_service
+from panelos_api.services import panel_access, panel_service
+from panelos_api.services.panel_presenter import present_panel, present_panels
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,9 +44,10 @@ async def list_panels(
         include_archived=include_archived,
         cursor=cursor,
         limit=limit,
+        allowed_locations=await panel_access.allowed_location_ids(db, m),
     )
     next_cursor = str(rows[-1].id) if len(rows) == limit else None
-    return Page[PanelOut](items=[PanelOut.model_validate(p) for p in rows], next_cursor=next_cursor)
+    return Page[PanelOut](items=await present_panels(db, rows), next_cursor=next_cursor)
 
 
 @router.post("", response_model=PanelOut, status_code=status.HTTP_201_CREATED)
@@ -60,7 +62,7 @@ async def create_panel(
         actor_id=m.user.id,
         **payload.model_dump(),
     )
-    return PanelOut.model_validate(panel)
+    return await present_panel(db, panel)
 
 
 @router.get("/{panel_id}", response_model=PanelOut)
@@ -69,10 +71,7 @@ async def get_panel(
     m: CurrentMembership = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> PanelOut:
-    panel = await PanelRepo(db, m.company_id).get(panel_id)
-    if panel is None:
-        raise NotFound("panel not found")
-    return PanelOut.model_validate(panel)
+    return await present_panel(db, await panel_access.get_panel(db, m, panel_id))
 
 
 @router.put("/{panel_id}", response_model=PanelOut)
@@ -89,7 +88,7 @@ async def update_panel(
         panel_id=panel_id,
         changes=payload.model_dump(exclude_unset=True),
     )
-    return PanelOut.model_validate(panel)
+    return await present_panel(db, panel)
 
 
 @router.delete("/{panel_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -116,9 +115,7 @@ async def panel_sheets(
     most recent revision (draft-aware) so freshly uploaded sheets show, falling
     back to the active revision.
     """
-    panel = await PanelRepo(db, m.company_id).get(panel_id)
-    if panel is None:
-        raise NotFound("panel not found")
+    panel = await panel_access.get_panel(db, m, panel_id)
     if revision_id is not None:
         owned = (
             await db.execute(
@@ -162,9 +159,7 @@ async def panel_activity(
     m: CurrentMembership = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, list[dict[str, str]]]:
-    panel = await PanelRepo(db, m.company_id).get(panel_id)
-    if panel is None:
-        raise NotFound("panel not found")
+    panel = await panel_access.get_panel(db, m, panel_id)
     scans = await ScanRepo(db).for_panel(panel.id)
     return {
         "scans": [

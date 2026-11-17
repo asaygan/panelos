@@ -4,26 +4,31 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pyotp
-from fastapi import APIRouter, Cookie, Depends, Request, Response
+from fastapi import APIRouter, Cookie, Depends, Header, Request, Response
 
 from panelos_api.api.v1.schemas.auth import (
     AcceptInviteIn,
+    ChangePasswordIn,
+    ForgotPasswordIn,
     InvitationInfoOut,
     LoginIn,
     LogoutIn,
+    MeCompany,
     MeOut,
+    MfaDisableIn,
+    MfaEnableOut,
     MfaSetupOut,
     MfaVerifyIn,
+    ProfileUpdateIn,
     RefreshIn,
+    ResetPasswordIn,
     TokenOut,
 )
 from panelos_api.config import get_settings
 from panelos_api.core.exceptions import Unauthorized
 from panelos_api.core.rate_limit import auth_limiter, enforce
 from panelos_api.deps import CurrentUser, get_current_user, get_system_db
-from panelos_api.repositories.membership_repo import MembershipRepo
-from panelos_api.services import auth_service
+from panelos_api.services import account_service, auth_service
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -196,14 +201,114 @@ async def logout(
 async def me(
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_system_db),
+    x_company_id: str | None = Header(default=None, alias="X-Company-Id"),
 ) -> MeOut:
-    memberships = await MembershipRepo(db).for_user(user.id)
+    return await _me(db, user, x_company_id)
+
+
+async def _me(db: AsyncSession, user: CurrentUser, x_company_id: str | None) -> MeOut:
+    from sqlalchemy import select
+
+    from panelos_api.core.rbac import permissions_for
+    from panelos_api.db.models.company import Company
+    from panelos_api.db.models.membership import Membership
+    from panelos_api.db.models.user import User
+
+    rows = (
+        await db.execute(
+            select(Membership, Company)
+            .join(Company, Company.id == Membership.company_id)
+            .where(Membership.user_id == user.id, Membership.status == "active")
+            .order_by(Membership.created_at)
+        )
+    ).all()
+    active = next((m for m, _c in rows if str(m.company_id) == (x_company_id or "")), None)
+    if active is None and rows:
+        active = rows[0][0]
+    db_user = await db.get(User, user.id)
     return MeOut(
         id=str(user.id),
         email=user.email,  # type: ignore[arg-type]
         name=user.name,
-        companies=[{"id": str(m.company_id), "role": m.role.value} for m in memberships],
+        locale=user.locale,
+        mfa_enabled=user.mfa_enabled,
+        mfa_required=get_settings().MFA_REQUIRED,
+        notification_prefs=(db_user.notification_prefs if db_user else {}) or {},
+        companies=[
+            MeCompany(id=str(m.company_id), name=c.name, role=m.role.value) for m, c in rows
+        ],
+        active_company_id=str(active.company_id) if active else None,
+        role=active.role.value if active else None,
+        permissions=permissions_for(active.role) if active else [],
     )
+
+
+@router.patch("/me", response_model=MeOut)
+async def update_me(
+    payload: ProfileUpdateIn,
+    user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_system_db),
+    x_company_id: str | None = Header(default=None, alias="X-Company-Id"),
+) -> MeOut:
+    updated = await account_service.update_profile(
+        db, user_id=user.id, **payload.model_dump(exclude_unset=True)
+    )
+    user.name, user.locale = updated.name, updated.locale
+    return await _me(db, user, x_company_id)
+
+
+@router.post("/forgot-password", status_code=202)
+@auth_limiter.limit("10/minute")
+async def forgot_password(
+    request: Request, payload: ForgotPasswordIn, db: AsyncSession = Depends(get_system_db)
+) -> dict[str, bool]:
+    """Always 202, whether or not the address has an account (no enumeration)."""
+    enforce("forgot-password", str(payload.email).lower(), "3/hour")
+    await account_service.request_password_reset(db, email=str(payload.email))
+    return {"ok": True}
+
+
+@router.post("/reset-password")
+@auth_limiter.limit("10/minute")
+async def reset_password(
+    request: Request, payload: ResetPasswordIn, db: AsyncSession = Depends(get_system_db)
+) -> dict[str, bool]:
+    await account_service.reset_password(db, token=payload.token, new_password=payload.password)
+    return {"ok": True}
+
+
+@router.post("/change-password")
+async def change_password(
+    payload: ChangePasswordIn,
+    response: Response,
+    user: CurrentUser = Depends(get_current_user),
+    panelos_refresh: str | None = Cookie(default=None),
+    db: AsyncSession = Depends(get_system_db),
+) -> dict[str, bool]:
+    """Change the password and sign out every other session of this user."""
+    enforce("change-password", str(user.id), "10/hour")
+    keep = await auth_service.family_of(db, panelos_refresh) if panelos_refresh else None
+    await account_service.change_password(
+        db,
+        user_id=user.id,
+        current_password=payload.current_password,
+        new_password=payload.new_password,
+        keep_family=keep,
+    )
+    return {"ok": True}
+
+
+@router.post("/logout-all")
+async def logout_all(
+    response: Response,
+    user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_system_db),
+) -> dict[str, bool]:
+    """Sign out everywhere (all devices)."""
+    await account_service.revoke_all_sessions(db, user.id)
+    for name in (SESSION_COOKIE, REFRESH_COOKIE, COMPANY_COOKIE):
+        response.delete_cookie(name, path="/")
+    return {"ok": True}
 
 
 @router.post("/mfa/setup", response_model=MfaSetupOut)
@@ -211,30 +316,29 @@ async def mfa_setup(
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_system_db),
 ) -> MfaSetupOut:
-    from panelos_api.db.models.user import User
-
-    secret = pyotp.random_base32()
-    db_user = await db.get(User, user.id)
-    if db_user is None:
-        raise Unauthorized("user vanished")
-    db_user.mfa_secret = secret
-    await db.flush()
-    otpauth = pyotp.totp.TOTP(secret).provisioning_uri(name=user.email, issuer_name="PanelOS")
-    return MfaSetupOut(secret=secret, otpauth_url=otpauth)
+    """Start enrolment: returns a secret/QR. MFA stays off until /mfa/enable."""
+    secret, uri = await account_service.mfa_begin(db, user_id=user.id)
+    return MfaSetupOut(secret=secret, otpauth_url=uri)
 
 
-@router.post("/mfa/verify")
-async def mfa_verify(
+@router.post("/mfa/enable", response_model=MfaEnableOut)
+async def mfa_enable(
     payload: MfaVerifyIn,
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_system_db),
-) -> dict[str, bool]:
-    from panelos_api.db.models.user import User
+) -> MfaEnableOut:
+    """Confirm enrolment with a code from the authenticator app."""
+    enforce("mfa-enable", str(user.id), "10/minute")
+    codes = await account_service.mfa_enable(db, user_id=user.id, code=payload.code)
+    return MfaEnableOut(recovery_codes=codes)
 
-    db_user = await db.get(User, user.id)
-    if db_user is None or db_user.mfa_secret is None:
-        raise Unauthorized("mfa not initialized")
-    ok = pyotp.TOTP(db_user.mfa_secret).verify(payload.code)
-    if not ok:
-        raise Unauthorized("invalid code")
+
+@router.post("/mfa/disable")
+async def mfa_disable(
+    payload: MfaDisableIn,
+    user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_system_db),
+) -> dict[str, bool]:
+    enforce("mfa-disable", str(user.id), "10/hour")
+    await account_service.mfa_disable(db, user_id=user.id, password=payload.password)
     return {"ok": True}

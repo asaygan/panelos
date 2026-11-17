@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from typing import TYPE_CHECKING
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, status
 from fastapi.responses import RedirectResponse
@@ -16,8 +17,11 @@ from panelos_api.api.v1.schemas.company import (
     LocationOut,
     LocationUpdateIn,
 )
+from panelos_api.core.audit import append_audit
 from panelos_api.core.exceptions import NotFound, ValidationFailed
+from panelos_api.core.i18n import SUPPORTED_LOCALES, normalize_locale
 from panelos_api.core.rbac import Permission
+from panelos_api.db.models.audit_log import AuditAction
 from panelos_api.db.models.company import Company
 from panelos_api.db.models.location import Location
 from panelos_api.deps import (
@@ -70,9 +74,31 @@ async def update_company(
         head = (await get_bytes(logo_key, 16)).lstrip() if get_bytes else b""
         if get_bytes and not head.startswith(_LOGO_SIGNATURES):
             raise ValidationFailed("logo must be a PNG, JPEG, SVG or WebP image")
-    for k, v in changes.items():
+    if "default_locale" in changes:
+        if normalize_locale(changes["default_locale"], "") not in SUPPORTED_LOCALES:
+            raise ValidationFailed("unsupported locale", code="unsupported_locale")
+        changes["default_locale"] = normalize_locale(changes["default_locale"])
+    if changes.get("timezone") is not None:
+        try:
+            ZoneInfo(changes["timezone"])
+        except Exception as exc:
+            raise ValidationFailed("unknown timezone", code="unknown_timezone") from exc
+    if "name" in changes and not (changes["name"] or "").strip():
+        raise ValidationFailed("name cannot be empty")
+    applied = {k: v for k, v in changes.items() if getattr(company, k) != v and v is not None}
+    for k, v in applied.items():
         setattr(company, k, v)
     await db.flush()
+    if applied:
+        await append_audit(
+            db,
+            company_id=m.company_id,
+            actor_id=m.user.id,
+            action=AuditAction.COMPANY_UPDATED,
+            target_type="company",
+            target_id=str(company.id),
+            meta={"changes": {k: (v if k != "logo_key" else True) for k, v in applied.items()}},
+        )
     return CompanyOut.model_validate(company)
 
 

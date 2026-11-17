@@ -29,10 +29,13 @@ class PanelRepo(BaseRepo[Panel]):
         location_id: uuid.UUID | None = None,
         q: str | None = None,
         include_archived: bool = False,
+        allowed_locations: set[uuid.UUID] | None = None,
         limit: int = 100,
         cursor: uuid.UUID | None = None,
     ) -> list[Panel]:
         stmt = self._scope(select(Panel))
+        if allowed_locations is not None:
+            stmt = stmt.where(Panel.location_id.in_(allowed_locations))
         if not include_archived:
             # Same visibility as the tree: hide archived panels and everything
             # that lives under an archived project.

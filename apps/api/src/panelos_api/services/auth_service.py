@@ -8,12 +8,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-import pyotp
 from sqlalchemy import func, select, update
 
 from panelos_api.config import get_settings
 from panelos_api.core.audit import append_audit
-from panelos_api.core.exceptions import Conflict, NotFound, Unauthorized
+from panelos_api.core.exceptions import Conflict, Gone, NotFound, Unauthorized
 from panelos_api.core.ids import new_invitation_token
 from panelos_api.core.rbac import Role
 from panelos_api.core.security import hash_password, issue_token, verify_password, verify_token
@@ -102,8 +101,13 @@ async def login(
         raise Unauthorized("invalid credentials")
     if not user.is_active:
         raise Unauthorized("user disabled")
-    if user.mfa_secret and (not mfa_code or not pyotp.TOTP(user.mfa_secret).verify(mfa_code)):
-        raise Unauthorized("invalid mfa code")
+    if user.mfa_enabled:
+        from panelos_api.services.account_service import verify_mfa_code
+
+        if not mfa_code:
+            raise Unauthorized("two-factor code required", code="mfa_required")
+        if not verify_mfa_code(user, mfa_code):
+            raise Unauthorized("invalid two-factor code", code="invalid_mfa_code")
 
     settings = get_settings()
     memberships = (
@@ -207,6 +211,18 @@ async def refresh_tokens(session: AsyncSession, *, refresh_token: str) -> TokenP
     return TokenPair(access_token=new_access, refresh_token=new_refresh)
 
 
+async def family_of(session: AsyncSession, refresh_token: str) -> uuid.UUID | None:
+    """Family id of a refresh token (None when unknown)."""
+
+    return (
+        await session.execute(
+            select(UserSession.family_id).where(
+                UserSession.token_hash == _hash_refresh(refresh_token)
+            )
+        )
+    ).scalar_one_or_none()
+
+
 async def logout(session: AsyncSession, *, refresh_token: str) -> None:
     """Sign out: revoke the refresh token and every token of the same login."""
 
@@ -252,7 +268,7 @@ async def invite_member(
         email=email.lower(),
         role=role,
         token=new_invitation_token(),
-        expires_at=datetime.now(UTC) + timedelta(days=14),
+        expires_at=datetime.now(UTC) + timedelta(days=get_settings().INVITATION_TTL_DAYS),
     )
     session.add(inv)
     await session.flush()
@@ -311,8 +327,15 @@ async def accept_invite(
     inv = (
         await session.execute(select(Invitation).where(Invitation.token == token))
     ).scalar_one_or_none()
-    if inv is None or inv.accepted_at is not None or inv.expires_at < datetime.now(UTC):
-        raise NotFound("invitation invalid or expired")
+    if inv is None:
+        raise NotFound("invitation not found", code="invitation_not_found")
+    if inv.accepted_at is not None:
+        raise Conflict("invitation already accepted", code="invitation_used")
+    if inv.expires_at < datetime.now(UTC):
+        raise Gone("invitation has expired", code="invitation_expired")
+    from panelos_api.services.account_service import validate_password
+
+    validate_password(password)
 
     now = datetime.now(UTC)
     user = (await session.execute(select(User).where(User.email == inv.email))).scalar_one_or_none()
@@ -327,6 +350,7 @@ async def accept_invite(
         await session.flush()
     else:
         user.password_hash = hash_password(password)
+        user.password_changed_at = now
         user.is_active = True
         if name:
             user.name = name

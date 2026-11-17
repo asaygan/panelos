@@ -19,7 +19,7 @@ from panelos_api.api.v1.schemas.file import (
     UpdateSheetIn,
 )
 from panelos_api.config import Settings, get_settings
-from panelos_api.core.exceptions import NotFound, ValidationFailed
+from panelos_api.core.exceptions import Forbidden, NotFound, ValidationFailed
 from panelos_api.core.rbac import Permission
 from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.panel_revision import PanelRevision
@@ -59,6 +59,17 @@ def _safe_filename(name: str) -> str:
     return (base or "upload")[:120]
 
 
+def _assert_may_upload(m: CurrentMembership, content_type: str) -> None:
+    """Schematic PDFs need UPLOAD_PDF; photos can come from anyone doing field work."""
+
+    if m.can(Permission.UPLOAD_PDF):
+        return
+    is_image = content_type.startswith("image/")
+    if is_image and (m.can(Permission.REPORT_ISSUE) or m.can(Permission.MANAGE_MAINTENANCE)):
+        return
+    raise Forbidden(f"permission denied: {Permission.UPLOAD_PDF.value}")
+
+
 def _company_prefix(company_id: uuid.UUID) -> str:
     return f"uploads/{company_id}/"
 
@@ -66,9 +77,10 @@ def _company_prefix(company_id: uuid.UUID) -> str:
 @router.post("/presign", response_model=PresignResponse)
 async def presign(
     payload: PresignRequest,
-    m: CurrentMembership = Depends(require_permission(Permission.UPLOAD_PDF)),
+    m: CurrentMembership = Depends(get_current_membership),
     storage: StorageProvider = Depends(get_storage),
 ) -> PresignResponse:
+    _assert_may_upload(m, payload.content_type)
     if payload.content_type not in ALLOWED_UPLOAD_TYPES:
         raise ValidationFailed(f"unsupported content type: {payload.content_type}")
     key = f"{_company_prefix(m.company_id)}{uuid.uuid4()}/{_safe_filename(payload.filename)}"
@@ -81,7 +93,7 @@ async def presign(
 @router.post("/finalize", response_model=FileOut)
 async def finalize(
     payload: FinalizeRequest,
-    m: CurrentMembership = Depends(require_permission(Permission.UPLOAD_PDF)),
+    m: CurrentMembership = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
     storage: StorageProvider = Depends(get_storage),
     settings: Settings = Depends(get_settings),
@@ -113,6 +125,8 @@ async def finalize(
         mime = detected
     elif mime not in ALLOWED_UPLOAD_TYPES:
         raise ValidationFailed(f"unsupported content type: {mime}")
+    # Permission is decided on what the file really is, not what was declared.
+    _assert_may_upload(m, mime)
     client_sha = (payload.sha256 or "").lower()
     if client_sha and not _SHA256_RE.match(client_sha):
         raise ValidationFailed("sha256 must be 64 hex characters")

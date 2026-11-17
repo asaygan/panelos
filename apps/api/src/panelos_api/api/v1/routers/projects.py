@@ -31,7 +31,8 @@ from panelos_api.db.models.panel import Panel
 from panelos_api.db.models.project import Project
 from panelos_api.db.models.system_group import SystemGroup
 from panelos_api.deps import CurrentMembership, get_current_membership, get_db, require_permission
-from panelos_api.services import project_service, system_group_service
+from panelos_api.services import panel_access, project_service, system_group_service
+from panelos_api.services.panel_presenter import present_as, present_panels
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,14 +97,18 @@ async def project_tree(
     panels = (
         (
             await db.execute(
-                select(Panel)
-                .where(Panel.company_id == m.company_id, Panel.archived_at.is_(None))
-                .order_by(Panel.tag)
+                panel_access.restrict_panels(
+                    select(Panel).where(
+                        Panel.company_id == m.company_id, Panel.archived_at.is_(None)
+                    ),
+                    await panel_access.allowed_location_ids(db, m),
+                ).order_by(Panel.tag)
             )
         )
         .scalars()
         .all()
     )
+    nodes = {n.id: n for n in await present_as(db, panels, PanelNode)}
     cabinets = (
         (
             await db.execute(
@@ -123,7 +128,7 @@ async def project_tree(
         cabinets_by_panel.setdefault(c.panel_id, []).append(CabinetOut.model_validate(c))
 
     def to_panel_node(p: Panel) -> PanelNode:
-        node = PanelNode.model_validate(p)
+        node = nodes[p.id]
         node.cabinets = cabinets_by_panel.get(p.id, [])
         return node
 
@@ -222,7 +227,7 @@ async def project_panels(
         .scalars()
         .all()
     )
-    return [PanelOut.model_validate(p) for p in rows]
+    return await present_panels(db, list(rows))
 
 
 @router.get("/{project_id}/status-history", response_model=list[ProjectStatusHistoryOut])
@@ -356,7 +361,7 @@ async def group_panels(
         .scalars()
         .all()
     )
-    return [PanelOut.model_validate(p) for p in rows]
+    return await present_panels(db, list(rows))
 
 
 @groups_router.get("/{group_id}/status-history", response_model=list[SystemGroupStatusHistoryOut])

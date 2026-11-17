@@ -91,6 +91,25 @@ class MembershipRepo(BaseRepo[Membership]):
         rows = (await self.session.execute(stmt)).all()
         return list(rows)
 
+    async def locations_for_many(
+        self, membership_ids: list[uuid.UUID]
+    ) -> dict[uuid.UUID, list[Location]]:
+        """Assigned locations for many memberships in a single query."""
+        if not membership_ids:
+            return {}
+        rows = (
+            await self.session.execute(
+                select(MembershipLocationAccess.membership_id, Location)
+                .join(Location, Location.id == MembershipLocationAccess.location_id)
+                .where(MembershipLocationAccess.membership_id.in_(membership_ids))
+                .order_by(Location.code)
+            )
+        ).all()
+        out: dict[uuid.UUID, list[Location]] = {}
+        for membership_id, location in rows:
+            out.setdefault(membership_id, []).append(location)
+        return out
+
     async def locations_for(self, membership_id: uuid.UUID) -> list[Location]:
         """Return Location rows assigned to a membership."""
 

@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     APP_ENV: Literal["development", "test", "staging", "production"] = "development"
     APP_NAME: str = "PanelOS"
     APP_URL: str = "http://localhost:3000"
-    API_URL: str = "http://localhost:8000"
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://panelos:panelos@localhost:5432/panelos"
@@ -43,9 +42,6 @@ class Settings(BaseSettings):
     # enforced (see migration 0010). Unset = run as the connecting role.
     DB_APP_ROLE: str | None = None
 
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
-
     # Rate limiting (auth endpoints). Disable in tests to allow rapid logins.
     RATE_LIMIT_ENABLED: bool = True
 
@@ -54,16 +50,26 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: Literal["HS256", "RS256"] = "HS256"
     ACCESS_TOKEN_TTL_MINUTES: int = 15
     REFRESH_TOKEN_TTL_DAYS: int = 7
+    PASSWORD_RESET_TTL_MINUTES: int = 60
+    INVITATION_TTL_DAYS: int = 14
+    # Key for encrypting secrets at rest (TOTP seeds). Falls back to a key
+    # derived from JWT_SECRET; set explicitly so the two can rotate separately.
+    DATA_ENCRYPTION_KEY: str | None = None
+    # When true every member must have MFA enabled to use the app.
+    MFA_REQUIRED: bool = False
 
     # One-time tenant bootstrap (POST /auth/bootstrap). OFF by default: enable
     # only for the first deploy of an empty database, then turn it back off.
     BOOTSTRAP_ENABLED: bool = False
 
+    # In-process periodic jobs (maintenance reminders). Off in tests.
+    SCHEDULER_ENABLED: bool = True
+
     # Uploads
     MAX_UPLOAD_BYTES: int = 100 * 1024 * 1024  # 100 MB per schematic PDF
 
     # Storage
-    STORAGE_PROVIDER: Literal["local", "s3", "supabase", "azure"] = "local"
+    STORAGE_PROVIDER: Literal["local", "s3"] = "local"
     STORAGE_LOCAL_PATH: str = "./.storage"
     STORAGE_PUBLIC_BASE_URL: str = "http://localhost:8000/api/v1/files"
 
@@ -74,36 +80,20 @@ class Settings(BaseSettings):
     S3_ACCESS_KEY_ID: str | None = None
     S3_SECRET_ACCESS_KEY: str | None = None
 
-    # Supabase
-    SUPABASE_URL: str | None = None
-    SUPABASE_SERVICE_KEY: str | None = None
-    SUPABASE_BUCKET: str = "panelos"
-
-    # Azure
-    AZURE_STORAGE_ACCOUNT: str | None = None
-    AZURE_STORAGE_KEY: str | None = None
-    AZURE_CONTAINER: str = "panelos"
-
-    # Mail
+    # Mail. EMAIL_PROVIDER: "log" (dev: print only), "smtp", or "ses" (AWS SES v2
+    # using the instance role — no credentials in env).
+    EMAIL_PROVIDER: Literal["log", "smtp", "ses"] = "log"
+    EMAIL_FROM: str = "PanelOS <no-reply@panelos.io>"
+    SES_REGION: str | None = None
     SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 1025
     SMTP_USER: str | None = None
     SMTP_PASSWORD: str | None = None
-    SMTP_FROM: str = "PanelOS <no-reply@panelos.app>"
-
-    # Frontend
-    NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
-    NEXT_PUBLIC_APP_URL: str = "http://localhost:3000"
 
     # Observability
-    OTEL_EXPORTER_OTLP_ENDPOINT: str | None = None
     SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.0
     LOG_LEVEL: Literal["debug", "info", "warning", "error", "critical"] = "info"
-
-    # Feature flags
-    FEATURE_SSO_SAML: bool = False
-    FEATURE_MFA_REQUIRED: bool = False
-    FEATURE_OFFLINE_EXPORT: bool = False
 
     # CORS
     CORS_ORIGINS: list[str] = Field(

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from fastapi import Depends, Header, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from panelos_api.config import Settings, get_settings
+from panelos_api.core import outbox
 from panelos_api.core.exceptions import Forbidden, Unauthorized
 from panelos_api.core.rbac import Permission, Role, has_permission
 from panelos_api.core.security import verify_token
@@ -39,6 +41,8 @@ class CurrentUser:
     id: uuid.UUID
     email: str
     name: str
+    locale: str = "tr"
+    mfa_enabled: bool = False
 
 
 @dataclass(slots=True)
@@ -46,6 +50,15 @@ class CurrentMembership:
     user: CurrentUser
     company_id: uuid.UUID
     role: Role
+    membership_id: uuid.UUID | None = None
+
+    def can(self, perm: Permission) -> bool:
+        return has_permission(self.role, perm)
+
+
+# How often a member's "last active" timestamp is refreshed (avoids a write on
+# every single request).
+_LAST_ACTIVE_EVERY = timedelta(minutes=5)
 
 
 async def get_db() -> AsyncIterator[AsyncSession]:
@@ -61,7 +74,10 @@ async def get_db() -> AsyncIterator[AsyncSession]:
             await session.commit()
         except Exception:
             await session.rollback()
+            outbox.discard(session)
             raise
+        # Emails / notifications queued by services fire only after the commit.
+        outbox.dispatch(session)
 
 
 async def get_system_db(db: AsyncSession = Depends(get_db)) -> AsyncSession:
@@ -94,7 +110,13 @@ async def get_current_user(
     if user is None or not user.is_active:
         raise Unauthorized("user not found or disabled")
     request.state.user_id = str(user.id)
-    return CurrentUser(id=user.id, email=user.email, name=user.name)
+    return CurrentUser(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        locale=user.locale,
+        mfa_enabled=user.mfa_enabled,
+    )
 
 
 async def get_optional_user(
@@ -123,7 +145,13 @@ async def get_optional_user(
     if user is None or not user.is_active:
         return None
     request.state.user_id = str(user.id)
-    return CurrentUser(id=user.id, email=user.email, name=user.name)
+    return CurrentUser(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        locale=user.locale,
+        mfa_enabled=user.mfa_enabled,
+    )
 
 
 async def get_current_membership(
@@ -157,7 +185,10 @@ async def get_current_membership(
         m = sorted(memberships, key=lambda mm: mm.created_at)[0]
 
     await set_tenant_guc(db, m.company_id)
-    return CurrentMembership(user=user, company_id=m.company_id, role=m.role)
+    now = datetime.now(UTC)
+    if m.last_active_at is None or now - m.last_active_at > _LAST_ACTIVE_EVERY:
+        m.last_active_at = now
+    return CurrentMembership(user=user, company_id=m.company_id, role=m.role, membership_id=m.id)
 
 
 def require_role(*roles: Role):  # type: ignore[no-untyped-def]

@@ -8,10 +8,14 @@ from panelos_api.api.v1.routers import (
     cabinets,
     companies,
     components,
+    dashboard,
+    exchange,
+    fieldwork,
     files,
     health,
     label_templates,
     labels,
+    notifications,
     panels,
     projects,
     qr,
@@ -38,5 +42,9 @@ api_v1_router.include_router(qr.router)
 api_v1_router.include_router(labels.router)
 api_v1_router.include_router(label_templates.router)
 api_v1_router.include_router(search.router)
+api_v1_router.include_router(fieldwork.router)
+api_v1_router.include_router(dashboard.router)
+api_v1_router.include_router(exchange.router)
+api_v1_router.include_router(notifications.router)
 
 __all__ = ["api_v1_router"]

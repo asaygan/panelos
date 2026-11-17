@@ -56,6 +56,22 @@ class AuditAction(StrEnum):
     LOCATIONS_ASSIGNED = "user.locations_assigned"
     LOGIN = "auth.login"
     LOGOUT = "auth.logout"
+    PASSWORD_RESET_REQUESTED = "auth.password_reset_requested"
+    PASSWORD_CHANGED = "auth.password_changed"
+    MFA_ENABLED = "auth.mfa_enabled"
+    MFA_DISABLED = "auth.mfa_disabled"
+    COMPANY_UPDATED = "company.updated"
+    ISSUE_CREATED = "issue.created"
+    ISSUE_UPDATED = "issue.updated"
+    ISSUE_STATUS_CHANGED = "issue.status_changed"
+    MAINTENANCE_RECORDED = "maintenance.recorded"
+    MAINTENANCE_PLAN_CREATED = "maintenance.plan_created"
+    MAINTENANCE_PLAN_UPDATED = "maintenance.plan_updated"
+    MAINTENANCE_PLAN_DELETED = "maintenance.plan_deleted"
+    ATTACHMENT_ADDED = "attachment.added"
+    ATTACHMENT_REMOVED = "attachment.removed"
+    PANELS_IMPORTED = "panels.imported"
+    DATA_EXPORTED = "data.exported"
 
 
 class AuditLog(UUIDPKMixin, TimestampMixin, TenantMixin, Base):

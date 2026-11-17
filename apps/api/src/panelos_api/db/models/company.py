@@ -22,3 +22,18 @@ class Company(UUIDPKMixin, TimestampMixin, Base):
     public_qr_access_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true"
     )
+    default_locale: Mapped[str] = mapped_column(
+        String(5), nullable=False, default="tr", server_default="tr"
+    )
+    timezone: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="Europe/Istanbul", server_default="Europe/Istanbul"
+    )
+    # Approval policy. ``require_four_eyes``: the person who submitted (or, for a
+    # one-step approval, created) a revision may not approve it.
+    # ``engineer_can_approve``: when False only admins/owners approve.
+    require_four_eyes: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    engineer_can_approve: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )

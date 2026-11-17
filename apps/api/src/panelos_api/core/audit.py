@@ -6,7 +6,7 @@ import hashlib
 import json
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from panelos_api.db.models.audit_log import AuditAction, AuditLog
 
@@ -43,11 +43,18 @@ async def append_audit(
 ) -> AuditLog:
     """Append a tamper-evident audit entry."""
 
+    # Two concurrent writers reading the same "last" row would fork the chain.
+    # Hold a per-company transaction lock while we read-then-append.
+    if session.get_bind().dialect.name == "postgresql":
+        await session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtextextended(:k, 0))"),
+            {"k": f"audit:{company_id}"},
+        )
     last = (
         await session.execute(
             select(AuditLog)
             .where(AuditLog.company_id == company_id)
-            .order_by(AuditLog.created_at.desc())
+            .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
             .limit(1)
         )
     ).scalar_one_or_none()
@@ -85,7 +92,7 @@ async def verify_chain(session: AsyncSession, company_id: uuid.UUID) -> bool:
             await session.execute(
                 select(AuditLog)
                 .where(AuditLog.company_id == company_id)
-                .order_by(AuditLog.created_at.asc())
+                .order_by(AuditLog.created_at.asc(), AuditLog.id.asc())
             )
         )
         .scalars()
